@@ -1,0 +1,24 @@
+# Secrets — never commit these
+.env
+.env.*
+!.env.example
+*.pem
+*.key
+netlify.toml.local
+
+# OS / editor noise
+.DS_Store
+Thumbs.db
+.vscode/
+.idea/
+*.swp
+
+# Dependencies / build output
+node_modules/
+dist/
+.netlify/
+.cache/
+
+# Python (placeholder generator only)
+__pycache__/
+*.pyc

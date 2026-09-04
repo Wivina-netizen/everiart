@@ -1,0 +1,89 @@
+/* ============================================================
+   EVERIART — Design Tokens
+   Master palette: Refined Minimalist Authority (locked)
+   ============================================================ */
+
+:root {
+  /* --- Color: locked master palette --- */
+  --navy:        #1C2541;  /* Midnight Navy  — dark anchor */
+  --charcoal:    #212121;  /* Deep Charcoal  — ink */
+  --gunmetal:    #3A506B;  /* Gunmetal       — accent, hover, rules */
+  --stone:       #8E8E8E;  /* Stone Gray     — meta, secondary */
+  --parchment:   #F4F1DE;  /* Parchment      — warm light base */
+  --offwhite:    #F8F8F8;  /* Soft Off-White — cool light base */
+
+  /* Derived — transparency layers for material surfaces */
+  --navy-a90:    rgba(28, 37, 65, 0.90);
+  --navy-a60:    rgba(28, 37, 65, 0.60);
+  --offwhite-a70: rgba(248, 248, 248, 0.70);
+  --hairline:    rgba(142, 142, 142, 0.28);
+  --hairline-dk: rgba(244, 241, 222, 0.18);
+
+  /* --- Type families --- */
+  --serif: "Instrument Serif", Georgia, "Times New Roman", serif;
+  --sans:  "Instrument Sans", system-ui, -apple-system, "Segoe UI", sans-serif;
+
+  /* --- Type scale ---
+     Tracking is size-specific (apple-design §15):
+     large display = negative tracking; body = ~0; small labels = slightly positive. */
+  --fs-display:  clamp(3.5rem, 13vw, 11rem);
+  --fs-h1:       clamp(2.5rem, 6vw, 5rem);
+  --fs-h2:       clamp(1.75rem, 3.4vw, 3rem);
+  --fs-h3:       clamp(1.25rem, 2vw, 1.75rem);
+  --fs-body:     clamp(1rem, 1.05vw, 1.125rem);
+  --fs-small:    0.9375rem;
+  --fs-meta:     0.8125rem;
+
+  --tr-display: -0.045em;   /* tightest — large type reads too loose as it grows */
+  --tr-h1:      -0.03em;
+  --tr-h2:      -0.02em;
+  --tr-h3:      -0.01em;
+  --tr-body:     0;
+  --tr-meta:     0.06em;    /* small text opens up for legibility */
+
+  --lh-display: 0.90;       /* leading tightens as size grows */
+  --lh-h1:      1.02;
+  --lh-h2:      1.10;
+  --lh-body:    1.6;
+  --lh-meta:    1.4;
+
+  /* --- Layout --- */
+  --gutter:     clamp(1.25rem, 5vw, 5rem);
+  --maxw:       84rem;
+  --measure:    68ch;        /* < 80 char line length */
+  --section-y:  clamp(6rem, 14vh, 12rem);
+
+  /* --- Motion (apple-design §4) ---
+     Springs are implemented in JS. These are the
+     non-gesture, non-interruptible fallbacks only. */
+  --ease-out-quart: cubic-bezier(0.165, 0.84, 0.44, 1);
+  --ease-in-out:    cubic-bezier(0.65, 0, 0.35, 1);
+  --t-fast:   120ms;
+  --t-base:   240ms;
+  --t-slow:   520ms;
+
+  /* Spring constants consumed by js/spring.js
+     damping 1.0 = critically damped (default UI)
+     damping 0.8 = momentum/flick only */
+  --spring-damping-ui:       1.0;
+  --spring-response-ui:      0.36;
+  --spring-damping-momentum: 0.8;
+  --spring-response-momentum: 0.34;
+}
+
+/* Accessibility signals (apple-design §14) */
+@media (prefers-reduced-transparency: reduce) {
+  :root {
+    --navy-a90: #1C2541;
+    --navy-a60: #1C2541;
+    --offwhite-a70: #F8F8F8;
+  }
+}
+
+@media (prefers-contrast: more) {
+  :root {
+    --stone: #6A6A6A;
+    --hairline: rgba(33, 33, 33, 0.55);
+    --hairline-dk: rgba(244, 241, 222, 0.55);
+  }
+}
