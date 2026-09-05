@@ -1,0 +1,11 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="-5 -5 410 210" fill="none">
+  <g fill="currentColor" fill-opacity="0.5">
+    <path d="M 150,13.3975 A 100,100 0 0 0 150,186.6025 A 100,100 0 0 0 150,13.3975 Z"/>
+    <path d="M 250,13.3975 A 100,100 0 0 0 250,186.6025 A 100,100 0 0 0 250,13.3975 Z"/>
+  </g>
+  <g fill="none" stroke="currentColor" stroke-width="9">
+    <circle cx="100" cy="100" r="100"/>
+    <circle cx="200" cy="100" r="100"/>
+    <circle cx="300" cy="100" r="100"/>
+  </g>
+</svg>

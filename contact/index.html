@@ -1,0 +1,140 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Contact — EveriArt</title>
+<meta name="description" content="Start a project with EveriArt. Send the brief, or just the problem — we'll tell you which studio should lead it.">
+<meta name="theme-color" content="#F8F8F8">
+
+<link rel="icon" href="/assets/favicon.svg" type="image/svg+xml">
+<link rel="apple-touch-icon" href="/assets/favicon.svg">
+
+<meta property="og:title" content="Contact — EveriArt">
+<meta property="og:description" content="Send the brief, or just the problem.">
+<meta property="og:type" content="website">
+<meta property="og:url" content="https://everiart.com/contact/">
+
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Instrument+Sans:wght@400;500;600&family=Instrument+Serif:ital@0;1&display=swap" rel="stylesheet">
+
+<link rel="stylesheet" href="/css/tokens.css">
+<link rel="stylesheet" href="/css/base.css">
+<link rel="stylesheet" href="/css/site.css">
+</head>
+<body>
+
+<a class="sr-only" href="#main">Skip to content</a>
+
+<nav class="nav" aria-label="Primary">
+  <a class="nav__mark" href="/" aria-label="Everiart — home">
+    <span class="nav__ring" aria-hidden="true"></span>
+    <span class="nav__word">Everiart<span class="nav__dot">.</span></span>
+  </a>
+
+  <div class="nav__links">
+    <a class="nav__link" href="/#work">Work</a>
+    <a class="nav__link" href="/#studios">Studios</a>
+    <a class="nav__link" href="/#process">Process</a>
+    <a class="nav__link" href="/contact/" aria-current="page">Contact</a>
+  </div>
+</nav>
+
+<main id="main" class="page">
+  <div class="wrap">
+
+    <header class="page__head">
+      <h1 class="page__title">Start a project.</h1>
+      <p class="page__lede">
+        Send the brief, or just the problem. We'll tell you which studio should
+        lead it, and what it takes to do it properly.
+      </p>
+    </header>
+
+    <div class="contact-grid">
+
+      <!-- Netlify picks the form up from the deployed HTML at build time.
+           Without JS this posts normally and Netlify renders its own
+           confirmation; with JS, contactForm() posts it and answers in place. -->
+      <form class="form" name="contact" method="POST"
+            data-netlify="true" netlify-honeypot="company">
+        <input type="hidden" name="form-name" value="contact">
+
+        <!-- Honeypot: hidden from people, not from bots that fill every field. -->
+        <p class="form__trap" aria-hidden="true">
+          <label>Leave this field empty
+            <input name="company" tabindex="-1" autocomplete="off">
+          </label>
+        </p>
+
+        <div class="field">
+          <label class="field__label" for="cf-name">Name</label>
+          <input class="field__input" id="cf-name" name="name" type="text"
+                 autocomplete="name" required>
+        </div>
+
+        <div class="field">
+          <label class="field__label" for="cf-email">Email</label>
+          <input class="field__input" id="cf-email" name="email" type="email"
+                 autocomplete="email" required>
+        </div>
+
+        <div class="field">
+          <label class="field__label" for="cf-message">Message</label>
+          <textarea class="field__input field__input--area" id="cf-message"
+                    name="message" rows="7" required></textarea>
+        </div>
+
+        <div class="form__foot">
+          <button class="btn btn--primary" type="submit">Send message</button>
+          <p class="form__status" role="status" aria-live="polite"></p>
+        </div>
+      </form>
+
+      <aside class="direct">
+        <h2 class="direct__title">Or reach us directly</h2>
+        <p class="direct__note">
+          Same inbox, same people. Whichever is faster for you.
+        </p>
+
+        <div class="direct__actions">
+          <a class="btn" href="mailto:hello@everiart.com">
+            <span>Email us</span>
+            <svg class="btn__arrow" viewBox="0 0 12 12" fill="none" aria-hidden="true" focusable="false">
+              <path d="M2.5 9.5 9.5 2.5M4 2.5h5.5V8" stroke="currentColor" stroke-width="1.4"
+                    stroke-linecap="round" stroke-linejoin="round"/>
+            </svg>
+          </a>
+          <a class="btn" href="https://wa.me/2347070774144"
+             target="_blank" rel="noopener noreferrer">
+            <span>WhatsApp</span>
+            <svg class="btn__arrow" viewBox="0 0 12 12" fill="none" aria-hidden="true" focusable="false">
+              <path d="M2.5 9.5 9.5 2.5M4 2.5h5.5V8" stroke="currentColor" stroke-width="1.4"
+                    stroke-linecap="round" stroke-linejoin="round"/>
+            </svg>
+          </a>
+        </div>
+
+        <dl class="direct__meta">
+          <dt class="direct__label">Studio</dt>
+          <dd class="direct__value">Abuja, Nigeria</dd>
+          <dt class="direct__label">Studios</dt>
+          <dd class="direct__value">ByEveriArt · EveriDesign · BeFrames</dd>
+        </dl>
+      </aside>
+
+    </div>
+  </div>
+
+  <div class="wrap">
+    <div class="foot">
+      <span>&copy; 2026 EveriArt. All rights reserved.</span>
+      <span>ByEveriArt · EveriDesign · BeFrames</span>
+    </div>
+  </div>
+</main>
+
+<script type="module" src="/js/main.js"></script>
+</body>
+</html>

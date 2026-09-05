@@ -12,12 +12,30 @@
   --parchment:   #F4F1DE;  /* Parchment      — warm light base */
   --offwhite:    #F8F8F8;  /* Soft Off-White — cool light base */
 
+  /* Brand gold — sampled from the dot in the Everiart wordmark.
+     Accent only, never a surface: the logo dot, the trademark mark,
+     and the hero's call-to-action affordance. */
+  --gold:        #B79B62;
+  --gold-hi:     #CFB57E;  /* hover / focus lift */
+
+  /* Cinematic black — the hero ground only.
+     The background plate is neutral near-black; navy behind it would
+     tint the stone's warm highlights cold. Every other dark surface
+     on the site stays Midnight Navy. */
+  --ink-deep:    #0B0B0C;
+
   /* Derived — transparency layers for material surfaces */
   --navy-a90:    rgba(28, 37, 65, 0.90);
   --navy-a60:    rgba(28, 37, 65, 0.60);
   --offwhite-a70: rgba(248, 248, 248, 0.70);
   --hairline:    rgba(142, 142, 142, 0.28);
   --hairline-dk: rgba(244, 241, 222, 0.18);
+  --gold-a40:    rgba(183, 155, 98, 0.40);
+
+  /* Hero scrim stops — neutral, so the plate keeps its own colour */
+  --ink-a00:     rgba(11, 11, 12, 0);
+  --ink-a55:     rgba(11, 11, 12, 0.55);
+  --ink-a80:     rgba(11, 11, 12, 0.80);
 
   /* --- Type families --- */
   --serif: "Instrument Serif", Georgia, "Times New Roman", serif;
@@ -31,14 +49,22 @@
   --fs-h2:       clamp(1.75rem, 3.4vw, 3rem);
   --fs-h3:       clamp(1.25rem, 2vw, 1.75rem);
   --fs-body:     clamp(1rem, 1.05vw, 1.125rem);
-  --fs-small:    0.9375rem;
-  --fs-meta:     0.8125rem;
+  /* These mirror --fs-body's pure-vw shape on purpose: all three begin
+     growing within ~10px of the same viewport width (~1525px), so the
+     proportions between body, small and meta hold at every size instead
+     of drifting apart on wide screens. */
+  --fs-small:    clamp(0.9375rem, 0.98vw, 1.0625rem);
+  --fs-meta:     clamp(0.8125rem, 0.85vw, 0.9375rem);
+  --fs-lede:     clamp(1.125rem, 1.6vw, 1.375rem);
 
   --tr-display: -0.045em;   /* tightest — large type reads too loose as it grows */
   --tr-h1:      -0.03em;
   --tr-h2:      -0.02em;
   --tr-h3:      -0.01em;
   --tr-body:     0;
+  --tr-small:    0.012em;   /* the step between body 0 and meta — was missing,
+                               so 15px text inherited body's 0 or improvised */
+  --tr-lede:    -0.01em;
   --tr-meta:     0.06em;    /* small text opens up for legibility */
 
   --lh-display: 0.90;       /* leading tightens as size grows */
