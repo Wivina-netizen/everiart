@@ -79,10 +79,21 @@
         </a>
       </div>
 
-      <span class="scroll-cue">
-        <span class="scroll-cue__line" aria-hidden="true"></span>
-        Scroll
-      </span>
+      <div class="hero__aside">
+        <!-- Revealed by heroVideo() only when a click can actually start the
+             plate: Data Saver on, or autoplay refused. Hidden otherwise. -->
+        <button class="hero__play" type="button" hidden>
+          <svg class="hero__play-icon" viewBox="0 0 10 12" aria-hidden="true" focusable="false">
+            <path d="M1 1.2v9.6L9 6z" fill="currentColor"/>
+          </svg>
+          <span class="hero__play-label">Play background</span>
+        </button>
+
+        <span class="scroll-cue">
+          <span class="scroll-cue__line" aria-hidden="true"></span>
+          Scroll
+        </span>
+      </div>
     </div>
 
     <!-- Wordmark: type as the composition. Sized to the measure by JS,
