@@ -577,6 +577,25 @@
 /* align-content:start — otherwise the rows stretch to match the taller
    heading column beside them, which was invisible with three rows and
    obvious with one. */
+/* The closing statement is the page's last route to /contact/, so it carries
+   a standing underline rather than a hover-only one — there is no hover on
+   touch, and an affordance that only appears on a pointer is no affordance.
+   Same gold language as the hero's CTA rule. */
+.contact__big-link {
+  text-decoration: underline;
+  text-decoration-color: var(--gold-a40);
+  text-decoration-thickness: 1px;
+  text-underline-offset: 0.12em;
+  transition:
+    text-decoration-color var(--t-base) var(--ease-out-quart),
+    color var(--t-base) var(--ease-out-quart);
+}
+.contact__big-link:hover,
+.contact__big-link:focus-visible {
+  text-decoration-color: var(--gold-hi);
+  color: #fff;
+}
+
 .contact__list { display: grid; gap: 1.25rem; align-content: start; }
 .contact__row { display: grid; gap: 0.2rem; }
 .contact__label { font-size: var(--fs-meta); letter-spacing: var(--tr-meta); color: rgba(244,241,222,0.55); }
