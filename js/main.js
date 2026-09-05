@@ -9,16 +9,103 @@ import { Spring, prefersReducedMotion, REDUCED } from './spring.js';
 const reduced = () => prefersReducedMotion();
 
 /* ------------------------------------------------------------
-   1. Hero — ONE orchestrated load sequence (not per-section fades)
+   1a. Hero plate — attach the right weight, then fade it up.
+       The poster is a CSS background on .hero__media, so every
+       bail-out below still lands on a real image, never a void.
+   ------------------------------------------------------------ */
+function heroVideo() {
+  const v = document.querySelector('.hero__video');
+  if (!v) return;
+
+  // Motion-sensitive users get the still. So do metered connections —
+  // a decorative loop is never worth someone's data plan.
+  if (reduced()) return;
+  const conn = navigator.connection;
+  if (conn && (conn.saveData || /(^|-)2g$/.test(conn.effectiveType || ''))) return;
+
+  // VP9 is ~55% lighter than the H.264 cut, and covers the Chromium builds
+  // that ship without proprietary codecs. MP4 carries Safari and the rest.
+  const webm = v.canPlayType('video/webm; codecs="vp9"') !== '';
+  const hd = window.innerWidth * (window.devicePixelRatio || 1) >= 1100;
+  const d = v.dataset;
+  v.src = hd ? (webm ? d.hdWebm : d.hdMp4) : (webm ? d.sdWebm : d.sdMp4);
+  v.preload = 'auto';
+  v.load();          // preload="none" will not fetch on a src change alone
+
+  const show = () => { v.dataset.ready = '1'; };
+  if (v.readyState >= 2) show();
+  else v.addEventListener('loadeddata', show, { once: true });
+
+  // Autoplay can still be refused (low-power mode). The poster stays put.
+  const played = v.play();
+  if (played && played.catch) played.catch(() => {});
+
+  // Don't burn cycles decoding video that isn't on screen.
+  const io = new IntersectionObserver(([e]) => {
+    if (!v.src) return;
+    if (e.isIntersecting) { const r = v.play(); if (r && r.catch) r.catch(() => {}); }
+    else v.pause();
+  }, { threshold: 0.01 });
+  io.observe(v);
+}
+
+/* ------------------------------------------------------------
+   1b. Wordmark fit — set the type to the measure, exactly.
+       A vw value can't do this: the wrap is capped at --maxw, so
+       past that width vw keeps growing while the column doesn't.
+   ------------------------------------------------------------ */
+function fitWordmark() {
+  const line = document.querySelector('.hero__markline');
+  const word = document.querySelector('.hero__word');
+  if (!line || !word) return () => {};
+
+  const REF = 100;   // measure at a known size, then scale by ratio
+
+  const fit = () => {
+    const cs = getComputedStyle(line);
+    const avail = line.clientWidth
+      - parseFloat(cs.paddingInlineStart || cs.paddingLeft)
+      - parseFloat(cs.paddingInlineEnd || cs.paddingRight);
+    if (avail <= 0) return;
+
+    // The share of the measure to occupy lives in CSS, so the breakpoint that
+    // changes it sits next to every other breakpoint rather than in here.
+    const fill = parseFloat(cs.getPropertyValue('--wordmark-fill')) || 1;
+
+    word.style.fontSize = REF + 'px';
+    word.style.width = 'max-content';
+    const natural = word.getBoundingClientRect().width;
+    word.style.width = '';
+    if (!natural) return;
+
+    word.style.fontSize = (REF * (avail * fill / natural)).toFixed(2) + 'px';
+  };
+
+  fit();
+  // Web fonts land after first paint; the fallback's metrics are not ours.
+  if (document.fonts && document.fonts.ready) document.fonts.ready.then(fit);
+
+  let rt;
+  window.addEventListener('resize', () => {
+    clearTimeout(rt);
+    rt = setTimeout(fit, 120);
+  });
+
+  return fit;
+}
+
+/* ------------------------------------------------------------
+   1c. Hero — ONE orchestrated load sequence (not per-section fades)
    ------------------------------------------------------------ */
 function heroSequence() {
   const segs = document.querySelectorAll('.hero__seg > span');
-  const sub = document.querySelector('.hero__sub');
-  const foot = document.querySelector('.hero__foot');
+  const reg = document.querySelector('.hero__reg');
+  const lead = document.querySelector('.hero__lead');
+  const nav = document.querySelector('.nav');
   const cueLine = document.querySelector('.scroll-cue__line');
 
   if (reduced()) {
-    [...segs, sub, foot].forEach((el) => {
+    [...segs, reg, lead, nav].forEach((el) => {
       if (el) { el.style.transform = 'none'; el.style.opacity = '1'; }
     });
     if (cueLine) cueLine.style.transform = 'scaleX(1)';
@@ -27,29 +114,42 @@ function heroSequence() {
 
   // Wordmark segments rise from their own clipped mask, staggered.
   segs.forEach((seg, i) => {
-    seg.style.transform = 'translate3d(0, 105%, 0)';
-    const s = new Spring(105, {
+    seg.style.transform = 'translate3d(0, 108%, 0)';
+    const s = new Spring(108, {
       damping: 1.0,
-      response: 0.62,
+      response: 0.68,
       onUpdate: (v) => { seg.style.transform = `translate3d(0, ${v}%, 0)`; },
+      onRest: () => { seg.style.willChange = 'auto'; },
     });
-    setTimeout(() => s.setTarget(0), 120 + i * 95);
+    setTimeout(() => s.setTarget(0), 160 + i * 110);
   });
 
-  // Supporting copy follows the wordmark, never competes with it.
-  [sub, foot].forEach((el, i) => {
+  // The registered mark settles after the word it belongs to.
+  if (reg) {
+    reg.style.opacity = '0';
+    const s = new Spring(0, {
+      damping: 1.0,
+      response: 0.5,
+      onUpdate: (v) => { reg.style.opacity = String(v); },
+    });
+    setTimeout(() => s.setTarget(1), 620);
+  }
+
+  // Chrome and copy follow the wordmark — they never compete with it.
+  [nav, lead].forEach((el, i) => {
     if (!el) return;
     el.style.opacity = '0';
-    el.style.transform = 'translate3d(0, 18px, 0)';
+    el.style.transform = 'translate3d(0, 14px, 0)';
     const s = new Spring(0, {
       damping: 1.0,
       response: 0.55,
       onUpdate: (v) => {
         el.style.opacity = String(v);
-        el.style.transform = `translate3d(0, ${(1 - v) * 18}px, 0)`;
+        el.style.transform = `translate3d(0, ${(1 - v) * 14}px, 0)`;
       },
+      onRest: () => { el.style.transform = 'none'; el.style.willChange = 'auto'; },
     });
-    setTimeout(() => s.setTarget(1), 520 + i * 110);
+    setTimeout(() => s.setTarget(1), 420 + i * 120);
   });
 
   if (cueLine) {
@@ -59,7 +159,7 @@ function heroSequence() {
       response: 0.7,
       onUpdate: (v) => { cueLine.style.transform = `scaleX(${v})`; },
     });
-    setTimeout(() => s.setTarget(1), 820);
+    setTimeout(() => s.setTarget(1), 900);
   }
 }
 
@@ -205,11 +305,16 @@ function studioFilter() {
 }
 
 /* ------------------------------------------------------------
-   4. Hero parallax — large moving surface, subtle, rAF-throttled
+   4. Hero parallax — large moving surface, subtle, rAF-throttled.
+      The plate lags the scroll; the wordmark runs slightly ahead of it.
+      Two rates is what reads as depth — one rate just reads as drift.
    ------------------------------------------------------------ */
 function heroParallax() {
-  const img = document.querySelector('.hero__media img');
-  if (!img || reduced()) return;
+  const hero = document.querySelector('.hero');
+  if (!hero || reduced()) return;
+
+  const plate = hero.querySelector('.hero__video');
+  const markline = hero.querySelector('.hero__markline');
 
   let ticking = false;
   const onScroll = () => {
@@ -217,8 +322,9 @@ function heroParallax() {
     ticking = true;
     requestAnimationFrame(() => {
       const y = window.scrollY;
-      if (y < window.innerHeight * 1.2) {
-        img.style.transform = `translate3d(0, ${y * 0.16}px, 0) scale(1.08)`;
+      if (y < hero.offsetHeight * 1.2) {
+        if (plate) plate.style.transform = `translate3d(0, ${y * 0.16}px, 0) scale(1.06)`;
+        if (markline) markline.style.transform = `translate3d(0, ${y * -0.055}px, 0)`;
       }
       ticking = false;
     });
@@ -258,6 +364,8 @@ function navTheme() {
    Boot
    ------------------------------------------------------------ */
 function init() {
+  heroVideo();
+  fitWordmark();   // size the type before it is revealed, never after
   heroSequence();
   reveals();
   studioFilter();

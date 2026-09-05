@@ -8,9 +8,11 @@
   inset-block-start: 0;
   inset-inline: 0;
   z-index: 100;
-  display: flex;
+  /* Three tracks: mark / links / contact. The centre track stays centred
+     in the viewport regardless of how wide the outer two get. */
+  display: grid;
+  grid-template-columns: 1fr auto 1fr;
   align-items: center;
-  justify-content: space-between;
   gap: 1.5rem;
   padding: 0.9rem var(--gutter);
   border-bottom: 1px solid transparent;
@@ -40,18 +42,56 @@
   .nav { transition: none; }
 }
 
+/* Mark: ring device + the wordmark exactly as drawn — gold dot intact. */
 .nav__mark {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.6rem;
+  justify-self: start;
+  white-space: nowrap;
+}
+.nav__ring {
+  /* Masked, not <img>, so the mark inherits the nav's colour on both themes.
+     Small-use cut: at this size the striped lenses average into mud, so the
+     simplified variant carries the same weight without the moire. */
+  display: block;
+  width: 2.4rem;
+  aspect-ratio: 410 / 210;
+  background: currentColor;
+  -webkit-mask: url("../assets/everiart-mark-sm.svg") center / contain no-repeat;
+          mask: url("../assets/everiart-mark-sm.svg") center / contain no-repeat;
+  flex: none;
+}
+.nav__word {
   font-family: var(--serif);
   font-size: 1.125rem;
   letter-spacing: -0.01em;
-  white-space: nowrap;
 }
+.nav__dot { color: var(--gold); }
+
 .nav__links {
   display: flex;
   gap: clamp(1rem, 2.5vw, 2.25rem);
   align-items: center;
+  justify-self: center;
   font-size: var(--fs-small);
 }
+
+/* Contact sits in the top-right corner of the composition, as in the brief. */
+.nav__contact {
+  display: grid;
+  gap: 0.15rem;
+  justify-self: end;
+  text-align: right;
+  font-size: var(--fs-meta);
+  line-height: 1.35;
+  letter-spacing: 0.01em;
+  opacity: 0.78;
+}
+.nav__contact-item {
+  transition: opacity var(--t-fast) var(--ease-out-quart);
+}
+.nav__contact-item:hover { opacity: 0.6; }
 .nav__link { position: relative; padding-block: 0.25rem; }
 .nav__link::after {
   content: "";
@@ -67,107 +107,221 @@
 .nav__link:hover::after,
 .nav__link:focus-visible::after { transform: scaleX(1); }
 
+/* Chrome sheds progressively — the mark is the last thing standing. */
+@media (max-width: 64rem) {
+  .nav { grid-template-columns: 1fr auto; }
+  .nav__contact { display: none; }
+}
 @media (max-width: 40rem) {
+  .nav { grid-template-columns: 1fr; }
   .nav__links { display: none; }
 }
 
-/* ---------- Hero ---------- */
+/* ---------- Hero ----------
+   Composition: chrome at the top edge, the ask at two-thirds, and the
+   wordmark seated on the bottom edge so its baseline bleeds off-canvas.
+   Everything sits over a slow-breathing background plate.
+   -------------------------------------------------------------------- */
 .hero {
   position: relative;
   min-height: 100svh;
   display: grid;
-  grid-template-rows: 1fr auto;
+  grid-template-rows: 1fr auto;   /* lead takes the slack, wordmark anchors */
   overflow: clip;
-  background: var(--navy);
+  background: var(--ink-deep);
   color: var(--parchment);
+  isolation: isolate;
 }
 
+/* --- Background plate --- */
 .hero__media {
   position: absolute;
   inset: 0;
   z-index: 0;
+  /* The still is the floor. Reduced motion, save-data, refused autoplay
+     and no-JS all land here rather than on an empty black box. */
+  background: var(--ink-deep) url("../assets/hero-poster.jpg") center / cover no-repeat;
 }
-.hero__media img {
+.hero__video {
   width: 100%;
   height: 100%;
   object-fit: cover;
-  opacity: 0.38;
-  filter: grayscale(0.35) contrast(1.05);
   will-change: transform;
-  transform: scale(1.08);
+  transform: scale(1.06);
+  /* Held back until the first frame is decoded, then faded up by JS. */
+  opacity: 0;
+  transition: opacity 900ms var(--ease-out-quart);
 }
+.hero__video[data-ready="1"] { opacity: 1; }
+
+/* The plate already runs dark; the scrim only protects the type. */
 .hero__scrim {
   position: absolute;
   inset: 0;
+  /* Two jobs in one layer: a flat floor that pushes the whole plate into
+     shadow, and a gradient that protects the nav band and the wordmark.
+     Applied here rather than as a filter so the poster fallback matches. */
   background:
-    linear-gradient(to bottom,
-      rgba(28, 37, 65, 0.55) 0%,
-      rgba(28, 37, 65, 0.35) 45%,
-      rgba(28, 37, 65, 0.92) 100%);
+    linear-gradient(
+      to bottom,
+      var(--ink-a80) 0%,
+      rgba(11, 11, 12, 0.46) 26%,
+      rgba(11, 11, 12, 0.46) 44%,
+      rgba(11, 11, 12, 0.88) 86%,
+      var(--ink-deep) 100%
+    ),
+    rgba(11, 11, 12, 0.30);
+}
+/* Corner falloff — keeps the eye centre-frame, as a lens would. */
+.hero__vignette {
+  position: absolute;
+  inset: 0;
+  background: radial-gradient(
+    118% 92% at 50% 42%,
+    var(--ink-a00) 40%,
+    rgba(11, 11, 12, 0.42) 78%,
+    rgba(11, 11, 12, 0.72) 100%
+  );
 }
 
+/* --- Lead: positioning line + the single action --- */
 .hero__inner {
   position: relative;
   z-index: 2;
   display: flex;
-  flex-direction: column;
-  justify-content: flex-end;
-  padding-block-end: clamp(2rem, 6vh, 4rem);
+  align-items: flex-end;
+  justify-content: space-between;
+  gap: 2rem;
+  padding-block: clamp(6rem, 12vh, 9rem) clamp(3.5rem, 10vh, 6.5rem);
+}
+.hero__lead { max-width: 34ch; }
+
+.hero__sub {
+  margin: 0;
+  color: rgba(244, 241, 222, 0.86);
+  font-size: clamp(0.9375rem, 1.15vw, 1.0625rem);
+  line-height: 1.55;
+  letter-spacing: 0.002em;
+  text-wrap: pretty;
 }
 
-/* The wordmark: type as the design, not a delivery vehicle */
+/* CTA — a rule that is always present, and lifts on intent. */
+.hero__cta {
+  position: relative;
+  display: inline-flex;
+  align-items: center;
+  gap: 0.5rem;
+  margin-block-start: clamp(1.25rem, 3vh, 2rem);
+  padding-block-end: 0.5rem;
+  font-size: var(--fs-small);
+  font-weight: 500;
+  letter-spacing: 0.01em;
+  color: var(--parchment);
+  transition: color var(--t-base) var(--ease-out-quart);
+}
+.hero__cta-arrow {
+  width: 0.75em;
+  height: 0.75em;
+  flex: none;
+  transition: transform var(--t-base) var(--ease-out-quart);
+}
+.hero__cta-rule {
+  position: absolute;
+  inset-inline: 0;
+  inset-block-end: 0;
+  height: 1px;
+  background: var(--gold-a40);
+}
+/* The gold fill wipes in over the resting rule rather than replacing it. */
+.hero__cta-rule::after {
+  content: "";
+  position: absolute;
+  inset: 0;
+  background: var(--gold-hi);
+  transform: scaleX(0);
+  transform-origin: left;
+  transition: transform var(--t-base) var(--ease-out-quart);
+}
+.hero__cta:hover .hero__cta-rule::after,
+.hero__cta:focus-visible .hero__cta-rule::after { transform: scaleX(1); }
+.hero__cta:hover .hero__cta-arrow,
+.hero__cta:focus-visible .hero__cta-arrow { transform: translate3d(0.15em, -0.15em, 0); }
+.hero__cta:hover { color: #fff; }
+
+/* --- Wordmark --- */
+.hero__markline {
+  position: relative;
+  z-index: 2;
+  will-change: transform;
+  /* How much of the measure the wordmark spans. Read by js/main.js.
+     "Everiart" is short, so filling the full measure drives its cap height
+     past 30% of the viewport and crowds the lead copy above it. On a narrow
+     screen there is nothing to crowd, so it takes the whole line. */
+  --wordmark-fill: 0.86;
+}
+@media (max-width: 48rem) {
+  .hero__markline { --wordmark-fill: 1; }
+}
+
 .hero__word {
   font-family: var(--serif);
-  font-size: var(--fs-display);
-  line-height: var(--lh-display);
+  font-weight: 400;
+  /* Pre-JS fallback. js/main.js fits this to the measure exactly. */
+  font-size: 22vw;
+  line-height: 0.8;
   letter-spacing: var(--tr-display);
   margin: 0;
   display: flex;
-  flex-wrap: wrap;
-  align-items: baseline;
-  column-gap: 0; /* segments are split for the reveal mask only — set as one word */
+  align-items: flex-end;
+  column-gap: 0;      /* split for the reveal mask only — reads as one word */
+  white-space: nowrap;
+  color: var(--parchment);
+  /* Seats the baseline past the bottom edge so the word bleeds off-canvas.
+     em here resolves against the wordmark's own size, so the bleed holds
+     its proportion at every viewport. .hero clips the overflow. */
+  margin-block-end: -0.16em;
 }
-.hero__seg { display: inline-block; overflow: hidden; }
+
+/* Mask boxes. Padding grows the clip upward so ascenders never crop, while
+   the negative margin keeps layout identical; the bottom edge still cuts. */
+.hero__seg {
+  display: inline-block;
+  flex: none;
+  overflow: hidden;
+  padding-block-start: 0.32em;
+  margin-block-start: -0.32em;
+}
 .hero__seg > span {
   display: inline-block;
   will-change: transform;
 }
-.hero__dot { color: var(--gunmetal); }
 
-.hero__sub {
-  margin-block-start: clamp(1.25rem, 3vh, 2rem);
-  max-width: 40ch;
-  color: rgba(244, 241, 222, 0.82);
-  font-size: clamp(1rem, 1.4vw, 1.25rem);
-  line-height: 1.5;
+/* Registered mark: the terminal device, carrying the wordmark's gold. */
+.hero__reg {
+  flex: none;
+  font-family: var(--sans);
+  font-size: 0.17em;
+  font-weight: 400;
+  line-height: 1;
+  color: var(--gold);
+  align-self: flex-start;
+  /* Rides at the cap height of the word it terminates. */
+  margin-block-start: 0.48em;
+  margin-inline-start: 0.1em;
+  letter-spacing: 0;
 }
 
-.hero__foot {
-  position: relative;
-  z-index: 2;
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  gap: 1rem;
-  padding-block: 1.25rem;
-  border-top: 1px solid var(--hairline-dk);
-}
-.hero__disciplines {
-  display: flex;
-  gap: clamp(0.75rem, 2vw, 2rem);
-  flex-wrap: wrap;
-  color: rgba(244, 241, 222, 0.6);
-  font-size: var(--fs-meta);
-  letter-spacing: var(--tr-meta);
-}
-
+/* --- Scroll cue --- */
 .scroll-cue {
   display: inline-flex;
+  flex: none;
+  padding-block-end: 0.5rem;
   align-items: center;
   gap: 0.5rem;
-  color: rgba(244, 241, 222, 0.6);
+  color: rgba(244, 241, 222, 0.55);
   font-size: var(--fs-meta);
   letter-spacing: var(--tr-meta);
+  pointer-events: none;
 }
 .scroll-cue__line {
   display: block;
@@ -175,6 +329,17 @@
   height: 1px;
   background: currentColor;
   transform-origin: left;
+}
+
+/* The cue would collide with the wordmark once the viewport is short. */
+@media (max-width: 48rem) {
+  .scroll-cue { display: none; }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .hero__video { transition: none; }
+  .hero__cta-arrow,
+  .hero__cta-rule::after { transition: none; }
 }
 
 /* ---------- Section heading ---------- */

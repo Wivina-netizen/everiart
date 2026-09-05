@@ -39,10 +39,64 @@ Palette (Refined Minimalist Authority):
 | Secondary | Stone Gray | `#8E8E8E` |
 | Warm base | Parchment | `#F4F1DE` |
 | Cool base | Soft Off-White | `#F8F8F8` |
+| Brand accent | Gold | `#B79B62` |
+| Hero ground | Cinematic Black | `#0B0B0C` |
+
+Gold is taken from the dot in the Everiart wordmark. It is an accent, never a
+surface — the logo dot, the hero's registered mark, and the CTA rule. Cinematic
+Black is scoped to the hero: the background plate is neutral near-black, and
+Midnight Navy behind it tints the stone's warm highlights cold. Every other dark
+surface on the site stays Midnight Navy.
 
 Typography: Instrument Serif (display), Instrument Sans (body/UI). Tracking is
 size-specific — display tightens to `-0.045em`, body sits at `0`, small labels
 open to `0.06em`.
+
+## Hero
+
+The hero is a full-bleed video plate with the wordmark seated on the bottom
+edge so its baseline bleeds off-canvas.
+
+**Wordmark sizing.** `Everiart` is a short word, so a `vw` font size does not
+work: past `--maxw` the viewport keeps growing while the column does not, and
+filling the measure edge-to-edge drives the cap height past 30% of the
+viewport. `fitWordmark()` in `js/main.js` measures the line and scales it to a
+share of the measure set in CSS as `--wordmark-fill` (`0.86` on desktop, `1`
+below 48rem, where there is nothing above it to crowd). The bleed is
+`margin-block-end: -0.16em` on `.hero__word` — em, so the proportion holds at
+every size. Instrument Serif measures 0.7275em from ascender to baseline at
+`line-height: 0.8`, with the baseline 0.0525em above the box bottom, so that
+bleed trims roughly 15% off the bottom of the letterforms.
+
+**Background plate.** Sources are attached by `heroVideo()` rather than in
+markup, so the weight is chosen at runtime — VP9 where supported (~55% lighter
+than the H.264 cut, and it covers Chromium builds without proprietary codecs),
+MP4 otherwise, and the 720p cut below 1100 device pixels. The still is a CSS
+background on `.hero__media`, so reduced motion, `saveData`, a refused autoplay
+and no-JS all land on a composed frame rather than an empty black box. The loop
+is paused when scrolled out of view.
+
+Assets are derived from a 4K master with `ffmpeg`; audio is stripped, since the
+plate is decorative and autoplays muted:
+
+```bash
+ffmpeg -i master.mov -an -sn -dn -vf "scale=1920:1080:flags=lanczos" \
+  -c:v libvpx-vp9 -crf 34 -b:v 0 -row-mt 1 assets/hero-loop.webm
+ffmpeg -i master.mov -an -sn -dn -vf "scale=1920:1080:flags=lanczos" \
+  -c:v libx264 -preset slow -crf 24 -pix_fmt yuv420p \
+  -movflags +faststart assets/hero-loop.mp4
+ffmpeg -ss 3.4 -i master.mov -frames:v 1 -vf "scale=1920:-1" \
+  -q:v 5 assets/hero-poster.jpg
+```
+
+The clip must start and end on the same frame or the loop will visibly jump.
+
+**Marks.** `assets/everiart-mark.svg` is the three-ring device, drawn as three
+circles whose centres sit on each other's circumference — the construction that
+gives the mark its 2:1 ratio. `everiart-mark-sm.svg` is the small-use cut: below
+roughly 60px the striped lenses fall under a device pixel and average into mud,
+so it fills them at the 0.5 alpha the stripes average to. Both are masked, not
+`<img>`, so they take the nav's colour on either theme.
 
 ## Motion
 
@@ -66,7 +120,7 @@ Replace files in `assets/` at the same filenames — no code changes needed.
 
 | Slot | Files |
 | --- | --- |
-| Hero | `hero.jpg` |
+| Hero plate | `hero-loop.webm`, `hero-loop.mp4`, `hero-loop-720.webm`, `hero-loop-720.mp4`, `hero-poster.jpg` |
 | Studio visuals | `studio-film.jpg`, `studio-photo.jpg` |
 | Film work | `work-film-01.jpg` … `work-film-05.jpg` |
 | Identity work | `work-identity-01.jpg` … `work-identity-05.jpg` |

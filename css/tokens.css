@@ -12,12 +12,30 @@
   --parchment:   #F4F1DE;  /* Parchment      — warm light base */
   --offwhite:    #F8F8F8;  /* Soft Off-White — cool light base */
 
+  /* Brand gold — sampled from the dot in the Everiart wordmark.
+     Accent only, never a surface: the logo dot, the registered mark,
+     and the hero's call-to-action affordance. */
+  --gold:        #B79B62;
+  --gold-hi:     #CFB57E;  /* hover / focus lift */
+
+  /* Cinematic black — the hero ground only.
+     The background plate is neutral near-black; navy behind it would
+     tint the stone's warm highlights cold. Every other dark surface
+     on the site stays Midnight Navy. */
+  --ink-deep:    #0B0B0C;
+
   /* Derived — transparency layers for material surfaces */
   --navy-a90:    rgba(28, 37, 65, 0.90);
   --navy-a60:    rgba(28, 37, 65, 0.60);
   --offwhite-a70: rgba(248, 248, 248, 0.70);
   --hairline:    rgba(142, 142, 142, 0.28);
   --hairline-dk: rgba(244, 241, 222, 0.18);
+  --gold-a40:    rgba(183, 155, 98, 0.40);
+
+  /* Hero scrim stops — neutral, so the plate keeps its own colour */
+  --ink-a00:     rgba(11, 11, 12, 0);
+  --ink-a55:     rgba(11, 11, 12, 0.55);
+  --ink-a80:     rgba(11, 11, 12, 0.80);
 
   /* --- Type families --- */
   --serif: "Instrument Serif", Georgia, "Times New Roman", serif;
