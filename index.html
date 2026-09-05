@@ -36,7 +36,7 @@
   </a>
 
   <div class="nav__links">
-    <a class="nav__link" href="#work">Work</a>
+    <a class="nav__link" href="/work/">Work</a>
     <a class="nav__link" href="#studios">Studios</a>
     <a class="nav__link" href="#process">Process</a>
     <a class="nav__link" href="/contact/">Contact</a>
@@ -112,158 +112,126 @@
       <div class="head reveal">
         <h2 class="h1 head__title">Selected work</h2>
         <p class="head__note">
-          Fifteen projects across three studios. Filter by discipline, or see everything at once.
+          Six projects across three studios. Filter by discipline, or see everything at once.
         </p>
       </div>
 
       <div class="filter reveal" role="tablist" aria-label="Filter work by studio">
-        <span class="filter__pill" aria-hidden="true"></span>
+        <span class="filter__rule" aria-hidden="true"></span>
         <button class="filter__btn" role="tab" aria-selected="true"  data-filter="all">All</button>
         <button class="filter__btn" role="tab" aria-selected="false" data-filter="byeveriart">Film</button>
         <button class="filter__btn" role="tab" aria-selected="false" data-filter="everidesign">Identity</button>
         <button class="filter__btn" role="tab" aria-selected="false" data-filter="beframes">Photography</button>
       </div>
 
+      <!-- Pairs are studio-pure on purpose: filtering hides a whole row, so a
+           discipline can never leave an orphaned half of an asymmetric pair. -->
       <div class="work">
-
-        <!-- ByEveriArt — Film (5) -->
-        <a class="card reveal" href="#" data-studio="byeveriart" data-delay="0">
-          <div class="card__frame">
-            <img src="assets/work-film-01.jpg" alt="Still from a documentary film project" loading="lazy" decoding="async">
-            <span class="card__studio">ByEveriArt</span>
-          </div>
-          <div class="card__body"><span class="card__name">Project One</span><span class="card__year">2026</span></div>
-          <p class="card__disc">Documentary</p>
+      <!-- ByEveriArt -->
+      <div class="pair" data-studio="byeveriart">
+        <a class="tile tile--sm reveal" href="/work/hope-for-her/" data-delay="0">
+          <span class="tile__frame">
+            <img src="assets/work-film-01.jpg" alt="Hope For Her documentary film still" loading="lazy" decoding="async">
+            <span class="tile__arrow" aria-hidden="true">
+            <svg viewBox="0 0 48 48" fill="none" focusable="false">
+              <circle cx="24" cy="24" r="23.25" stroke="currentColor" stroke-width="1.5"/>
+              <path d="M17.5 30.5 30.5 17.5M20 17.5h10.5V28" stroke="currentColor"
+                    stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/>
+            </svg>
+          </span>
+          </span>
+          <h3 class="tile__title">Hope For Her</h3>
+          <p class="tile__studio">ByEveriArt</p>
         </a>
-
-        <a class="card reveal" href="#" data-studio="byeveriart" data-delay="60">
-          <div class="card__frame">
-            <img src="assets/work-film-02.jpg" alt="Still from a brand film" loading="lazy" decoding="async">
-            <span class="card__studio">ByEveriArt</span>
-          </div>
-          <div class="card__body"><span class="card__name">Project Two</span><span class="card__year">2026</span></div>
-          <p class="card__disc">Brand film</p>
+        <a class="tile tile--lg reveal" href="/work/regalia-pop-up-events/" data-delay="80">
+          <span class="tile__frame">
+            <img src="assets/work-film-02.jpg" alt="Regalia pop-up event film still" loading="lazy" decoding="async">
+            <span class="tile__arrow" aria-hidden="true">
+            <svg viewBox="0 0 48 48" fill="none" focusable="false">
+              <circle cx="24" cy="24" r="23.25" stroke="currentColor" stroke-width="1.5"/>
+              <path d="M17.5 30.5 30.5 17.5M20 17.5h10.5V28" stroke="currentColor"
+                    stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/>
+            </svg>
+          </span>
+          </span>
+          <h3 class="tile__title">Regalia Pop-up Events</h3>
+          <p class="tile__studio">ByEveriArt</p>
         </a>
+      </div>
 
-        <a class="card reveal" href="#" data-studio="byeveriart" data-delay="120">
-          <div class="card__frame">
-            <img src="assets/work-film-03.jpg" alt="Still from a commercial production" loading="lazy" decoding="async">
-            <span class="card__studio">ByEveriArt</span>
-          </div>
-          <div class="card__body"><span class="card__name">Project Three</span><span class="card__year">2025</span></div>
-          <p class="card__disc">Commercial</p>
+      <!-- BeFrames -->
+      <div class="pair pair--flip" data-studio="beframes">
+        <a class="tile tile--lg reveal" href="/work/agra/" data-delay="0">
+          <span class="tile__frame">
+            <img src="assets/work-photo-01.jpg" alt="AGRA photography series" loading="lazy" decoding="async">
+            <span class="tile__arrow" aria-hidden="true">
+            <svg viewBox="0 0 48 48" fill="none" focusable="false">
+              <circle cx="24" cy="24" r="23.25" stroke="currentColor" stroke-width="1.5"/>
+              <path d="M17.5 30.5 30.5 17.5M20 17.5h10.5V28" stroke="currentColor"
+                    stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/>
+            </svg>
+          </span>
+          </span>
+          <h3 class="tile__title">AGRA</h3>
+          <p class="tile__studio">BeFrames</p>
         </a>
-
-        <a class="card reveal" href="#" data-studio="byeveriart" data-delay="0">
-          <div class="card__frame">
-            <img src="assets/work-film-04.jpg" alt="Still from a short film" loading="lazy" decoding="async">
-            <span class="card__studio">ByEveriArt</span>
-          </div>
-          <div class="card__body"><span class="card__name">Project Four</span><span class="card__year">2025</span></div>
-          <p class="card__disc">Short film</p>
+        <a class="tile tile--sm reveal" href="/work/azusa/" data-delay="80">
+          <span class="tile__frame">
+            <img src="assets/work-photo-02.jpg" alt="Azusa photography series" loading="lazy" decoding="async">
+            <span class="tile__arrow" aria-hidden="true">
+            <svg viewBox="0 0 48 48" fill="none" focusable="false">
+              <circle cx="24" cy="24" r="23.25" stroke="currentColor" stroke-width="1.5"/>
+              <path d="M17.5 30.5 30.5 17.5M20 17.5h10.5V28" stroke="currentColor"
+                    stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/>
+            </svg>
+          </span>
+          </span>
+          <h3 class="tile__title">Azusa</h3>
+          <p class="tile__studio">BeFrames</p>
         </a>
+      </div>
 
-        <a class="card reveal" href="#" data-studio="byeveriart" data-delay="60">
-          <div class="card__frame">
-            <img src="assets/work-film-05.jpg" alt="Still from an event film" loading="lazy" decoding="async">
-            <span class="card__studio">ByEveriArt</span>
-          </div>
-          <div class="card__body"><span class="card__name">Project Five</span><span class="card__year">2025</span></div>
-          <p class="card__disc">Event film</p>
+      <!-- EveriDesign -->
+      <div class="pair" data-studio="everidesign">
+        <a class="tile tile--sm reveal" href="/work/bmt-apparels/" data-delay="0">
+          <span class="tile__frame">
+            <img src="assets/work-identity-04.jpg" alt="BMT Apparels identity system" loading="lazy" decoding="async">
+            <span class="tile__arrow" aria-hidden="true">
+            <svg viewBox="0 0 48 48" fill="none" focusable="false">
+              <circle cx="24" cy="24" r="23.25" stroke="currentColor" stroke-width="1.5"/>
+              <path d="M17.5 30.5 30.5 17.5M20 17.5h10.5V28" stroke="currentColor"
+                    stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/>
+            </svg>
+          </span>
+          </span>
+          <h3 class="tile__title">BMT Apparels</h3>
+          <p class="tile__studio">EveriDesign</p>
         </a>
-
-        <!-- EveriDesign — Identity (5) -->
-        <a class="card reveal" href="#" data-studio="everidesign" data-delay="0">
-          <div class="card__frame">
-            <img src="assets/work-identity-01.jpg" alt="Hawthorn Real Estate identity system" loading="lazy" decoding="async">
-            <span class="card__studio">EveriDesign</span>
-          </div>
-          <div class="card__body"><span class="card__name">Hawthorn Real Estate</span><span class="card__year">2025</span></div>
-          <p class="card__disc">Identity system</p>
+        <a class="tile tile--lg reveal" href="/work/maitro-tech/" data-delay="80">
+          <span class="tile__frame">
+            <img src="assets/work-identity-03.jpg" alt="Maitro Tech identity system" loading="lazy" decoding="async">
+            <span class="tile__arrow" aria-hidden="true">
+            <svg viewBox="0 0 48 48" fill="none" focusable="false">
+              <circle cx="24" cy="24" r="23.25" stroke="currentColor" stroke-width="1.5"/>
+              <path d="M17.5 30.5 30.5 17.5M20 17.5h10.5V28" stroke="currentColor"
+                    stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/>
+            </svg>
+          </span>
+          </span>
+          <h3 class="tile__title">Maitro Tech</h3>
+          <p class="tile__studio">EveriDesign</p>
         </a>
+      </div>
+      </div>
 
-        <a class="card reveal" href="#" data-studio="everidesign" data-delay="60">
-          <div class="card__frame">
-            <img src="assets/work-identity-02.jpg" alt="GroSource brand identity" loading="lazy" decoding="async">
-            <span class="card__studio">EveriDesign</span>
-          </div>
-          <div class="card__body"><span class="card__name">GroSource</span><span class="card__year">2025</span></div>
-          <p class="card__disc">Brand identity</p>
+      <div class="work__more reveal">
+        <a class="btn" href="/work/">
+          <span>See all work</span>
+          <svg class="btn__arrow" viewBox="0 0 12 12" fill="none" aria-hidden="true" focusable="false">
+            <path d="M2.5 9.5 9.5 2.5M4 2.5h5.5V8" stroke="currentColor" stroke-width="1.4"
+                  stroke-linecap="round" stroke-linejoin="round"/>
+          </svg>
         </a>
-
-        <a class="card reveal" href="#" data-studio="everidesign" data-delay="120">
-          <div class="card__frame">
-            <img src="assets/work-identity-03.jpg" alt="Maitro Tech identity" loading="lazy" decoding="async">
-            <span class="card__studio">EveriDesign</span>
-          </div>
-          <div class="card__body"><span class="card__name">Maitro Tech</span><span class="card__year">2025</span></div>
-          <p class="card__disc">Identity system</p>
-        </a>
-
-        <a class="card reveal" href="#" data-studio="everidesign" data-delay="0">
-          <div class="card__frame">
-            <img src="assets/work-identity-04.jpg" alt="BMT Apparel brand identity" loading="lazy" decoding="async">
-            <span class="card__studio">EveriDesign</span>
-          </div>
-          <div class="card__body"><span class="card__name">BMT Apparel</span><span class="card__year">2024</span></div>
-          <p class="card__disc">Brand identity</p>
-        </a>
-
-        <a class="card reveal" href="#" data-studio="everidesign" data-delay="60">
-          <div class="card__frame">
-            <img src="assets/work-identity-05.jpg" alt="Identity project five" loading="lazy" decoding="async">
-            <span class="card__studio">EveriDesign</span>
-          </div>
-          <div class="card__body"><span class="card__name">Project Five</span><span class="card__year">2024</span></div>
-          <p class="card__disc">Naming and identity</p>
-        </a>
-
-        <!-- BeFrames — Photography (5) -->
-        <a class="card reveal" href="#" data-studio="beframes" data-delay="0">
-          <div class="card__frame">
-            <img src="assets/work-photo-01.jpg" alt="Editorial portrait series" loading="lazy" decoding="async">
-            <span class="card__studio">BeFrames</span>
-          </div>
-          <div class="card__body"><span class="card__name">Series One</span><span class="card__year">2026</span></div>
-          <p class="card__disc">Editorial portrait</p>
-        </a>
-
-        <a class="card reveal" href="#" data-studio="beframes" data-delay="60">
-          <div class="card__frame">
-            <img src="assets/work-photo-02.jpg" alt="Product photography series" loading="lazy" decoding="async">
-            <span class="card__studio">BeFrames</span>
-          </div>
-          <div class="card__body"><span class="card__name">Series Two</span><span class="card__year">2025</span></div>
-          <p class="card__disc">Product</p>
-        </a>
-
-        <a class="card reveal" href="#" data-studio="beframes" data-delay="120">
-          <div class="card__frame">
-            <img src="assets/work-photo-03.jpg" alt="Architectural photography series" loading="lazy" decoding="async">
-            <span class="card__studio">BeFrames</span>
-          </div>
-          <div class="card__body"><span class="card__name">Series Three</span><span class="card__year">2025</span></div>
-          <p class="card__disc">Architectural</p>
-        </a>
-
-        <a class="card reveal" href="#" data-studio="beframes" data-delay="0">
-          <div class="card__frame">
-            <img src="assets/work-photo-04.jpg" alt="Documentary photography series" loading="lazy" decoding="async">
-            <span class="card__studio">BeFrames</span>
-          </div>
-          <div class="card__body"><span class="card__name">Series Four</span><span class="card__year">2025</span></div>
-          <p class="card__disc">Documentary</p>
-        </a>
-
-        <a class="card reveal" href="#" data-studio="beframes" data-delay="60">
-          <div class="card__frame">
-            <img src="assets/work-photo-05.jpg" alt="Campaign photography series" loading="lazy" decoding="async">
-            <span class="card__studio">BeFrames</span>
-          </div>
-          <div class="card__body"><span class="card__name">Series Five</span><span class="card__year">2024</span></div>
-          <p class="card__disc">Campaign</p>
-        </a>
-
       </div>
     </div>
   </section>

@@ -400,97 +400,131 @@
   }
 }
 
-/* ---------- Studio filter (spring-driven control) ---------- */
+/* ---------- Studio filter ----------
+   Restyled flat to match the tiles below: the work is chromeless, so the
+   control that filters it sheds its pill and border too. The spring
+   mechanics are unchanged — the moving element is now a rule, not a fill.
+   -------------------------------------------------------------------- */
 .filter {
   position: relative;
   display: flex;
   flex-wrap: wrap;
-  gap: 0.25rem;
-  padding: 0.3rem;
-  border: 1px solid var(--hairline);
-  border-radius: 999px;
+  gap: clamp(1.25rem, 3vw, 2.5rem);
   width: fit-content;
-  margin-block-end: 2.5rem;
-  isolation: isolate;
+  max-width: 100%;
+  margin-block-end: clamp(2.5rem, 7vh, 4.5rem);
+  border-bottom: 1px solid var(--hairline);
 }
-.filter__pill {
+.filter__rule {
   position: absolute;
-  z-index: 0;
-  inset-block: 0.3rem;
+  z-index: 1;
+  inset-block-end: -1px;
   inset-inline-start: 0;
-  background: var(--navy);
-  border-radius: 999px;
-  /* Armed on press by studioFilter() and dropped once both springs rest.
-     Note it is deliberately not hinting `width`: width animation goes
-     through layout, so a compositor hint buys nothing there. */
+  height: 1px;
+  background: var(--charcoal);
   pointer-events: none;
 }
 .filter__btn {
   position: relative;
-  z-index: 1;
-  padding: 0.55rem 1.15rem;
-  border-radius: 999px;
-  font-size: var(--fs-small);
+  padding: 0 0 0.85rem;
+  font-size: var(--fs-meta);
+  letter-spacing: var(--tr-meta);
+  text-transform: uppercase;
   font-weight: 500;
   color: var(--stone);
   white-space: nowrap;
   transition: color var(--t-base) var(--ease-out-quart);
 }
-.filter__btn[aria-selected="true"] { color: var(--parchment); }
+.filter__btn[aria-selected="true"] { color: var(--charcoal); }
+.filter__btn:hover { color: var(--charcoal); }
 /* Instant press feedback — on pointer-down, not release (apple-design §1) */
-.filter__btn:active { transform: scale(0.97); transition: transform 100ms ease-out; }
+.filter__btn:active { transform: translateY(1px); transition: transform 100ms ease-out; }
 
-/* ---------- Work grid ---------- */
-.work {
+/* ---------- Work: asymmetric pairs ----------
+   One smaller tile beside one larger, alternating which side carries the
+   weight down the page. The image is the tile — no border, fill, radius or
+   shadow, so nothing competes with the work itself.
+   -------------------------------------------------------------------- */
+.work { display: grid; gap: clamp(3rem, 9vh, 6.5rem); }
+
+.pair {
   display: grid;
-  gap: clamp(1.5rem, 3vw, 2.5rem);
-  grid-template-columns: 1fr;
+  gap: clamp(1.75rem, 4vw, 3.5rem);
+  align-items: start;
+  grid-template-columns: 1fr;   /* stacked until there is room to pair */
 }
-@media (min-width: 44rem) { .work { grid-template-columns: repeat(2, 1fr); } }
-@media (min-width: 68rem) { .work { grid-template-columns: repeat(3, 1fr); } }
+.pair[hidden] { display: none; }
 
-.card { display: block; }
-.card[hidden] { display: none; }
+@media (min-width: 48rem) {
+  .pair        { grid-template-columns: 1fr 1.9fr; }
+  .pair--flip  { grid-template-columns: 1.9fr 1fr; }
+}
 
-.card__frame {
+.tile { display: block; }
+
+/* aspect-ratio reserves the box before the image decodes, so a lazy-loaded
+   grid cannot shift the page under the reader (CLS). */
+.tile__frame {
   position: relative;
+  display: block;
   overflow: hidden;
-  aspect-ratio: 4 / 5;
   background: var(--navy);
 }
-.card__frame img {
+.tile--sm .tile__frame { aspect-ratio: 4 / 3; }
+.tile--lg .tile__frame { aspect-ratio: 5 / 4; }
+
+.tile__frame img {
   width: 100%;
   height: 100%;
   object-fit: cover;
-  transform: scale(1.02);
-  transition: transform 700ms var(--ease-out-quart);
 }
-.card:hover .card__frame img { transform: scale(1.06); }
 
-.card__studio {
+/* Arrow: invisible until interaction, driven entirely by the spring in
+   js/main.js. No transition here — a CSS transition cannot be grabbed and
+   reversed mid-flight (apple-design §3). --arrow-ink is set per image from
+   its measured luminance; the token below is only the pre-measurement floor. */
+.tile__arrow {
   position: absolute;
-  inset-block-start: 0.75rem;
-  inset-inline-start: 0.75rem;
-  padding: 0.3rem 0.6rem;
-  font-size: 0.6875rem;
-  letter-spacing: 0.06em;
-  color: var(--parchment);
-  background: var(--navy-a60);
-  backdrop-filter: blur(10px);
-  -webkit-backdrop-filter: blur(10px);
-  border-radius: 2px;
+  inset-block-start: 50%;
+  inset-inline-start: 50%;
+  width: clamp(3.25rem, 5.5vw, 5rem);
+  aspect-ratio: 1;
+  color: var(--arrow-ink, var(--parchment));
+  opacity: 0;
+  transform: translate(-50%, -50%) scale(0.9);
+  pointer-events: none;
+}
+.tile__arrow svg { width: 100%; height: 100%; display: block; }
+
+.tile__title {
+  font-family: var(--serif);
+  font-weight: 400;
+  line-height: 1.1;
+  letter-spacing: var(--tr-h2);
+  margin: clamp(0.9rem, 2vh, 1.35rem) 0 0.4rem;
+}
+/* Titles scale with their tile — the size difference is the point of the
+   layout, and a single size would flatten it back out. */
+.tile--sm .tile__title { font-size: var(--fs-h3); letter-spacing: var(--tr-h3); }
+.tile--lg .tile__title { font-size: var(--fs-h2); }
+
+.tile__studio {
+  margin: 0;
+  font-size: var(--fs-meta);
+  letter-spacing: var(--tr-meta);
+  text-transform: uppercase;
+  color: var(--stone);
 }
 
-.card__body {
+/* Keyboard users get the same affordance as the pointer; the focus ring is
+   on the tile, and js/main.js runs the same spring on focus. */
+.tile:focus-visible { outline: 2px solid var(--gunmetal); outline-offset: 4px; }
+
+.work__more {
   display: flex;
-  align-items: baseline;
-  justify-content: space-between;
-  gap: 1rem;
-  padding-block-start: 0.9rem;
+  justify-content: center;
+  margin-block-start: clamp(3rem, 9vh, 6rem);
 }
-.card__name { font-size: 1.0625rem; font-weight: 500; letter-spacing: -0.01em; }
-.card__year { color: var(--stone); font-size: var(--fs-meta); }
-.card__disc { color: var(--stone); font-size: var(--fs-small); padding-block-start: 0.15rem; }
 
 /* ---------- Studios: three distinct treatments, not three identical cards ---------- */
 .studios { display: grid; gap: clamp(3rem, 8vh, 6rem); }
@@ -889,3 +923,149 @@
 /* Homepage contact block: the location is a fact, not an action. */
 .contact__value--static { cursor: default; }
 .contact__value--static::after { content: none; }
+
+/* ---------- Case study ----------
+   Full-bleed plate with the title over it. The scrim is not decoration: it
+   is the only thing guaranteeing the overlay stays legible on an image
+   nobody has vetted yet.
+   -------------------------------------------------------------------- */
+.project { background: var(--ink-deep); color: var(--parchment); }
+
+.phero {
+  position: relative;
+  min-height: clamp(30rem, 78svh, 52rem);
+  display: grid;
+  align-items: end;
+  overflow: clip;
+  isolation: isolate;
+  background: var(--ink-deep);
+}
+.phero__img {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  z-index: 0;
+}
+.phero__scrim {
+  position: absolute;
+  inset: 0;
+  z-index: 1;
+  background:
+    linear-gradient(to bottom,
+      rgba(11, 11, 12, 0.55) 0%,
+      rgba(11, 11, 12, 0.18) 38%,
+      rgba(11, 11, 12, 0.82) 88%,
+      var(--ink-deep) 100%),
+    rgba(11, 11, 12, 0.18);
+}
+.phero__inner {
+  position: relative;
+  z-index: 2;
+  padding-block: clamp(7rem, 16vh, 11rem) clamp(2.5rem, 7vh, 4.5rem);
+}
+.phero__label {
+  margin: 0 0 0.9rem;
+  font-size: var(--fs-meta);
+  letter-spacing: var(--tr-meta);
+  text-transform: uppercase;
+  color: rgba(244, 241, 222, 0.72);
+}
+.phero__title {
+  font-family: var(--serif);
+  font-weight: 400;
+  font-size: var(--fs-h1);
+  line-height: var(--lh-h1);
+  letter-spacing: var(--tr-h1);
+  margin: 0;
+  max-width: 18ch;
+  text-wrap: balance;
+}
+
+/* --- Brief and facts --- */
+.pmeta { display: grid; gap: clamp(2rem, 5vw, 4rem); }
+@media (min-width: 56rem) { .pmeta { grid-template-columns: 1.2fr 1fr; } }
+
+.pmeta__lede {
+  margin: 0;
+  font-size: var(--fs-lede);
+  line-height: 1.5;
+  letter-spacing: var(--tr-lede);
+  color: rgba(244, 241, 222, 0.82);
+  max-width: 46ch;
+}
+.pmeta__facts {
+  display: grid;
+  gap: 1.25rem;
+  margin: 0;
+  align-content: start;
+}
+@media (min-width: 32rem) { .pmeta__facts { grid-template-columns: repeat(2, 1fr); } }
+.pmeta__row { display: grid; gap: 0.2rem; }
+.pmeta__row dt {
+  font-size: var(--fs-meta);
+  letter-spacing: var(--tr-meta);
+  text-transform: uppercase;
+  color: rgba(244, 241, 222, 0.55);
+}
+.pmeta__row dd { margin: 0; font-size: var(--fs-small); letter-spacing: var(--tr-small); }
+
+.pbody { padding-block-end: clamp(4rem, 12vh, 8rem); }
+.pfig { margin: 0 0 clamp(1.5rem, 4vh, 2.5rem); }
+.pfig:last-child { margin-block-end: 0; }
+.pfig img { width: 100%; height: auto; display: block; }
+
+/* --- Next project: a full viewport of its own, so the sequence reads as a
+       deliberate handover rather than a link tacked to the bottom. --- */
+.next {
+  position: relative;
+  display: grid;
+  place-content: center;
+  gap: 1.5rem;
+  min-height: 100svh;
+  text-align: center;
+  padding: var(--gutter);
+  border-top: 1px solid var(--hairline-dk);
+  color: var(--parchment);
+}
+.next__inner {
+  position: relative;
+  display: inline-grid;
+  place-items: center;
+}
+.next__word {
+  font-family: var(--serif);
+  font-weight: 400;
+  font-size: clamp(2.75rem, 9vw, 7rem);
+  line-height: 1;
+  letter-spacing: var(--tr-h1);
+  white-space: nowrap;
+}
+/* Overlapping the word, exactly as the reference does — the arrow reads as
+   part of the type, not a button parked beside it. */
+.next__arrow {
+  position: absolute;
+  inset-block-start: 50%;
+  inset-inline-start: 50%;
+  width: clamp(4rem, 9vw, 7rem);
+  aspect-ratio: 1;
+  color: var(--parchment);
+  opacity: 0;
+  transform: translate(-50%, -50%) scale(0.9);
+  pointer-events: none;
+}
+.next__arrow svg { width: 100%; height: 100%; display: block; }
+.next__meta {
+  font-size: var(--fs-meta);
+  letter-spacing: var(--tr-meta);
+  text-transform: uppercase;
+  color: rgba(244, 241, 222, 0.6);
+}
+.next:focus-visible { outline: 2px solid var(--parchment); outline-offset: -6px; }
+
+/* Case-study pages run dark, so the shared footer takes its dark values. */
+.project .foot { border-top-color: var(--hairline-dk); color: rgba(244, 241, 222, 0.5); }
+
+/* A 15th tile has no partner; it closes the page full width. */
+.pair--solo { grid-template-columns: 1fr !important; }
