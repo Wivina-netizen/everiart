@@ -296,8 +296,8 @@
   will-change: transform;
 }
 
-/* Registered mark: the terminal device, carrying the wordmark's gold. */
-.hero__reg {
+/* Trademark mark: the terminal device, carrying the wordmark's gold. */
+.hero__tm {
   flex: none;
   font-family: var(--sans);
   font-size: 0.17em;
@@ -305,9 +305,14 @@
   line-height: 1;
   color: var(--gold);
   align-self: flex-start;
-  /* Rides at the cap height of the word it terminates. */
-  margin-block-start: 0.48em;
-  margin-inline-start: 0.1em;
+  /* Rides at the ascender height of the word it terminates.
+     Careful: em here resolves against THIS element's 0.17em size, not the
+     wordmark's — so these values are ~6x smaller than they look. flex-start
+     already lands the box on the wordmark's own box top (the segments' negative
+     margin pulls their margin box back to it), and the TM glyph is drawn as a
+     superscript inside its em box, so no extra offset is wanted. */
+  margin-block-start: 0;
+  margin-inline-start: 0.25em;
   letter-spacing: 0;
 }
 

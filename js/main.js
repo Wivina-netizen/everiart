@@ -99,13 +99,13 @@ function fitWordmark() {
    ------------------------------------------------------------ */
 function heroSequence() {
   const segs = document.querySelectorAll('.hero__seg > span');
-  const reg = document.querySelector('.hero__reg');
+  const tm = document.querySelector('.hero__tm');
   const lead = document.querySelector('.hero__lead');
   const nav = document.querySelector('.nav');
   const cueLine = document.querySelector('.scroll-cue__line');
 
   if (reduced()) {
-    [...segs, reg, lead, nav].forEach((el) => {
+    [...segs, tm, lead, nav].forEach((el) => {
       if (el) { el.style.transform = 'none'; el.style.opacity = '1'; }
     });
     if (cueLine) cueLine.style.transform = 'scaleX(1)';
@@ -124,13 +124,13 @@ function heroSequence() {
     setTimeout(() => s.setTarget(0), 160 + i * 110);
   });
 
-  // The registered mark settles after the word it belongs to.
-  if (reg) {
-    reg.style.opacity = '0';
+  // The trademark mark settles after the word it belongs to.
+  if (tm) {
+    tm.style.opacity = '0';
     const s = new Spring(0, {
       damping: 1.0,
       response: 0.5,
-      onUpdate: (v) => { reg.style.opacity = String(v); },
+      onUpdate: (v) => { tm.style.opacity = String(v); },
     });
     setTimeout(() => s.setTarget(1), 620);
   }

@@ -43,7 +43,7 @@ Palette (Refined Minimalist Authority):
 | Hero ground | Cinematic Black | `#0B0B0C` |
 
 Gold is taken from the dot in the Everiart wordmark. It is an accent, never a
-surface — the logo dot, the hero's registered mark, and the CTA rule. Cinematic
+surface — the logo dot, the hero's trademark mark, and the CTA rule. Cinematic
 Black is scoped to the hero: the background plate is neutral near-black, and
 Midnight Navy behind it tints the stone's warm highlights cold. Every other dark
 surface on the site stays Midnight Navy.
