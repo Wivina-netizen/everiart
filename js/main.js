@@ -17,36 +17,126 @@ function heroVideo() {
   const v = document.querySelector('.hero__video');
   if (!v) return;
 
-  // Motion-sensitive users get the still. So do metered connections —
-  // a decorative loop is never worth someone's data plan.
-  if (reduced()) return;
-  const conn = navigator.connection;
-  if (conn && (conn.saveData || /(^|-)2g$/.test(conn.effectiveType || ''))) return;
-
-  // VP9 is ~55% lighter than the H.264 cut, and covers the Chromium builds
-  // that ship without proprietary codecs. MP4 carries Safari and the rest.
-  const webm = v.canPlayType('video/webm; codecs="vp9"') !== '';
-  const hd = window.innerWidth * (window.devicePixelRatio || 1) >= 1100;
+  const media = v.closest('.hero__media');
+  const play = document.querySelector('.hero__play');
   const d = v.dataset;
-  v.src = hd ? (webm ? d.hdWebm : d.hdMp4) : (webm ? d.sdWebm : d.sdMp4);
-  v.preload = 'auto';
-  v.load();          // preload="none" will not fetch on a src change alone
 
-  const show = () => { v.dataset.ready = '1'; };
-  if (v.readyState >= 2) show();
-  else v.addEventListener('loadeddata', show, { once: true });
+  // Why the plate is or isn't running, readable from the DOM. Four separate
+  // conditions used to produce an identical silent poster, which made a report
+  // of "it doesn't play" impossible to act on.
+  const setState = (state) => { if (media) media.dataset.videoState = state; };
 
-  // Autoplay can still be refused (low-power mode). The poster stays put.
-  const played = v.play();
-  if (played && played.catch) played.catch(() => {});
+  // Offered only where a click can actually help. If nothing decodes, a play
+  // button would just fail again, so the still is left to stand on its own.
+  const offer = (label) => {
+    if (!play) return;
+    const text = play.querySelector('.hero__play-label');
+    if (text && label) text.textContent = label;
+    play.hidden = false;
+  };
+
+  // Built before any early return below, so the Data Saver opt-in can use it.
+  // canPlayType is advisory only — Safari reports WebM support it cannot
+  // always decode — so the MP4 stays queued behind the WebM rather than being
+  // discarded on the strength of that claim.
+  const hd = window.innerWidth * (window.devicePixelRatio || 1) >= 1100;
+  const sources = [];
+  if (v.canPlayType('video/webm; codecs="vp9"') !== '') {
+    sources.push(hd ? d.hdWebm : d.sdWebm);
+  }
+  sources.push(hd ? d.hdMp4 : d.sdMp4);
+
+  let i = 0;
+  let attempt = 0;   // guards against a superseded attempt reporting state
+
+  function tryPlay(token) {
+    const r = v.play();
+    if (!r || !r.catch) return;
+    r.catch((err) => {
+      // NotAllowedError is the only rejection that means "the browser refused
+      // to autoplay". AbortError is our own load() superseding this attempt,
+      // and NotSupportedError is a source problem the 'error' handler owns —
+      // reporting either as a refusal puts a play button on a video that
+      // cannot play at all.
+      if (token !== attempt || err.name !== 'NotAllowedError') return;
+      setState('autoplay-blocked');
+      offer('Play background');
+    });
+  }
+
+  function attach() {
+    attempt += 1;
+    if (play) play.hidden = true;
+    setState('loading');
+    v.src = sources[i];
+    v.preload = 'auto';
+    v.load();   // preload="none" will not fetch on a src change alone
+    tryPlay(attempt);
+  }
+
+  v.addEventListener('error', () => {
+    if (!v.src) return;
+    if (i + 1 < sources.length) {
+      i += 1;
+      attach();          // the format the browser claimed it could play, could not
+      return;
+    }
+    setState('undecodable');
+    if (play) play.hidden = true;
+  });
+
+  // Only once frames are actually running is the plate faded up. Waiting on
+  // 'playing' rather than 'loadeddata' matters: a blocked video still fires
+  // loadeddata, and revealing its first frame would swap the composed poster
+  // for a frozen near-black one.
+  v.addEventListener('playing', () => {
+    v.dataset.ready = '1';
+    setState('playing');
+    if (play) play.hidden = true;
+  });
+
+  if (play) {
+    play.addEventListener('click', () => {
+      // Already buffered and merely refused — the gesture is all that was
+      // missing, so don't re-download it.
+      if (v.src && v.readyState >= 2 && !v.error) { attempt += 1; tryPlay(attempt); }
+      else attach();
+    });
+  }
+
+  // A motion-sensitive user gets the still, and no invitation to start motion
+  // they have explicitly asked not to see.
+  if (reduced()) { setState('reduced-motion'); return; }
+
+  // A decorative loop is never worth someone's data plan — but it is their
+  // call to make, so the button is offered with the reason written on it.
+  const conn = navigator.connection;
+  if (conn && (conn.saveData || /(^|-)2g$/.test(conn.effectiveType || ''))) {
+    setState('save-data');
+    offer('Data Saver is on — play background');
+    return;
+  }
+
+  attach();
 
   // Don't burn cycles decoding video that isn't on screen.
   const io = new IntersectionObserver(([e]) => {
-    if (!v.src) return;
-    if (e.isIntersecting) { const r = v.play(); if (r && r.catch) r.catch(() => {}); }
+    if (!v.src || v.error) return;
+    if (e.isIntersecting) { attempt += 1; tryPlay(attempt); }
     else v.pause();
   }, { threshold: 0.01 });
   io.observe(v);
+
+  // One line, only when the plate is not running, so the next report of
+  // "the video doesn't play" arrives with its cause attached.
+  window.setTimeout(() => {
+    const state = media && media.dataset.videoState;
+    if (state !== 'playing') {
+      console.info('[everiart] hero plate not playing — state:', state,
+                   '| src:', v.getAttribute('src'),
+                   '| mediaError:', v.error && v.error.code);
+    }
+  }, 5000);
 }
 
 /* ------------------------------------------------------------
