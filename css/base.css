@@ -143,7 +143,9 @@ p:last-child { margin-bottom: 0; }
 /* --- Reveal: one shared mechanism, driven by JS springs --- */
 .reveal {
   opacity: 0;
-  will-change: opacity, transform;
+  /* will-change is armed by reveals() as each element animates and dropped
+     on rest — declaring it here holds a layer per element from first paint
+     until that element is scrolled to, which on this page is most of them. */
 }
 .reveal.is-in { opacity: 1; }
 

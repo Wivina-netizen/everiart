@@ -189,6 +189,7 @@ function reveals() {
       const dist = Number(el.dataset.dist || 26);
 
       el.style.transform = `translate3d(0, ${dist}px, 0)`;
+      el.style.willChange = 'opacity, transform';
       const s = new Spring(0, {
         damping: 1.0,
         response: 0.5,
@@ -221,24 +222,39 @@ function studioFilter() {
   const cards = [...document.querySelectorAll('.card')];
   if (!pill || !btns.length) return;
 
+  // The pill only moves on interaction, so it holds a compositor layer only
+  // between a press and the springs settling — not for the page's lifetime.
+  const moving = { x: false, w: false };
+  const releasePill = () => {
+    if (!moving.x && !moving.w) pill.style.willChange = 'auto';
+  };
+
   // Two independent springs — X and width never share one spring.
   const xs = new Spring(0, {
     damping: 1.0,
     response: 0.36,
     onUpdate: (v) => { pill.style.transform = `translate3d(${v}px, 0, 0)`; },
+    onRest: () => { moving.x = false; releasePill(); },
   });
   const ws = new Spring(0, {
     damping: 1.0,
     response: 0.36,
     onUpdate: (v) => { pill.style.width = `${v}px`; },
+    onRest: () => { moving.w = false; releasePill(); },
   });
 
   function movePill(btn, animate = true) {
     const x = btn.offsetLeft - root.clientLeft;
     const w = btn.offsetWidth;
     if (!animate || reduced()) {
+      // A hard set never animates, so it never needs the hint. set() also
+      // stops the spring without firing onRest, hence clearing the flags here.
+      moving.x = moving.w = false;
       xs.set(x); ws.set(w);
+      releasePill();
     } else {
+      pill.style.willChange = 'transform';
+      moving.x = moving.w = true;
       // Re-target only — carries current value and velocity through.
       xs.setTarget(x);
       ws.setTarget(w);
@@ -257,6 +273,7 @@ function studioFilter() {
         if (!wasHidden && !card.classList.contains('is-in')) return;
         // Start from the live on-screen value (apple-design §3), not a target.
         const current = parseFloat(getComputedStyle(card).opacity) || 0;
+        card.style.willChange = 'opacity, transform';
         const s = new Spring(current, {
           damping: 1.0,
           response: 0.42,
@@ -264,6 +281,7 @@ function studioFilter() {
             card.style.opacity = String(v);
             card.style.transform = `translate3d(0, ${(1 - v) * 14}px, 0) scale(${0.985 + v * 0.015})`;
           },
+          onRest: () => { card.style.willChange = 'auto'; },
         });
         s.setTarget(1);
       } else {
@@ -315,6 +333,19 @@ function heroParallax() {
 
   const plate = hero.querySelector('.hero__video');
   const markline = hero.querySelector('.hero__markline');
+  const moved = [plate, markline].filter(Boolean);
+
+  // These two are the only elements on the site under continuous motion, and
+  // even they are only in motion while the hero is on screen. So the hint is
+  // held for exactly that window rather than for the page's lifetime.
+  let armed = false;
+  const arm = (on) => {
+    if (on === armed) return;
+    armed = on;
+    moved.forEach((el) => { el.style.willChange = on ? 'transform' : 'auto'; });
+  };
+  new IntersectionObserver(([e]) => arm(e.isIntersecting), { threshold: 0 })
+    .observe(hero);
 
   let ticking = false;
   const onScroll = () => {

@@ -146,7 +146,8 @@
   width: 100%;
   height: 100%;
   object-fit: cover;
-  will-change: transform;
+  /* No will-change here: the parallax only runs while the hero is on
+     screen, so heroParallax() arms it and drops it at the boundary. */
   transform: scale(1.06);
   /* Held back until the first frame is decoded, then faded up by JS. */
   opacity: 0;
@@ -252,7 +253,6 @@
 .hero__markline {
   position: relative;
   z-index: 2;
-  will-change: transform;
   /* The mask headroom below (.hero__seg padding-block-start) extends this
      box roughly 0.32em ABOVE the letterforms — invisible, but it lands over
      the CTA, and this element comes later in the DOM at the same z-index.
@@ -391,7 +391,9 @@
   inset-inline-start: 0;
   background: var(--navy);
   border-radius: 999px;
-  will-change: transform, width;
+  /* Armed on press by studioFilter() and dropped once both springs rest.
+     Note it is deliberately not hinting `width`: width animation goes
+     through layout, so a compositor hint buys nothing there. */
   pointer-events: none;
 }
 .filter__btn {
@@ -418,7 +420,7 @@
 @media (min-width: 44rem) { .work { grid-template-columns: repeat(2, 1fr); } }
 @media (min-width: 68rem) { .work { grid-template-columns: repeat(3, 1fr); } }
 
-.card { display: block; will-change: transform, opacity; }
+.card { display: block; }
 .card[hidden] { display: none; }
 
 .card__frame {
@@ -431,7 +433,6 @@
   width: 100%;
   height: 100%;
   object-fit: cover;
-  will-change: transform;
   transform: scale(1.02);
   transition: transform 700ms var(--ease-out-quart);
 }
