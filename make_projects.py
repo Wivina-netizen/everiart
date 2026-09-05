@@ -14,10 +14,9 @@ import re
 
 ROOT = os.path.dirname(os.path.abspath(__file__))
 
-# NOTE: eight of these titles are real — six supplied directly, plus Hawthorn
-# Real Estate and GroSource which already existed in this repo. The remaining
-# seven keep the repo's own placeholder vocabulary rather than inventing client
-# names, and are waiting on the real ones.
+# Every title here is real. This is deliberately an interim set: more projects
+# get appended to this table as they exist, never backfilled with placeholders.
+# The layout below handles an odd count on its own, so adding one is safe.
 STUDIOS = {
     "byeveriart":  ("ByEveriArt",  "Film",
                     "Direction, Cinematography, Edit", "Director of photography"),
@@ -31,19 +30,12 @@ PROJECTS = [
     # slug,                    title,                  studio,        year, hero
     ("hope-for-her",           "Hope For Her",         "byeveriart",  2026, "work-film-01.jpg"),
     ("regalia-pop-up-events",  "Regalia Pop-up Events","byeveriart",  2026, "work-film-02.jpg"),
-    ("film-three",             "Film Three",           "byeveriart",  2025, "work-film-03.jpg"),
-    ("film-four",              "Film Four",            "byeveriart",  2025, "work-film-04.jpg"),
-    ("film-five",              "Film Five",            "byeveriart",  2025, "work-film-05.jpg"),
     ("agra",                   "AGRA",                 "beframes",    2026, "work-photo-01.jpg"),
     ("azusa",                  "Azusa",                "beframes",    2025, "work-photo-02.jpg"),
-    ("series-three",           "Series Three",         "beframes",    2025, "work-photo-03.jpg"),
-    ("series-four",            "Series Four",          "beframes",    2025, "work-photo-04.jpg"),
-    ("series-five",            "Series Five",          "beframes",    2024, "work-photo-05.jpg"),
-    ("bmt-apparels",           "BMT Apparels",         "everidesign", 2024, "work-identity-04.jpg"),
-    ("maitro-tech",            "Maitro Tech",          "everidesign", 2025, "work-identity-03.jpg"),
     ("hawthorn-real-estate",   "Hawthorn Real Estate", "everidesign", 2025, "work-identity-01.jpg"),
     ("grosource",              "GroSource",            "everidesign", 2025, "work-identity-02.jpg"),
-    ("identity-five",          "Identity Five",        "everidesign", 2024, "work-identity-05.jpg"),
+    ("maitro-tech",            "Maitro Tech",          "everidesign", 2025, "work-identity-03.jpg"),
+    ("bmt-apparels",           "BMT Apparels",         "everidesign", 2024, "work-identity-04.jpg"),
 ]
 
 LEDE = ("Placeholder copy. This is where the brief, the constraint and the "
@@ -96,7 +88,7 @@ def nav(current=None):
   </a>
 
   <div class="nav__links">
-{mark("/#work", "Work", "work")}
+{mark("/work/", "Work", "work")}
 {mark("/#studios", "Studios", "studios")}
 {mark("/#process", "Process", "process")}
 {mark("/contact/", "Contact", "contact")}
