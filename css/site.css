@@ -359,97 +359,131 @@
   }
 }
 
-/* ---------- Studio filter (spring-driven control) ---------- */
+/* ---------- Studio filter ----------
+   Restyled flat to match the tiles below: the work is chromeless, so the
+   control that filters it sheds its pill and border too. The spring
+   mechanics are unchanged — the moving element is now a rule, not a fill.
+   -------------------------------------------------------------------- */
 .filter {
   position: relative;
   display: flex;
   flex-wrap: wrap;
-  gap: 0.25rem;
-  padding: 0.3rem;
-  border: 1px solid var(--hairline);
-  border-radius: 999px;
+  gap: clamp(1.25rem, 3vw, 2.5rem);
   width: fit-content;
-  margin-block-end: 2.5rem;
-  isolation: isolate;
+  max-width: 100%;
+  margin-block-end: clamp(2.5rem, 7vh, 4.5rem);
+  border-bottom: 1px solid var(--hairline);
 }
-.filter__pill {
+.filter__rule {
   position: absolute;
-  z-index: 0;
-  inset-block: 0.3rem;
+  z-index: 1;
+  inset-block-end: -1px;
   inset-inline-start: 0;
-  background: var(--navy);
-  border-radius: 999px;
-  /* Armed on press by studioFilter() and dropped once both springs rest.
-     Note it is deliberately not hinting `width`: width animation goes
-     through layout, so a compositor hint buys nothing there. */
+  height: 1px;
+  background: var(--charcoal);
   pointer-events: none;
 }
 .filter__btn {
   position: relative;
-  z-index: 1;
-  padding: 0.55rem 1.15rem;
-  border-radius: 999px;
-  font-size: var(--fs-small);
+  padding: 0 0 0.85rem;
+  font-size: var(--fs-meta);
+  letter-spacing: var(--tr-meta);
+  text-transform: uppercase;
   font-weight: 500;
   color: var(--stone);
   white-space: nowrap;
   transition: color var(--t-base) var(--ease-out-quart);
 }
-.filter__btn[aria-selected="true"] { color: var(--parchment); }
+.filter__btn[aria-selected="true"] { color: var(--charcoal); }
+.filter__btn:hover { color: var(--charcoal); }
 /* Instant press feedback — on pointer-down, not release (apple-design §1) */
-.filter__btn:active { transform: scale(0.97); transition: transform 100ms ease-out; }
+.filter__btn:active { transform: translateY(1px); transition: transform 100ms ease-out; }
 
-/* ---------- Work grid ---------- */
-.work {
+/* ---------- Work: asymmetric pairs ----------
+   One smaller tile beside one larger, alternating which side carries the
+   weight down the page. The image is the tile — no border, fill, radius or
+   shadow, so nothing competes with the work itself.
+   -------------------------------------------------------------------- */
+.work { display: grid; gap: clamp(3rem, 9vh, 6.5rem); }
+
+.pair {
   display: grid;
-  gap: clamp(1.5rem, 3vw, 2.5rem);
-  grid-template-columns: 1fr;
+  gap: clamp(1.75rem, 4vw, 3.5rem);
+  align-items: start;
+  grid-template-columns: 1fr;   /* stacked until there is room to pair */
 }
-@media (min-width: 44rem) { .work { grid-template-columns: repeat(2, 1fr); } }
-@media (min-width: 68rem) { .work { grid-template-columns: repeat(3, 1fr); } }
+.pair[hidden] { display: none; }
 
-.card { display: block; }
-.card[hidden] { display: none; }
+@media (min-width: 48rem) {
+  .pair        { grid-template-columns: 1fr 1.9fr; }
+  .pair--flip  { grid-template-columns: 1.9fr 1fr; }
+}
 
-.card__frame {
+.tile { display: block; }
+
+/* aspect-ratio reserves the box before the image decodes, so a lazy-loaded
+   grid cannot shift the page under the reader (CLS). */
+.tile__frame {
   position: relative;
+  display: block;
   overflow: hidden;
-  aspect-ratio: 4 / 5;
   background: var(--navy);
 }
-.card__frame img {
+.tile--sm .tile__frame { aspect-ratio: 4 / 3; }
+.tile--lg .tile__frame { aspect-ratio: 5 / 4; }
+
+.tile__frame img {
   width: 100%;
   height: 100%;
   object-fit: cover;
-  transform: scale(1.02);
-  transition: transform 700ms var(--ease-out-quart);
 }
-.card:hover .card__frame img { transform: scale(1.06); }
 
-.card__studio {
+/* Arrow: invisible until interaction, driven entirely by the spring in
+   js/main.js. No transition here — a CSS transition cannot be grabbed and
+   reversed mid-flight (apple-design §3). --arrow-ink is set per image from
+   its measured luminance; the token below is only the pre-measurement floor. */
+.tile__arrow {
   position: absolute;
-  inset-block-start: 0.75rem;
-  inset-inline-start: 0.75rem;
-  padding: 0.3rem 0.6rem;
-  font-size: 0.6875rem;
-  letter-spacing: 0.06em;
-  color: var(--parchment);
-  background: var(--navy-a60);
-  backdrop-filter: blur(10px);
-  -webkit-backdrop-filter: blur(10px);
-  border-radius: 2px;
+  inset-block-start: 50%;
+  inset-inline-start: 50%;
+  width: clamp(3.25rem, 5.5vw, 5rem);
+  aspect-ratio: 1;
+  color: var(--arrow-ink, var(--parchment));
+  opacity: 0;
+  transform: translate(-50%, -50%) scale(0.9);
+  pointer-events: none;
+}
+.tile__arrow svg { width: 100%; height: 100%; display: block; }
+
+.tile__title {
+  font-family: var(--serif);
+  font-weight: 400;
+  line-height: 1.1;
+  letter-spacing: var(--tr-h2);
+  margin: clamp(0.9rem, 2vh, 1.35rem) 0 0.4rem;
+}
+/* Titles scale with their tile — the size difference is the point of the
+   layout, and a single size would flatten it back out. */
+.tile--sm .tile__title { font-size: var(--fs-h3); letter-spacing: var(--tr-h3); }
+.tile--lg .tile__title { font-size: var(--fs-h2); }
+
+.tile__studio {
+  margin: 0;
+  font-size: var(--fs-meta);
+  letter-spacing: var(--tr-meta);
+  text-transform: uppercase;
+  color: var(--stone);
 }
 
-.card__body {
+/* Keyboard users get the same affordance as the pointer; the focus ring is
+   on the tile, and js/main.js runs the same spring on focus. */
+.tile:focus-visible { outline: 2px solid var(--gunmetal); outline-offset: 4px; }
+
+.work__more {
   display: flex;
-  align-items: baseline;
-  justify-content: space-between;
-  gap: 1rem;
-  padding-block-start: 0.9rem;
+  justify-content: center;
+  margin-block-start: clamp(3rem, 9vh, 6rem);
 }
-.card__name { font-size: 1.0625rem; font-weight: 500; letter-spacing: -0.01em; }
-.card__year { color: var(--stone); font-size: var(--fs-meta); }
-.card__disc { color: var(--stone); font-size: var(--fs-small); padding-block-start: 0.15rem; }
 
 /* ---------- Studios: three distinct treatments, not three identical cards ---------- */
 .studios { display: grid; gap: clamp(3rem, 8vh, 6rem); }

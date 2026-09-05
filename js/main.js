@@ -217,43 +217,41 @@ function reveals() {
 function studioFilter() {
   const root = document.querySelector('.filter');
   if (!root) return;
-  const pill = root.querySelector('.filter__pill');
+  const rule = root.querySelector('.filter__rule');
   const btns = [...root.querySelectorAll('.filter__btn')];
-  const cards = [...document.querySelectorAll('.card')];
-  if (!pill || !btns.length) return;
+  const pairs = [...document.querySelectorAll('.pair')];
+  if (!rule || !btns.length) return;
 
-  // The pill only moves on interaction, so it holds a compositor layer only
-  // between a press and the springs settling — not for the page's lifetime.
+  // The rule only moves on interaction, so it holds a compositor layer only
+  // between the press and the springs settling.
   const moving = { x: false, w: false };
-  const releasePill = () => {
-    if (!moving.x && !moving.w) pill.style.willChange = 'auto';
+  const release = () => {
+    if (!moving.x && !moving.w) rule.style.willChange = 'auto';
   };
 
   // Two independent springs — X and width never share one spring.
   const xs = new Spring(0, {
     damping: 1.0,
     response: 0.36,
-    onUpdate: (v) => { pill.style.transform = `translate3d(${v}px, 0, 0)`; },
-    onRest: () => { moving.x = false; releasePill(); },
+    onUpdate: (v) => { rule.style.transform = `translate3d(${v}px, 0, 0)`; },
+    onRest: () => { moving.x = false; release(); },
   });
   const ws = new Spring(0, {
     damping: 1.0,
     response: 0.36,
-    onUpdate: (v) => { pill.style.width = `${v}px`; },
-    onRest: () => { moving.w = false; releasePill(); },
+    onUpdate: (v) => { rule.style.width = `${v}px`; },
+    onRest: () => { moving.w = false; release(); },
   });
 
-  function movePill(btn, animate = true) {
+  function moveRule(btn, animate = true) {
     const x = btn.offsetLeft - root.clientLeft;
     const w = btn.offsetWidth;
     if (!animate || reduced()) {
-      // A hard set never animates, so it never needs the hint. set() also
-      // stops the spring without firing onRest, hence clearing the flags here.
       moving.x = moving.w = false;
       xs.set(x); ws.set(w);
-      releasePill();
+      release();
     } else {
-      pill.style.willChange = 'transform';
+      rule.style.willChange = 'transform, width';
       moving.x = moving.w = true;
       // Re-target only — carries current value and velocity through.
       xs.setTarget(x);
@@ -261,42 +259,44 @@ function studioFilter() {
     }
   }
 
+  // Pairs are studio-pure, so a filter hides whole rows. Hiding one tile of an
+  // asymmetric pair would leave the survivor stranded in a column sized for a
+  // partner that is no longer there.
   function applyFilter(key) {
-    cards.forEach((card) => {
-      const match = key === 'all' || card.dataset.studio === key;
-      if (match) {
-        const wasHidden = card.hidden;
-        card.hidden = false;
-        if (reduced()) { card.style.opacity = '1'; card.style.transform = 'none'; return; }
-        // Cards still below the fold are owned by the reveal observer — don't
-        // fight it. Only animate cards that were actively filtered out.
-        if (!wasHidden && !card.classList.contains('is-in')) return;
-        // Start from the live on-screen value (apple-design §3), not a target.
-        const current = parseFloat(getComputedStyle(card).opacity) || 0;
-        card.style.willChange = 'opacity, transform';
-        const s = new Spring(current, {
-          damping: 1.0,
-          response: 0.42,
-          onUpdate: (v) => {
-            card.style.opacity = String(v);
-            card.style.transform = `translate3d(0, ${(1 - v) * 14}px, 0) scale(${0.985 + v * 0.015})`;
-          },
-          onRest: () => { card.style.willChange = 'auto'; },
-        });
-        s.setTarget(1);
-      } else {
-        card.hidden = true;
-        card.style.opacity = '0';
+    pairs.forEach((pair) => {
+      const match = key === 'all' || pair.dataset.studio === key;
+      if (!match) {
+        pair.hidden = true;
+        pair.style.opacity = '0';
+        return;
       }
+      const wasHidden = pair.hidden;
+      pair.hidden = false;
+      if (reduced()) { pair.style.opacity = '1'; pair.style.transform = 'none'; return; }
+      // Rows still below the fold belong to the reveal observer — don't fight it.
+      if (!wasHidden && !pair.classList.contains('is-in')) return;
+      // Start from the live on-screen value (apple-design §3), not a target.
+      const current = parseFloat(getComputedStyle(pair).opacity) || 0;
+      pair.style.willChange = 'opacity, transform';
+      const s = new Spring(current, {
+        damping: 1.0,
+        response: 0.42,
+        onUpdate: (v) => {
+          pair.style.opacity = String(v);
+          pair.style.transform = `translate3d(0, ${(1 - v) * 14}px, 0)`;
+        },
+        onRest: () => { pair.style.willChange = 'auto'; },
+      });
+      s.setTarget(1);
     });
   }
 
   btns.forEach((btn) => {
     // Feedback on pointer-down, not on release (apple-design §1).
-    btn.addEventListener('pointerdown', () => movePill(btn));
+    btn.addEventListener('pointerdown', () => moveRule(btn));
     btn.addEventListener('click', () => {
       btns.forEach((b) => b.setAttribute('aria-selected', String(b === btn)));
-      movePill(btn);
+      moveRule(btn);
       applyFilter(btn.dataset.filter);
     });
     btn.addEventListener('keydown', (e) => {
@@ -310,15 +310,140 @@ function studioFilter() {
   });
 
   const initial = btns.find((b) => b.getAttribute('aria-selected') === 'true') || btns[0];
-  requestAnimationFrame(() => movePill(initial, false));
+  requestAnimationFrame(() => moveRule(initial, false));
 
   let rt;
   window.addEventListener('resize', () => {
     clearTimeout(rt);
     rt = setTimeout(() => {
       const active = btns.find((b) => b.getAttribute('aria-selected') === 'true') || btns[0];
-      movePill(active, false);
+      moveRule(active, false);
     }, 120);
+  });
+}
+
+/* ------------------------------------------------------------
+   3b. Work tiles — the arrow affordance.
+       Spring-driven, so a pointer moving in and out quickly
+       reverses from wherever the arrow currently is instead of
+       queueing two full animations.
+   ------------------------------------------------------------ */
+
+/* Contrast, measured rather than assumed. Parchment and Off-White are both
+   about 95% luminance, so choosing between them is a warm/cool decision and
+   neither survives a light image — over one, the ink has to go dark. */
+const ARROW_INKS = [
+  { token: 'var(--parchment)', lum: relLuminance(244, 241, 222), warm: true },
+  { token: 'var(--offwhite)',  lum: relLuminance(248, 248, 248), warm: false },
+  { token: 'var(--charcoal)',  lum: relLuminance(33, 33, 33),    warm: false },
+];
+
+function relLuminance(r, g, b) {
+  const lin = (c) => {
+    const v = c / 255;
+    return v <= 0.04045 ? v / 12.92 : Math.pow((v + 0.055) / 1.055, 2.4);
+  };
+  return 0.2126 * lin(r) + 0.7152 * lin(g) + 0.0722 * lin(b);
+}
+
+function contrast(a, b) {
+  const [hi, lo] = a > b ? [a, b] : [b, a];
+  return (hi + 0.05) / (lo + 0.05);
+}
+
+function pickArrowInk(tile) {
+  const img = tile.querySelector('img');
+  if (!img) return;
+
+  const measure = () => {
+    let sample;
+    try {
+      const c = document.createElement('canvas');
+      c.width = 16; c.height = 16;
+      const ctx = c.getContext('2d', { willReadFrequently: true });
+      ctx.drawImage(img, 0, 0, 16, 16);
+      // Only the middle, because that is the patch the arrow sits on.
+      sample = ctx.getImageData(4, 4, 8, 8).data;
+    } catch (err) {
+      return;   // cross-origin image taints the canvas; the CSS default stands
+    }
+
+    let r = 0, g = 0, b = 0;
+    const n = sample.length / 4;
+    for (let i = 0; i < sample.length; i += 4) {
+      r += sample[i]; g += sample[i + 1]; b += sample[i + 2];
+    }
+    r /= n; g /= n; b /= n;
+
+    const bg = relLuminance(r, g, b);
+    const warmImage = r >= b;
+    // Prefer the light tokens the brief calls for, but only while they clear
+    // the 4.5:1 floor; fall to charcoal when the image is too bright for them.
+    const usable = ARROW_INKS.filter((ink) => contrast(ink.lum, bg) >= 4.5);
+    const pool = usable.length ? usable : ARROW_INKS;
+    let pick = pool.find((ink) => ink.warm === warmImage) || pool[0];
+    if (!usable.length) {
+      pick = ARROW_INKS.reduce((best, ink) =>
+        contrast(ink.lum, bg) > contrast(best.lum, bg) ? ink : best);
+    }
+    tile.style.setProperty('--arrow-ink', pick.token);
+  };
+
+  if (img.complete && img.naturalWidth) measure();
+  else img.addEventListener('load', measure, { once: true });
+}
+
+function workTiles() {
+  const tiles = [...document.querySelectorAll('.tile')];
+  if (!tiles.length) return;
+
+  // Hover is not available everywhere, and a hover-only affordance is
+  // invisible on touch. Where there is no pointer, the arrow is emphasised
+  // while the tile holds the middle of the viewport instead.
+  const hoverable = window.matchMedia('(hover: hover) and (pointer: fine)').matches;
+
+  tiles.forEach((tile) => {
+    const arrow = tile.querySelector('.tile__arrow');
+    if (!arrow) return;
+
+    pickArrowInk(tile);
+
+    const paint = (v) => {
+      arrow.style.opacity = String(v);
+      arrow.style.transform = `translate(-50%, -50%) scale(${(0.9 + v * 0.1).toFixed(4)})`;
+    };
+
+    let show;
+    if (reduced()) {
+      // Cross-fade only, no travel and no spring (apple-design §14).
+      arrow.style.transition = 'opacity 160ms ease';
+      show = (on) => { arrow.style.opacity = on ? '1' : '0'; };
+    } else {
+      const s = new Spring(0, {
+        damping: 1.0,
+        response: 0.34,
+        onUpdate: paint,
+        onRest: () => { arrow.style.willChange = 'auto'; },
+      });
+      show = (on) => {
+        arrow.style.willChange = 'transform, opacity';
+        s.setTarget(on ? 1 : 0);   // re-target carries velocity through
+      };
+    }
+
+    if (hoverable) {
+      tile.addEventListener('pointerenter', () => show(true));
+      tile.addEventListener('pointerleave', () => show(false));
+    } else {
+      const io = new IntersectionObserver(
+        ([e]) => show(e.isIntersecting),
+        { rootMargin: '-35% 0px -35% 0px', threshold: 0 });
+      io.observe(tile);
+    }
+
+    // Keyboard reaches the same affordance on both.
+    tile.addEventListener('focus', () => show(true));
+    tile.addEventListener('blur', () => show(false));
   });
 }
 
@@ -447,6 +572,7 @@ function init() {
   heroSequence();
   reveals();
   studioFilter();
+  workTiles();
   heroParallax();
   contactForm();
   navTheme();
