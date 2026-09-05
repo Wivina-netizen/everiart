@@ -18,27 +18,18 @@ function heroVideo() {
   if (!v) return;
 
   const media = v.closest('.hero__media');
-  const play = document.querySelector('.hero__play');
   const d = v.dataset;
 
   // Why the plate is or isn't running, readable from the DOM. Four separate
-  // conditions used to produce an identical silent poster, which made a report
-  // of "it doesn't play" impossible to act on.
+  // conditions produce an identical still, so without this a report of "it
+  // doesn't play" carries no information about which one fired. There is no
+  // visible control: the still is a composed frame in its own right, and a
+  // decorative loop is not worth interrupting the page to offer.
   const setState = (state) => { if (media) media.dataset.videoState = state; };
 
-  // Offered only where a click can actually help. If nothing decodes, a play
-  // button would just fail again, so the still is left to stand on its own.
-  const offer = (label) => {
-    if (!play) return;
-    const text = play.querySelector('.hero__play-label');
-    if (text && label) text.textContent = label;
-    play.hidden = false;
-  };
-
-  // Built before any early return below, so the Data Saver opt-in can use it.
-  // canPlayType is advisory only — Safari reports WebM support it cannot
-  // always decode — so the MP4 stays queued behind the WebM rather than being
-  // discarded on the strength of that claim.
+  // Built before any early return below. canPlayType is advisory only —
+  // Safari reports WebM support it cannot always decode — so the MP4 stays
+  // queued behind the WebM rather than being discarded on that claim.
   const hd = window.innerWidth * (window.devicePixelRatio || 1) >= 1100;
   const sources = [];
   if (v.canPlayType('video/webm; codecs="vp9"') !== '') {
@@ -53,20 +44,16 @@ function heroVideo() {
     const r = v.play();
     if (!r || !r.catch) return;
     r.catch((err) => {
-      // NotAllowedError is the only rejection that means "the browser refused
-      // to autoplay". AbortError is our own load() superseding this attempt,
-      // and NotSupportedError is a source problem the 'error' handler owns —
-      // reporting either as a refusal puts a play button on a video that
-      // cannot play at all.
+      // Falling back to the next source calls load(), which rejects the
+      // pending play() with AbortError, and a dead source rejects with
+      // NotSupportedError — neither is a refusal. Only NotAllowedError is.
       if (token !== attempt || err.name !== 'NotAllowedError') return;
       setState('autoplay-blocked');
-      offer('Play background');
     });
   }
 
   function attach() {
     attempt += 1;
-    if (play) play.hidden = true;
     setState('loading');
     v.src = sources[i];
     v.preload = 'auto';
@@ -82,7 +69,6 @@ function heroVideo() {
       return;
     }
     setState('undecodable');
-    if (play) play.hidden = true;
   });
 
   // Only once frames are actually running is the plate faded up. Waiting on
@@ -92,28 +78,15 @@ function heroVideo() {
   v.addEventListener('playing', () => {
     v.dataset.ready = '1';
     setState('playing');
-    if (play) play.hidden = true;
   });
 
-  if (play) {
-    play.addEventListener('click', () => {
-      // Already buffered and merely refused — the gesture is all that was
-      // missing, so don't re-download it.
-      if (v.src && v.readyState >= 2 && !v.error) { attempt += 1; tryPlay(attempt); }
-      else attach();
-    });
-  }
-
-  // A motion-sensitive user gets the still, and no invitation to start motion
-  // they have explicitly asked not to see.
+  // A motion-sensitive user gets the still, full stop.
   if (reduced()) { setState('reduced-motion'); return; }
 
-  // A decorative loop is never worth someone's data plan — but it is their
-  // call to make, so the button is offered with the reason written on it.
+  // A decorative loop is never worth someone's data plan.
   const conn = navigator.connection;
   if (conn && (conn.saveData || /(^|-)2g$/.test(conn.effectiveType || ''))) {
     setState('save-data');
-    offer('Data Saver is on — play background');
     return;
   }
 

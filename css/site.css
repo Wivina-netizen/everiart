@@ -310,49 +310,11 @@
   letter-spacing: 0;
 }
 
-/* --- Play affordance ---
-   Shown only when clicking will actually start the plate. Sized and coloured
-   to sit under the CTA in the hierarchy — it is a recovery control, not a
-   second call to action. --- */
-.hero__aside {
-  display: flex;
-  align-items: center;
-  gap: clamp(1rem, 2vw, 1.75rem);
-  flex: none;
-}
-
-.hero__play {
-  display: inline-flex;
-  align-items: center;
-  gap: 0.5rem;
-  padding: 0.5rem 0.9rem;
-  border: 1px solid var(--gold-a40);
-  border-radius: 999px;
-  color: rgba(244, 241, 222, 0.9);
-  background: rgba(11, 11, 12, 0.45);
-  backdrop-filter: blur(10px);
-  -webkit-backdrop-filter: blur(10px);
-  font-size: var(--fs-meta);
-  letter-spacing: var(--tr-meta);
-  line-height: 1;
-  white-space: nowrap;
-  transition:
-    border-color var(--t-base) var(--ease-out-quart),
-    color var(--t-base) var(--ease-out-quart);
-}
-.hero__play:hover,
-.hero__play:focus-visible { border-color: var(--gold-hi); color: #fff; }
-.hero__play:active { transform: scale(0.97); transition: transform 100ms ease-out; }
-.hero__play-icon { width: 0.6em; height: 0.72em; flex: none; color: var(--gold); }
-
-@media (prefers-reduced-transparency: reduce) {
-  .hero__play { background: var(--ink-deep); backdrop-filter: none; -webkit-backdrop-filter: none; }
-}
-
 /* --- Scroll cue --- */
 .scroll-cue {
   display: inline-flex;
   flex: none;
+  padding-block-end: 0.5rem;
   align-items: center;
   gap: 0.5rem;
   color: rgba(244, 241, 222, 0.55);
@@ -371,9 +333,6 @@
 /* The cue would collide with the wordmark once the viewport is short. */
 @media (max-width: 48rem) {
   .scroll-cue { display: none; }
-  /* The play control stays: on a phone it is the only route back to the
-     plate, and it is exactly where Data Saver is most likely to be on. */
-  .hero__play { font-size: var(--fs-small); padding: 0.55rem 1rem; }
 }
 
 @media (prefers-reduced-motion: reduce) {
