@@ -394,59 +394,127 @@ function pickArrowInk(tile) {
 }
 
 /* One affordance, two callers: the work tiles and the next-project handover.
-   Both want the same spring, the same reversal behaviour and the same
-   no-hover fallback, so neither gets its own copy of it. */
-function arrowAffordance(root, arrow) {
+   The tiles track the cursor; the handover sits still. Everything else — the
+   spring, the reversal, the no-hover fallback, the keyboard path — is shared.
+
+   On the 1:1 question: apple-design §2 asks that touch and content move
+   together, but that governs content the user has grabbed. Nobody grabs this
+   arrow, so it is free to trail, and §3's rule that 2D motion decomposes into
+   independent X and Y springs is what actually applies here — one spring on a
+   2D distance desyncs when the axes have different velocities. Damping stays
+   at 1.0 per §4: a hover hands off no momentum, so there is nothing to bounce. */
+function arrowAffordance(root, arrow, opts) {
   if (!root || !arrow) return;
+  const { follow = false, focusRoot = root } = opts || {};
 
-  // Hover is not available everywhere, and a hover-only affordance is
-  // invisible on touch. Where there is no fine pointer, the arrow is
-  // emphasised while its target holds the middle of the viewport.
   const hoverable = window.matchMedia('(hover: hover) and (pointer: fine)').matches;
+  // Following needs a real cursor, and reduced motion asks for no travel at all.
+  const tracking = follow && hoverable && !reduced();
 
-  let show;
-  if (reduced()) {
-    // Cross-fade only — no travel, no spring (apple-design §14).
-    arrow.style.transition = 'opacity 160ms ease';
-    show = (on) => { arrow.style.opacity = on ? '1' : '0'; };
-  } else {
-    const s = new Spring(0, {
-      damping: 1.0,
-      response: 0.34,
-      onUpdate: (v) => {
-        arrow.style.opacity = String(v);
+  let prog = 0, ax = 0, ay = 0;
+
+  const centre = () => {
+    const r = root.getBoundingClientRect();
+    return [r.width / 2, r.height / 2];
+  };
+
+  const paint = follow
+    ? () => {
+        arrow.style.opacity = String(prog);
         arrow.style.transform =
-          `translate(-50%, -50%) scale(${(0.9 + v * 0.1).toFixed(4)})`;
-      },
-      onRest: () => { arrow.style.willChange = 'auto'; },
-    });
-    show = (on) => {
-      arrow.style.willChange = 'transform, opacity';
-      s.setTarget(on ? 1 : 0);   // re-target carries velocity through
-    };
+          `translate3d(${ax.toFixed(1)}px, ${ay.toFixed(1)}px, 0) ` +
+          `translate(-50%, -50%) scale(${(0.9 + prog * 0.1).toFixed(4)})`;
+      }
+    : () => {
+        arrow.style.opacity = String(prog);
+        arrow.style.transform =
+          `translate(-50%, -50%) scale(${(0.9 + prog * 0.1).toFixed(4)})`;
+      };
+
+  // Fade and scale. Kept separate from position so that re-entering mid-exit
+  // reverses the fade without disturbing where the arrow currently sits.
+  const ps = new Spring(0, {
+    damping: 1.0,
+    response: 0.34,
+    onUpdate: (v) => { prog = v; paint(); },
+    onRest: () => { if (prog < 0.02) arrow.style.willChange = 'auto'; },
+  });
+
+  // Two springs, one per axis — never one spring on a 2D distance.
+  // A slower response than the fade is what reads as give rather than glue.
+  const xs = tracking ? new Spring(0, {
+    damping: 1.0, response: 0.5, onUpdate: (v) => { ax = v; paint(); },
+  }) : null;
+  const ys = tracking ? new Spring(0, {
+    damping: 1.0, response: 0.5, onUpdate: (v) => { ay = v; paint(); },
+  }) : null;
+
+  // Clamped to the frame so the arrow never hangs off an edge, whatever the
+  // cursor is doing near one.
+  function pointIn(e) {
+    const r = root.getBoundingClientRect();
+    const half = (arrow.offsetWidth || 64) / 2;
+    return [
+      Math.min(Math.max(e.clientX - r.left, half), Math.max(r.width - half, half)),
+      Math.min(Math.max(e.clientY - r.top, half), Math.max(r.height - half, half)),
+    ];
   }
 
-  if (hoverable) {
-    root.addEventListener('pointerenter', () => show(true));
+  const show = (on) => {
+    arrow.style.willChange = 'transform, opacity';
+    ps.setTarget(on ? 1 : 0);   // re-target carries velocity through
+  };
+
+  if (tracking) {
+    root.addEventListener('pointerenter', (e) => {
+      const [x, y] = pointIn(e);
+      // Hard-set on entry: it appears where the cursor already is, rather
+      // than flying in from the middle of the card.
+      ax = x; ay = y; xs.set(x); ys.set(y);
+      show(true);
+    });
+    // setTarget is cheap — it moves the target and lets the spring's own rAF
+    // do the work — so there is nothing to throttle here.
+    root.addEventListener('pointermove', (e) => {
+      const [x, y] = pointIn(e);
+      xs.setTarget(x); ys.setTarget(y);
+    });
+    // Leaves the position where it is: the exit fades from wherever the arrow
+    // had got to, and never snaps back to centre first.
+    root.addEventListener('pointerleave', () => show(false));
+  } else if (hoverable) {
+    root.addEventListener('pointerenter', () => {
+      if (follow) { [ax, ay] = centre(); }
+      show(true);
+    });
     root.addEventListener('pointerleave', () => show(false));
   } else {
-    new IntersectionObserver(([e]) => show(e.isIntersecting),
-      { rootMargin: '-35% 0px -35% 0px', threshold: 0 }).observe(root);
+    // No pointer: emphasise while the target holds the middle of the viewport.
+    new IntersectionObserver(([e]) => {
+      if (follow) { [ax, ay] = centre(); }
+      show(e.isIntersecting);
+    }, { rootMargin: '-35% 0px -35% 0px', threshold: 0 }).observe(root);
   }
 
-  // Keyboard reaches the same affordance on both.
-  root.addEventListener('focus', () => show(true));
-  root.addEventListener('blur', () => show(false));
+  // Keyboard has no cursor, so the arrow shows centred.
+  focusRoot.addEventListener('focus', () => {
+    if (follow) { [ax, ay] = centre(); if (xs) { xs.set(ax); ys.set(ay); } }
+    show(true);
+  });
+  focusRoot.addEventListener('blur', () => show(false));
 }
 
 function workTiles() {
   document.querySelectorAll('.tile').forEach((tile) => {
     pickArrowInk(tile);
-    arrowAffordance(tile, tile.querySelector('.tile__arrow'));
+    // The frame is the hover surface, not the whole tile — the caption below
+    // is not part of the image the arrow belongs to.
+    arrowAffordance(tile.querySelector('.tile__frame'), tile.querySelector('.tile__arrow'),
+                    { follow: true, focusRoot: tile });
   });
 
   // The handover at the foot of a case study sits on a flat ground, so its
-  // ink is known — no image to measure.
+  // ink is known and it stays put over the word it belongs to.
   const next = document.querySelector('.next');
   if (next) arrowAffordance(next, next.querySelector('.next__arrow'));
 }
