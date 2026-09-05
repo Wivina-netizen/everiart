@@ -334,6 +334,53 @@ function heroParallax() {
 }
 
 /* ------------------------------------------------------------
+   4b. Contact form — post in place, answer in place.
+       The form is a plain Netlify form first: with JS off it posts
+       normally and Netlify renders its own confirmation. This only
+       upgrades that path so the visitor never loses the page.
+   ------------------------------------------------------------ */
+function contactForm() {
+  const form = document.querySelector('.form');
+  if (!form) return;
+
+  const status = form.querySelector('.form__status');
+  const submit = form.querySelector('[type="submit"]');
+  const say = (msg, state) => {
+    if (!status) return;
+    status.textContent = msg;
+    if (state) status.dataset.state = state;
+    else delete status.dataset.state;
+  };
+
+  form.addEventListener('submit', async (e) => {
+    // Let the browser run its own validation and messaging first.
+    if (!form.checkValidity()) return;
+    e.preventDefault();
+
+    const label = submit ? submit.textContent : '';
+    if (submit) { submit.disabled = true; submit.textContent = 'Sending…'; }
+    say('', null);
+
+    try {
+      const res = await fetch('/', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
+        body: new URLSearchParams(new FormData(form)).toString(),
+      });
+      if (!res.ok) throw new Error('HTTP ' + res.status);
+
+      form.reset();
+      say('Thank you — your message is in. We reply within two working days.', 'ok');
+    } catch (err) {
+      // Never swallow it: the visitor needs a route that still works.
+      say('That did not send. Please try the email or WhatsApp button instead.', 'err');
+    } finally {
+      if (submit) { submit.disabled = false; submit.textContent = label; }
+    }
+  });
+}
+
+/* ------------------------------------------------------------
    5. Nav elevation on scroll
    ------------------------------------------------------------ */
 function navTheme() {
@@ -370,6 +417,7 @@ function init() {
   reveals();
   studioFilter();
   heroParallax();
+  contactForm();
   navTheme();
 }
 

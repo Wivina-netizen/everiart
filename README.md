@@ -98,6 +98,35 @@ roughly 60px the striped lenses fall under a device pixel and average into mud,
 so it fills them at the 0.5 alpha the stripes average to. Both are masked, not
 `<img>`, so they take the nav's colour on either theme.
 
+## Contact page
+
+`/contact/` (`contact/index.html`) is the single destination for every contact
+action on the site. The nav's Contact link and the hero's "Start a project"
+both point at it, and no email, phone or WhatsApp action appears anywhere on
+the home page — the phone number exists only inside the WhatsApp `href`, never
+as visible text.
+
+The page is a directory index rather than `contact.html`, so `/contact/`
+resolves on any static host without relying on Netlify's extensionless-URL
+handling.
+
+**The form** is a Netlify form: `data-netlify="true"`, a hidden `form-name`
+input, and a `company` honeypot that is clipped rather than `display:none`.
+Netlify detects it in the deployed HTML at build time — there is no build step
+to configure. With JavaScript off it posts normally and Netlify renders its own
+confirmation; `contactForm()` in `js/main.js` upgrades that to an in-place POST
+so the visitor keeps the page. Native validation runs first and is never
+overridden. On failure the typed message is left untouched and the visitor is
+pointed at the two direct buttons, which do not depend on any of this.
+
+Submissions land in the Netlify dashboard under **Forms**, and email
+notifications have to be switched on there — nothing in this repo configures
+where they go.
+
+**Same visual weight** for the two direct actions is enforced by layout, not by
+eye: `.direct__actions` is a two-column grid of equal tracks, and both buttons
+use `.btn` unmodified. Only the form's submit takes `.btn--primary`.
+
 ## Motion
 
 Animation uses a custom spring engine (`js/spring.js`) rather than CSS
