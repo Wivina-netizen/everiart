@@ -64,6 +64,9 @@
 }
 .nav__word {
   font-family: var(--serif);
+  /* Fixed on purpose, and paired with .nav__ring's fixed width: this is a
+     brand lockup, not running text. Scaling the word without the mark
+     would break their proportion. */
   font-size: 1.125rem;
   letter-spacing: -0.01em;
 }
@@ -75,23 +78,9 @@
   align-items: center;
   justify-self: center;
   font-size: var(--fs-small);
+  letter-spacing: var(--tr-small);
 }
 
-/* Contact sits in the top-right corner of the composition, as in the brief. */
-.nav__contact {
-  display: grid;
-  gap: 0.15rem;
-  justify-self: end;
-  text-align: right;
-  font-size: var(--fs-meta);
-  line-height: 1.35;
-  letter-spacing: 0.01em;
-  opacity: 0.78;
-}
-.nav__contact-item {
-  transition: opacity var(--t-fast) var(--ease-out-quart);
-}
-.nav__contact-item:hover { opacity: 0.6; }
 .nav__link { position: relative; padding-block: 0.25rem; }
 .nav__link::after {
   content: "";
@@ -110,7 +99,6 @@
 /* Chrome sheds progressively — the mark is the last thing standing. */
 @media (max-width: 64rem) {
   .nav { grid-template-columns: 1fr auto; }
-  .nav__contact { display: none; }
 }
 @media (max-width: 40rem) {
   .nav { grid-template-columns: 1fr; }
@@ -200,9 +188,9 @@
 .hero__sub {
   margin: 0;
   color: rgba(244, 241, 222, 0.86);
-  font-size: clamp(0.9375rem, 1.15vw, 1.0625rem);
+  font-size: var(--fs-small);
   line-height: 1.55;
-  letter-spacing: 0.002em;
+  letter-spacing: var(--tr-small);
   text-wrap: pretty;
 }
 
@@ -216,7 +204,7 @@
   padding-block-end: 0.5rem;
   font-size: var(--fs-small);
   font-weight: 500;
-  letter-spacing: 0.01em;
+  letter-spacing: var(--tr-small);
   color: var(--parchment);
   transition: color var(--t-base) var(--ease-out-quart);
 }
@@ -625,6 +613,8 @@
   padding-block: 1.75rem;
   border-top: 1px solid var(--hairline-dk);
   font-size: var(--fs-meta);
+  letter-spacing: var(--tr-meta);
+  line-height: var(--lh-meta);
   color: rgba(244, 241, 222, 0.5);
 }
 
@@ -652,9 +642,9 @@
   max-width: 14ch;
 }
 .page__lede {
-  font-size: clamp(1.0625rem, 1.5vw, 1.3125rem);
+  font-size: var(--fs-lede);
   line-height: 1.5;
-  letter-spacing: -0.01em;
+  letter-spacing: var(--tr-lede);
   color: var(--stone);
   max-width: 48ch;
   margin: 0;
@@ -746,6 +736,7 @@
 .form__status {
   margin: 0;
   font-size: var(--fs-small);
+  letter-spacing: var(--tr-small);
   color: var(--stone);
   min-height: 1.4em;
 }
@@ -769,7 +760,7 @@
   color: var(--charcoal);
   font-size: var(--fs-small);
   font-weight: 500;
-  letter-spacing: 0.01em;
+  letter-spacing: var(--tr-small);
   line-height: 1;
   white-space: nowrap;
   cursor: pointer;
@@ -809,14 +800,17 @@
 
 .direct__title {
   font-family: var(--serif);
+  /* A deliberate step below --fs-h2 so it sits under .page__title rather
+     than competing with it; the tracking is the h2 value. */
   font-size: clamp(1.5rem, 2.6vw, 2rem);
   line-height: 1.1;
-  letter-spacing: -0.02em;
+  letter-spacing: var(--tr-h2);
   margin: 0 0 0.6rem;
 }
 .direct__note {
   color: var(--stone);
   font-size: var(--fs-small);
+  letter-spacing: var(--tr-small);
   margin: 0 0 1.5rem;
   max-width: 32ch;
 }
@@ -847,6 +841,7 @@
 .direct__value {
   margin: 0 0 1rem;
   font-size: var(--fs-small);
+  letter-spacing: var(--tr-small);
 }
 .direct__value:last-child { margin-block-end: 0; }
 

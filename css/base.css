@@ -98,9 +98,9 @@ p:last-child { margin-bottom: 0; }
 }
 
 .lede {
-  font-size: clamp(1.125rem, 1.6vw, 1.375rem);
+  font-size: var(--fs-lede);
   line-height: 1.5;
-  letter-spacing: -0.01em;
+  letter-spacing: var(--tr-lede);
   max-width: 46ch;
 }
 
