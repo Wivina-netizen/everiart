@@ -882,3 +882,149 @@
 /* Homepage contact block: the location is a fact, not an action. */
 .contact__value--static { cursor: default; }
 .contact__value--static::after { content: none; }
+
+/* ---------- Case study ----------
+   Full-bleed plate with the title over it. The scrim is not decoration: it
+   is the only thing guaranteeing the overlay stays legible on an image
+   nobody has vetted yet.
+   -------------------------------------------------------------------- */
+.project { background: var(--ink-deep); color: var(--parchment); }
+
+.phero {
+  position: relative;
+  min-height: clamp(30rem, 78svh, 52rem);
+  display: grid;
+  align-items: end;
+  overflow: clip;
+  isolation: isolate;
+  background: var(--ink-deep);
+}
+.phero__img {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  z-index: 0;
+}
+.phero__scrim {
+  position: absolute;
+  inset: 0;
+  z-index: 1;
+  background:
+    linear-gradient(to bottom,
+      rgba(11, 11, 12, 0.55) 0%,
+      rgba(11, 11, 12, 0.18) 38%,
+      rgba(11, 11, 12, 0.82) 88%,
+      var(--ink-deep) 100%),
+    rgba(11, 11, 12, 0.18);
+}
+.phero__inner {
+  position: relative;
+  z-index: 2;
+  padding-block: clamp(7rem, 16vh, 11rem) clamp(2.5rem, 7vh, 4.5rem);
+}
+.phero__label {
+  margin: 0 0 0.9rem;
+  font-size: var(--fs-meta);
+  letter-spacing: var(--tr-meta);
+  text-transform: uppercase;
+  color: rgba(244, 241, 222, 0.72);
+}
+.phero__title {
+  font-family: var(--serif);
+  font-weight: 400;
+  font-size: var(--fs-h1);
+  line-height: var(--lh-h1);
+  letter-spacing: var(--tr-h1);
+  margin: 0;
+  max-width: 18ch;
+  text-wrap: balance;
+}
+
+/* --- Brief and facts --- */
+.pmeta { display: grid; gap: clamp(2rem, 5vw, 4rem); }
+@media (min-width: 56rem) { .pmeta { grid-template-columns: 1.2fr 1fr; } }
+
+.pmeta__lede {
+  margin: 0;
+  font-size: var(--fs-lede);
+  line-height: 1.5;
+  letter-spacing: var(--tr-lede);
+  color: rgba(244, 241, 222, 0.82);
+  max-width: 46ch;
+}
+.pmeta__facts {
+  display: grid;
+  gap: 1.25rem;
+  margin: 0;
+  align-content: start;
+}
+@media (min-width: 32rem) { .pmeta__facts { grid-template-columns: repeat(2, 1fr); } }
+.pmeta__row { display: grid; gap: 0.2rem; }
+.pmeta__row dt {
+  font-size: var(--fs-meta);
+  letter-spacing: var(--tr-meta);
+  text-transform: uppercase;
+  color: rgba(244, 241, 222, 0.55);
+}
+.pmeta__row dd { margin: 0; font-size: var(--fs-small); letter-spacing: var(--tr-small); }
+
+.pbody { padding-block-end: clamp(4rem, 12vh, 8rem); }
+.pfig { margin: 0 0 clamp(1.5rem, 4vh, 2.5rem); }
+.pfig:last-child { margin-block-end: 0; }
+.pfig img { width: 100%; height: auto; display: block; }
+
+/* --- Next project: a full viewport of its own, so the sequence reads as a
+       deliberate handover rather than a link tacked to the bottom. --- */
+.next {
+  position: relative;
+  display: grid;
+  place-content: center;
+  gap: 1.5rem;
+  min-height: 100svh;
+  text-align: center;
+  padding: var(--gutter);
+  border-top: 1px solid var(--hairline-dk);
+  color: var(--parchment);
+}
+.next__inner {
+  position: relative;
+  display: inline-grid;
+  place-items: center;
+}
+.next__word {
+  font-family: var(--serif);
+  font-weight: 400;
+  font-size: clamp(2.75rem, 9vw, 7rem);
+  line-height: 1;
+  letter-spacing: var(--tr-h1);
+  white-space: nowrap;
+}
+/* Overlapping the word, exactly as the reference does — the arrow reads as
+   part of the type, not a button parked beside it. */
+.next__arrow {
+  position: absolute;
+  inset-block-start: 50%;
+  inset-inline-start: 50%;
+  width: clamp(4rem, 9vw, 7rem);
+  aspect-ratio: 1;
+  color: var(--parchment);
+  opacity: 0;
+  transform: translate(-50%, -50%) scale(0.9);
+  pointer-events: none;
+}
+.next__arrow svg { width: 100%; height: 100%; display: block; }
+.next__meta {
+  font-size: var(--fs-meta);
+  letter-spacing: var(--tr-meta);
+  text-transform: uppercase;
+  color: rgba(244, 241, 222, 0.6);
+}
+.next:focus-visible { outline: 2px solid var(--parchment); outline-offset: -6px; }
+
+/* Case-study pages run dark, so the shared footer takes its dark values. */
+.project .foot { border-top-color: var(--hairline-dk); color: rgba(244, 241, 222, 0.5); }
+
+/* A 15th tile has no partner; it closes the page full width. */
+.pair--solo { grid-template-columns: 1fr !important; }

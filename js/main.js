@@ -393,58 +393,62 @@ function pickArrowInk(tile) {
   else img.addEventListener('load', measure, { once: true });
 }
 
-function workTiles() {
-  const tiles = [...document.querySelectorAll('.tile')];
-  if (!tiles.length) return;
+/* One affordance, two callers: the work tiles and the next-project handover.
+   Both want the same spring, the same reversal behaviour and the same
+   no-hover fallback, so neither gets its own copy of it. */
+function arrowAffordance(root, arrow) {
+  if (!root || !arrow) return;
 
   // Hover is not available everywhere, and a hover-only affordance is
-  // invisible on touch. Where there is no pointer, the arrow is emphasised
-  // while the tile holds the middle of the viewport instead.
+  // invisible on touch. Where there is no fine pointer, the arrow is
+  // emphasised while its target holds the middle of the viewport.
   const hoverable = window.matchMedia('(hover: hover) and (pointer: fine)').matches;
 
-  tiles.forEach((tile) => {
-    const arrow = tile.querySelector('.tile__arrow');
-    if (!arrow) return;
-
-    pickArrowInk(tile);
-
-    const paint = (v) => {
-      arrow.style.opacity = String(v);
-      arrow.style.transform = `translate(-50%, -50%) scale(${(0.9 + v * 0.1).toFixed(4)})`;
+  let show;
+  if (reduced()) {
+    // Cross-fade only — no travel, no spring (apple-design §14).
+    arrow.style.transition = 'opacity 160ms ease';
+    show = (on) => { arrow.style.opacity = on ? '1' : '0'; };
+  } else {
+    const s = new Spring(0, {
+      damping: 1.0,
+      response: 0.34,
+      onUpdate: (v) => {
+        arrow.style.opacity = String(v);
+        arrow.style.transform =
+          `translate(-50%, -50%) scale(${(0.9 + v * 0.1).toFixed(4)})`;
+      },
+      onRest: () => { arrow.style.willChange = 'auto'; },
+    });
+    show = (on) => {
+      arrow.style.willChange = 'transform, opacity';
+      s.setTarget(on ? 1 : 0);   // re-target carries velocity through
     };
+  }
 
-    let show;
-    if (reduced()) {
-      // Cross-fade only, no travel and no spring (apple-design §14).
-      arrow.style.transition = 'opacity 160ms ease';
-      show = (on) => { arrow.style.opacity = on ? '1' : '0'; };
-    } else {
-      const s = new Spring(0, {
-        damping: 1.0,
-        response: 0.34,
-        onUpdate: paint,
-        onRest: () => { arrow.style.willChange = 'auto'; },
-      });
-      show = (on) => {
-        arrow.style.willChange = 'transform, opacity';
-        s.setTarget(on ? 1 : 0);   // re-target carries velocity through
-      };
-    }
+  if (hoverable) {
+    root.addEventListener('pointerenter', () => show(true));
+    root.addEventListener('pointerleave', () => show(false));
+  } else {
+    new IntersectionObserver(([e]) => show(e.isIntersecting),
+      { rootMargin: '-35% 0px -35% 0px', threshold: 0 }).observe(root);
+  }
 
-    if (hoverable) {
-      tile.addEventListener('pointerenter', () => show(true));
-      tile.addEventListener('pointerleave', () => show(false));
-    } else {
-      const io = new IntersectionObserver(
-        ([e]) => show(e.isIntersecting),
-        { rootMargin: '-35% 0px -35% 0px', threshold: 0 });
-      io.observe(tile);
-    }
+  // Keyboard reaches the same affordance on both.
+  root.addEventListener('focus', () => show(true));
+  root.addEventListener('blur', () => show(false));
+}
 
-    // Keyboard reaches the same affordance on both.
-    tile.addEventListener('focus', () => show(true));
-    tile.addEventListener('blur', () => show(false));
+function workTiles() {
+  document.querySelectorAll('.tile').forEach((tile) => {
+    pickArrowInk(tile);
+    arrowAffordance(tile, tile.querySelector('.tile__arrow'));
   });
+
+  // The handover at the foot of a case study sits on a flat ground, so its
+  // ink is known — no image to measure.
+  const next = document.querySelector('.next');
+  if (next) arrowAffordance(next, next.querySelector('.next__arrow'));
 }
 
 /* ------------------------------------------------------------
@@ -541,10 +545,13 @@ function contactForm() {
    ------------------------------------------------------------ */
 function navTheme() {
   const nav = document.querySelector('.nav');
-  const hero = document.querySelector('.hero');
+  // A case study opens on a full-bleed plate too, so it wants the same
+  // treatment as the home hero: no material over the image, light material
+  // once past it.
+  const hero = document.querySelector('.hero, .phero');
   if (!nav) return;
 
-  // No hero on this page — light material immediately.
+  // No plate on this page — light material immediately.
   if (!hero) { nav.dataset.theme = 'light'; return; }
 
   // Switch the moment the hero's bottom edge passes under the nav bar.
