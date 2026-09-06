@@ -20,7 +20,7 @@
 import { existsSync, mkdirSync, readFileSync, rmSync, writeFileSync } from "node:fs";
 import { dirname, join } from "node:path";
 import { fileURLToPath } from "node:url";
-import { load, pairs } from "./layout.mjs";
+import { load, pairs, teaser } from "./layout.mjs";
 
 const ROOT = dirname(fileURLToPath(import.meta.url));
 const PAGE = join(ROOT, "index.html");
@@ -315,15 +315,19 @@ for (const p of published)
   if (!studios[p.studio] || !STUDIO_META[p.studio])
     die(`${p.slug}: unknown studio "${p.studio}"`);
 
-const rowspec = pairs(published);
+// The home page is a capped teaser (2 per studio + "See all work"); /work/
+// carries the full catalogue. They are deliberately different row sets.
+const teased = teaser(published);
+const homeRows = pairs(teased);
+const workRows = pairs(published);
 
-buildHome(studios, rowspec);
-buildWorkIndex(studios, rowspec, published.length);
+buildHome(studios, homeRows);
+buildWorkIndex(studios, workRows, published.length);
 published.forEach((_, i) => buildProject(studios, published, i));
 const dropped = prune(all, published);
 
-console.log(`${published.length} projects`);
-for (const row of rowspec) {
+console.log(`${published.length} published; ${teased.length} on the home teaser`);
+for (const row of workRows) {
   const kind = row.solo ? "solo" : row.flip ? "pair (flipped)" : "pair";
   console.log(
     `  ${kind.padEnd(15)} ${row.items

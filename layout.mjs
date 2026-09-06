@@ -73,10 +73,36 @@ export function pairs(published) {
   return out;
 }
 
-/** slug -> "sm" | "lg", so make_media.mjs can cut to the right ratio. */
-export function tileSizes(published) {
+/**
+ * The home page shows a fixed-size teaser, not the whole catalogue: the first
+ * `perStudio` projects of each studio, in projects.json order, followed by the
+ * "See all work" call to action.
+ *
+ * This is a cap, not a coincidence. With six projects the teaser happens to be
+ * everything; at twenty it must still be two per studio, or the home page grows
+ * without bound and the CTA stops meaning anything.
+ */
+export function teaser(published, perStudio = 2) {
+  const count = {};
+  return published.filter((p) => {
+    count[p.studio] = (count[p.studio] ?? 0) + 1;
+    return count[p.studio] <= perStudio;
+  });
+}
+
+/**
+ * slug -> "sm" | "lg", so make_media.mjs can cut thumbnails to the ratio the
+ * tile will actually render at.
+ *
+ * Sizes are derived from the teaser, because the home grid is the only surface
+ * that renders tiles. A project outside the teaser has no tile, so its
+ * thumbnail defaults to 4:3 — used by /work/ until that page becomes the
+ * lookbook, and harmless either way since .tile__frame img is object-fit:cover.
+ */
+export function tileSizes(published, perStudio = 2) {
   const map = {};
-  for (const row of pairs(published))
+  for (const row of pairs(teaser(published, perStudio)))
     for (const { project, size } of row.items) map[project.slug] = size;
+  for (const p of published) map[p.slug] ??= "sm";
   return map;
 }
