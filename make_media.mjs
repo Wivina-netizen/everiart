@@ -4,12 +4,15 @@
  * Read-only with respect to 'media source/' — nothing there is renamed, moved or
  * rewritten. Every output is a new file under assets/<slug>/.
  *
- *   thumb.jpg       1200x1500 (4:5, matches .card__frame in css/site.css:251)
- *   gallery-NN.jpg  long edge capped at 1600
+ *   thumb.jpg       cut to the project's tile ratio — 4:3 for .tile--sm, 5:4
+ *                   for .tile--lg. layout.mjs decides which, so the generator
+ *                   and this script can never disagree and double-crop.
+ *   hero.jpg        2400x1500, the full-bleed .phero plate on the case study
+ *   gallery-NN.jpg  long edge capped at 1600 (.pfig renders natural aspect)
  *   reel.mp4        H.264 / AAC, capped at 1920, +faststart
  *   clip-NN.mp4     supplementary videos, same encode
  *
- * Thumbnail fit differs by source type, because they fail differently at 4:5:
+ * Fit differs by source type, because they fail differently when cropped:
  *   "crop"     photographs and video frames — centre-crop to fill.
  *   "contain"  design boards — whole board on its own brand ground; cropping a
  *              brand board slices the logo in half.
@@ -20,13 +23,15 @@ import { execFileSync } from "node:child_process";
 import { existsSync, mkdirSync, statSync } from "node:fs";
 import { basename, dirname, join, sep } from "node:path";
 import { fileURLToPath } from "node:url";
+import { load, tileSizes, RATIOS } from "./layout.mjs";
 
 const ROOT = dirname(fileURLToPath(import.meta.url));
 const SRC = join(ROOT, "media source");
 const OUT = join(ROOT, "assets");
 
-const THUMB_W = 1200;
-const THUMB_H = 1500;
+const THUMB_W = 1400;          // height derives from the tile's aspect ratio
+const HERO_W = 2400;
+const HERO_H = 1500;
 const GALLERY_MAX = 1600;
 const VIDEO_MAX = 1920;
 
@@ -52,6 +57,7 @@ const PROJECTS = {
   "hope-for-her": {
     fit: "crop",
     thumb: ["Thumbs/thumb2.png"],
+    hero: ["Thumbs/thumb3.png"],
     gallery: [["Thumbs/thumb2.png"], ["Thumbs/thumb.png"], ["Thumbs/thumb3.png"]],
     reel: `${H4H}/Spoken Words- H4H.mov`,
     clips: [],
@@ -59,6 +65,7 @@ const PROJECTS = {
   "regalia-pop-up-events": {
     fit: "crop",
     thumb: [WLR, 8],
+    hero: [WLR, 5],
     gallery: [
       [WLR, 8], [WLR, 5], [WLR, 2], [WLR, 14], [WLR, 17],
       [APR26, 40], [APR13, 40],
@@ -70,6 +77,7 @@ const PROJECTS = {
     fit: "contain",
     ground: "0xFCFCFC",
     thumb: [`${MT}/MT1@500x-100.jpg`],
+    hero: [`${MT}/Maitro Concept 1@500x-100.jpg`],
     gallery: [[`${MT}/MT1@500x-100.jpg`], [`${MT}/Maitro Concept 1@500x-100.jpg`]],
     reel: null,
     clips: [],
@@ -78,6 +86,7 @@ const PROJECTS = {
     fit: "contain",
     ground: "0x0B1612",
     thumb: [`${BMT}/500ppi/Artboard 1 copy 5@500x-100.jpg`],
+    hero: [`${BMT}/500ppi/Artboard 1 copy 5@500x-100.jpg`],
     gallery: [
       [`${BMT}/500ppi/Artboard 1 copy 5@500x-100.jpg`],
       [`${BMT}/500ppi/Artboard 1 copy 4@500x-100.jpg`],
@@ -99,7 +108,8 @@ const PROJECTS = {
   },
   agra: {
     fit: "crop",
-    thumb: [`${BE}/AGRA/DSC08292.jpg`],
+    thumb: [`${BE}/AGRA/DSC08151.jpg`],
+    hero: [`${BE}/AGRA/DSC08431.jpg`],
     gallery: [
       [`${BE}/AGRA/DSC08151.jpg`], [`${BE}/AGRA/DSC08157.jpg`],
       [`${BE}/AGRA/DSC08273.jpg`], [`${BE}/AGRA/DSC08219.jpg`],
@@ -113,6 +123,7 @@ const PROJECTS = {
   azusa: {
     fit: "crop",
     thumb: [AZ_HD, 155],
+    hero: [AZ_HD, 170],
     gallery: [
       [AZ_HD, 155], [AZ_HD, 8], [AZ_HD, 35], [AZ_HD, 80],
       [AZ_HD, 110], [AZ_HD, 125], [AZ_HD, 170],
@@ -140,13 +151,13 @@ const inputs = ([path, at]) =>
     ? ["-i", src(path)]
     : ["-ss", String(at), "-i", src(path), "-frames:v", "1"];
 
-function thumb(spec, dest, fit, ground) {
+/** Cut a source to exactly w x h, cropping or letterboxing per the fit rule. */
+function framed(spec, dest, fit, ground, w, h) {
   const vf =
     fit === "contain"
-      ? `scale=${THUMB_W}:${THUMB_H}:force_original_aspect_ratio=decrease,` +
-        `pad=${THUMB_W}:${THUMB_H}:(ow-iw)/2:(oh-ih)/2:${ground}`
-      : `scale=${THUMB_W}:${THUMB_H}:force_original_aspect_ratio=increase,` +
-        `crop=${THUMB_W}:${THUMB_H}`;
+      ? `scale=${w}:${h}:force_original_aspect_ratio=decrease,` +
+        `pad=${w}:${h}:(ow-iw)/2:(oh-ih)/2:${ground}`
+      : `scale=${w}:${h}:force_original_aspect_ratio=increase,crop=${w}:${h}`;
   ff([...inputs(spec), "-vf", vf, "-q:v", "3", dest]);
 }
 
@@ -167,16 +178,27 @@ const video = (rel, dest) =>
 const mb = (p) => statSync(p).size / 1024 / 1024;
 const pad = (n) => String(n).padStart(2, "0");
 
-function build(slug, spec) {
+function build(slug, spec, tile) {
   const dir = join(OUT, slug);
   mkdirSync(dir, { recursive: true });
   const ground = spec.ground ?? "0x000000";
   let total = 0;
 
+  // Thumbnail aspect follows the tile this project renders as.
+  const r = RATIOS[tile];
+  const th = Math.round((THUMB_W * r.h) / r.w);
   const t = join(dir, "thumb.jpg");
-  thumb(spec.thumb, t, spec.fit, ground);
+  framed(spec.thumb, t, spec.fit, ground, THUMB_W, th);
   total += mb(t);
-  console.log(`  thumb.jpg       ${mb(t).toFixed(2).padStart(6)} MB  (${spec.fit})`);
+  console.log(
+    `  thumb.jpg       ${mb(t).toFixed(2).padStart(6)} MB  ` +
+      `${THUMB_W}x${th}  ${r.w}:${r.h} (tile--${tile}, ${spec.fit})`
+  );
+
+  const h = join(dir, "hero.jpg");
+  framed(spec.hero ?? spec.thumb, h, spec.fit, ground, HERO_W, HERO_H);
+  total += mb(h);
+  console.log(`  hero.jpg        ${mb(h).toFixed(2).padStart(6)} MB  ${HERO_W}x${HERO_H}`);
 
   let gsum = 0;
   spec.gallery.forEach((g, i) => {
@@ -222,9 +244,18 @@ if (unknown.length) {
   process.exit(1);
 }
 
+const sizes = tileSizes(load().published);
+const missing = wanted.filter((s) => !sizes[s]);
+if (missing.length) {
+  console.error(
+    `not published in projects.json, so no tile size is defined: ${missing.join(", ")}`
+  );
+  process.exit(1);
+}
+
 let grand = 0;
 for (const slug of wanted) {
   console.log(`\n${slug}`);
-  grand += build(slug, PROJECTS[slug]);
+  grand += build(slug, PROJECTS[slug], sizes[slug]);
 }
 console.log(`\ntotal written to assets/: ${grand.toFixed(1)} MB`);

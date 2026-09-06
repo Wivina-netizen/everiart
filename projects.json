@@ -16,15 +16,16 @@
     "the repo — assets/**/*.mp4 is gitignored. Regenerate them locally with",
     "make_media.mjs. They move to Cloudflare R2 URLs via upload_r2.mjs --write.",
     "Nothing renders them yet: the site has no <video> element, so these are data",
-    "only, awaiting project detail pages or a lightbox."
+    "only, awaiting project detail pages or a lightbox.",
+    "",
+    "lede is placeholder copy carried over from make_projects.py. Real project",
+    "narrative goes here — it is deliberately not invented."
   ],
-
   "studios": {
     "byeveriart": "ByEveriArt",
     "everidesign": "EveriDesign",
     "beframes": "BeFrames"
   },
-
   "projects": [
     {
       "slug": "hope-for-her",
@@ -35,13 +36,15 @@
       "discipline": "Documentary",
       "published": true,
       "thumb": "assets/hope-for-her/thumb.jpg",
+      "hero": "assets/hope-for-her/hero.jpg",
       "gallery": [
         "assets/hope-for-her/gallery-01.jpg",
         "assets/hope-for-her/gallery-02.jpg",
         "assets/hope-for-her/gallery-03.jpg"
       ],
       "reel": "assets/hope-for-her/reel.mp4",
-      "clips": []
+      "clips": [],
+      "lede": "Placeholder copy. This is where the brief, the constraint and the decision that shaped the work get written — what the client needed, what we found when we looked, and why the work took the form it did."
     },
     {
       "slug": "regalia-pop-up-events",
@@ -52,6 +55,7 @@
       "discipline": "Event film",
       "published": true,
       "thumb": "assets/regalia-pop-up-events/thumb.jpg",
+      "hero": "assets/regalia-pop-up-events/hero.jpg",
       "gallery": [
         "assets/regalia-pop-up-events/gallery-01.jpg",
         "assets/regalia-pop-up-events/gallery-02.jpg",
@@ -65,7 +69,8 @@
       "clips": [
         "assets/regalia-pop-up-events/clip-01.mp4",
         "assets/regalia-pop-up-events/clip-02.mp4"
-      ]
+      ],
+      "lede": "Placeholder copy. This is where the brief, the constraint and the decision that shaped the work get written — what the client needed, what we found when we looked, and why the work took the form it did."
     },
     {
       "slug": "maitro-tech",
@@ -76,12 +81,14 @@
       "discipline": "Identity system",
       "published": true,
       "thumb": "assets/maitro-tech/thumb.jpg",
+      "hero": "assets/maitro-tech/hero.jpg",
       "gallery": [
         "assets/maitro-tech/gallery-01.jpg",
         "assets/maitro-tech/gallery-02.jpg"
       ],
       "reel": null,
-      "clips": []
+      "clips": [],
+      "lede": "Placeholder copy. This is where the brief, the constraint and the decision that shaped the work get written — what the client needed, what we found when we looked, and why the work took the form it did."
     },
     {
       "slug": "bmt-apparels",
@@ -92,6 +99,7 @@
       "discipline": "Brand identity",
       "published": true,
       "thumb": "assets/bmt-apparels/thumb.jpg",
+      "hero": "assets/bmt-apparels/hero.jpg",
       "_incomplete": "Gallery is 3 of an intended 9. The six BMT moodboard pages were deleted from 'media source/' on 2026-09-06 while this was being built — see the commented block in make_media.mjs. Restore those files, un-comment, re-run, and add gallery-04..09 back here.",
       "gallery": [
         "assets/bmt-apparels/gallery-01.jpg",
@@ -99,7 +107,8 @@
         "assets/bmt-apparels/gallery-03.jpg"
       ],
       "reel": null,
-      "clips": []
+      "clips": [],
+      "lede": "Placeholder copy. This is where the brief, the constraint and the decision that shaped the work get written — what the client needed, what we found when we looked, and why the work took the form it did."
     },
     {
       "slug": "hawthorn-real-estate",
@@ -111,9 +120,11 @@
       "published": false,
       "_hold": "Withheld 2026-09-06: no real media sourced yet. Assets below are the generated placeholders from make_placeholders.py. Set published:true once real media lands.",
       "thumb": "assets/work-identity-01.jpg",
+      "hero": "assets/work-identity-01.jpg",
       "gallery": [],
       "reel": null,
-      "clips": []
+      "clips": [],
+      "lede": "Placeholder copy. This is where the brief, the constraint and the decision that shaped the work get written — what the client needed, what we found when we looked, and why the work took the form it did."
     },
     {
       "slug": "grosource",
@@ -125,9 +136,11 @@
       "published": false,
       "_hold": "Withheld 2026-09-06: no real media sourced yet. Assets below are the generated placeholders from make_placeholders.py. Set published:true once real media lands.",
       "thumb": "assets/work-identity-02.jpg",
+      "hero": "assets/work-identity-02.jpg",
       "gallery": [],
       "reel": null,
-      "clips": []
+      "clips": [],
+      "lede": "Placeholder copy. This is where the brief, the constraint and the decision that shaped the work get written — what the client needed, what we found when we looked, and why the work took the form it did."
     },
     {
       "slug": "agra",
@@ -138,6 +151,7 @@
       "discipline": "Event photography",
       "published": true,
       "thumb": "assets/agra/thumb.jpg",
+      "hero": "assets/agra/hero.jpg",
       "gallery": [
         "assets/agra/gallery-01.jpg",
         "assets/agra/gallery-02.jpg",
@@ -151,7 +165,8 @@
         "assets/agra/gallery-10.jpg"
       ],
       "reel": "assets/agra/reel.mp4",
-      "clips": []
+      "clips": [],
+      "lede": "Placeholder copy. This is where the brief, the constraint and the decision that shaped the work get written — what the client needed, what we found when we looked, and why the work took the form it did."
     },
     {
       "slug": "azusa",
@@ -162,6 +177,7 @@
       "discipline": "Property film",
       "published": true,
       "thumb": "assets/azusa/thumb.jpg",
+      "hero": "assets/azusa/hero.jpg",
       "gallery": [
         "assets/azusa/gallery-01.jpg",
         "assets/azusa/gallery-02.jpg",
@@ -172,7 +188,8 @@
         "assets/azusa/gallery-07.jpg"
       ],
       "reel": "assets/azusa/reel.mp4",
-      "clips": []
+      "clips": [],
+      "lede": "Placeholder copy. This is where the brief, the constraint and the decision that shaped the work get written — what the client needed, what we found when we looked, and why the work took the form it did."
     }
   ]
 }
