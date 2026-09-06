@@ -6,6 +6,10 @@
 *.key
 netlify.toml.local
 
+# Camera masters / source media (~45 GB). Never committed — assets/ holds the
+# web-ready derivatives, regenerated from here by make_media.mjs.
+media source/
+
 # OS / editor noise
 .DS_Store
 Thumbs.db
@@ -22,3 +26,7 @@ dist/
 # Python (placeholder generator only)
 __pycache__/
 *.pyc
+
+# Derived video lives on external hosting (Cloudflare R2), never in the repo.
+# Regenerate locally with: node make_media.mjs
+assets/**/*.mp4
