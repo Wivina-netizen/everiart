@@ -122,8 +122,11 @@ const TAIL = `
 function tile(studios, { project: p, size, delay }, indent, absolute) {
   const i = " ".repeat(indent);
   const src = absolute ? `/${p.thumb}` : p.thumb;
+  // data-reel is what js/video.js keys off. Absent for projects with no
+  // reel, so those tiles keep the still and never build a <video>.
+  const reel = p.reel ? ` data-reel="${esc(p.reel)}"` : "";
   return `${i}<a class="tile tile--${size} reveal" href="/work/${p.slug}/" data-delay="${delay}"
-${i}   data-studio="${p.studio}" data-category="${esc(p.category)}" data-slug="${p.slug}">
+${i}   data-studio="${p.studio}" data-category="${esc(p.category)}" data-slug="${p.slug}"${reel}>
 ${i}  <span class="tile__frame">
 ${i}    <img src="${src}" alt="${esc(`${p.name} — ${p.discipline.toLowerCase()}`)}" loading="lazy" decoding="async">
 ${i}    <span class="tile__arrow" aria-hidden="true">
