@@ -22,7 +22,10 @@
     "regenerate them with make_media.mjs if you need to re-upload. Nothing renders",
     "them yet — the hover-to-play and lookbook builds are what will consume them.",
     "",
-    "lede is placeholder copy. Real project narrative goes here — not invented."
+    "lede is placeholder copy. Real project narrative goes here — not invented.",
+    "",
+    "blurb is the one-line description shown on the /work lookbook. Empty until",
+    "written; the lookbook omits the line entirely rather than showing filler."
   ],
   "studios": {
     "byeveriart": "ByEveriArt",
@@ -47,7 +50,8 @@
       ],
       "reel": "https://pub-22c601fc38564ec79d41e018bfad6bcf.r2.dev/hope-for-her/reel.mp4",
       "clips": [],
-      "lede": "Placeholder copy. This is where the brief, the constraint and the decision that shaped the work get written — what the client needed, what we found when we looked, and why the work took the form it did."
+      "lede": "Placeholder copy. This is where the brief, the constraint and the decision that shaped the work get written — what the client needed, what we found when we looked, and why the work took the form it did.",
+      "blurb": ""
     },
     {
       "slug": "regalia-pop-up-events",
@@ -73,7 +77,8 @@
         "https://pub-22c601fc38564ec79d41e018bfad6bcf.r2.dev/regalia-pop-up-events/clip-01.mp4",
         "https://pub-22c601fc38564ec79d41e018bfad6bcf.r2.dev/regalia-pop-up-events/clip-02.mp4"
       ],
-      "lede": "Placeholder copy. This is where the brief, the constraint and the decision that shaped the work get written — what the client needed, what we found when we looked, and why the work took the form it did."
+      "lede": "Placeholder copy. This is where the brief, the constraint and the decision that shaped the work get written — what the client needed, what we found when we looked, and why the work took the form it did.",
+      "blurb": ""
     },
     {
       "slug": "maitro-tech",
@@ -91,7 +96,8 @@
       ],
       "reel": null,
       "clips": [],
-      "lede": "Placeholder copy. This is where the brief, the constraint and the decision that shaped the work get written — what the client needed, what we found when we looked, and why the work took the form it did."
+      "lede": "Placeholder copy. This is where the brief, the constraint and the decision that shaped the work get written — what the client needed, what we found when we looked, and why the work took the form it did.",
+      "blurb": ""
     },
     {
       "slug": "bmt-apparels",
@@ -111,7 +117,8 @@
       ],
       "reel": null,
       "clips": [],
-      "lede": "Placeholder copy. This is where the brief, the constraint and the decision that shaped the work get written — what the client needed, what we found when we looked, and why the work took the form it did."
+      "lede": "Placeholder copy. This is where the brief, the constraint and the decision that shaped the work get written — what the client needed, what we found when we looked, and why the work took the form it did.",
+      "blurb": ""
     },
     {
       "slug": "hawthorn-real-estate",
@@ -127,7 +134,8 @@
       "gallery": [],
       "reel": null,
       "clips": [],
-      "lede": "Placeholder copy. This is where the brief, the constraint and the decision that shaped the work get written — what the client needed, what we found when we looked, and why the work took the form it did."
+      "lede": "Placeholder copy. This is where the brief, the constraint and the decision that shaped the work get written — what the client needed, what we found when we looked, and why the work took the form it did.",
+      "blurb": ""
     },
     {
       "slug": "grosource",
@@ -143,7 +151,8 @@
       "gallery": [],
       "reel": null,
       "clips": [],
-      "lede": "Placeholder copy. This is where the brief, the constraint and the decision that shaped the work get written — what the client needed, what we found when we looked, and why the work took the form it did."
+      "lede": "Placeholder copy. This is where the brief, the constraint and the decision that shaped the work get written — what the client needed, what we found when we looked, and why the work took the form it did.",
+      "blurb": ""
     },
     {
       "slug": "agra",
@@ -169,7 +178,8 @@
       ],
       "reel": "https://pub-22c601fc38564ec79d41e018bfad6bcf.r2.dev/agra/reel.mp4",
       "clips": [],
-      "lede": "Placeholder copy. This is where the brief, the constraint and the decision that shaped the work get written — what the client needed, what we found when we looked, and why the work took the form it did."
+      "lede": "Placeholder copy. This is where the brief, the constraint and the decision that shaped the work get written — what the client needed, what we found when we looked, and why the work took the form it did.",
+      "blurb": ""
     },
     {
       "slug": "azusa",
@@ -192,7 +202,8 @@
       ],
       "reel": "https://pub-22c601fc38564ec79d41e018bfad6bcf.r2.dev/azusa/reel.mp4",
       "clips": [],
-      "lede": "Placeholder copy. This is where the brief, the constraint and the decision that shaped the work get written — what the client needed, what we found when we looked, and why the work took the form it did."
+      "lede": "Placeholder copy. This is where the brief, the constraint and the decision that shaped the work get written — what the client needed, what we found when we looked, and why the work took the form it did.",
+      "blurb": ""
     }
   ]
 }

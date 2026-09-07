@@ -5,6 +5,8 @@
    ============================================================ */
 
 import { Spring, prefersReducedMotion, REDUCED } from './spring.js';
+import { videoAffordances } from './video.js';
+import { lookbook } from './lookbook.js';
 
 const reduced = () => prefersReducedMotion();
 
@@ -670,6 +672,8 @@ function init() {
   reveals();
   studioFilter();
   workTiles();
+  videoAffordances();   // hover-to-play + fullscreen preview, home tiles
+  lookbook();           // /work/ sequence: scroll-triggered reels + position
   heroParallax();
   contactForm();
   navTheme();

@@ -17,7 +17,9 @@
  *
  *   node make_projects.mjs
  */
-import { existsSync, mkdirSync, readFileSync, rmSync, writeFileSync } from "node:fs";
+import {
+  existsSync, mkdirSync, readdirSync, readFileSync, rmSync, writeFileSync,
+} from "node:fs";
 import { dirname, join } from "node:path";
 import { fileURLToPath } from "node:url";
 import { load, pairs, teaser } from "./layout.mjs";
@@ -187,28 +189,63 @@ function buildHome(studios, rowspec) {
   writeFileSync(PAGE, page.slice(0, a) + block + page.slice(b), "utf8");
 }
 
-// --------------------------------------------------------------- /work/
-function buildWorkIndex(studios, rowspec, n) {
+// ------------------------------------------------------- /work/ lookbook
+/**
+ * /work/ is an editorial sequence rather than a grid: one near-full-viewport
+ * section per project, in projects.json order.
+ *
+ * Nothing here is sized to the current project count. Sections come from
+ * mapping the published array, the counter total is that array's length, and
+ * the position rail is built at runtime from however many sections exist — six
+ * or sixty behave identically.
+ *
+ * This is the browsing layer only. Full metadata, the gallery and the
+ * next-project chain live on /work/<slug>/ and are deliberately not repeated
+ * here; each section links across instead of restating.
+ */
+function buildLookbook(studios, published) {
+  const n = published.length;
+
+  const sections = published
+    .map((p, i) => {
+      // data-reel drives scroll-triggered playback. Absent means the section
+      // simply holds its still, which is what Maitro and BMT do.
+      const reel = p.reel ? ` data-reel="${esc(p.reel)}"` : "";
+      // An unwritten blurb omits the line rather than printing filler.
+      const blurb = p.blurb ? `\n        <p class="lb__blurb">${esc(p.blurb)}</p>` : "";
+      return `  <section class="lb" id="p${i + 1}" data-index="${i + 1}" data-slug="${p.slug}"${reel}
+           aria-labelledby="lb-t${i + 1}">
+    <div class="lb__media">
+      <img class="lb__still" src="/${p.hero}" alt="" loading="${i === 0 ? "eager" : "lazy"}" decoding="async">
+    </div>
+    <div class="lb__caption">
+      <div class="wrap">
+        <p class="lb__label">${studios[p.studio]} &middot; ${esc(p.category)}</p>
+        <h2 class="lb__title" id="lb-t${i + 1}">${esc(p.name)}</h2>${blurb}
+        <a class="lb__cta" href="/work/${p.slug}/">
+          <span>View full case study</span>
+          <span class="lb__cta-arrow" aria-hidden="true">${ARROW}</span>
+        </a>
+      </div>
+    </div>
+  </section>`;
+    })
+    .join("\n\n");
+
   const html =
-    head("Work — EveriArt", `${n} projects across three studios.`) +
+    head("Work — EveriArt", `${n} projects across three studios.`, "#0B0B0C") +
     nav("work") +
     `
-<main id="main" class="page">
-  <div class="wrap">
+<main id="main" class="lookbook">
 
-    <header class="page__head">
-      <h1 class="page__title">Work</h1>
-      <p class="page__lede">
-        ${n} projects across three studios — film, photography and identity.
-      </p>
-    </header>
-
-    <div class="work">
-
-${rows(studios, rowspec, 6, true)}
-
-    </div>
+  <div class="lb__hud" aria-hidden="true">
+    <span class="lb__now">01</span><span class="lb__rule"></span><span class="lb__total">${String(n).padStart(2, "0")}</span>
   </div>
+
+  <nav class="lb__rail" aria-label="Project sequence"></nav>
+
+${sections}
+
 ` +
     FOOT +
     `</main>
@@ -296,17 +333,24 @@ ${figures}
   writeFileSync(join(dir, "index.html"), html, "utf8");
 }
 
-/** Remove case studies for projects that are no longer published. */
-function prune(all, published) {
+/**
+ * Remove every case-study directory that no longer belongs to a published
+ * project.
+ *
+ * This scans work/ rather than walking projects.json, because the two ways a
+ * page goes stale are different: a project can be flipped to published:false,
+ * or its entry can be deleted outright. Only the directory listing catches
+ * both, and an orphaned /work/<slug>/ is a live URL serving a project the site
+ * no longer claims to have.
+ */
+function prune(published) {
   const live = new Set(published.map((p) => p.slug));
+  if (!existsSync(WORK)) return [];
   const dropped = [];
-  for (const p of all) {
-    if (live.has(p.slug)) continue;
-    const dir = join(WORK, p.slug);
-    if (existsSync(dir)) {
-      rmSync(dir, { recursive: true, force: true });
-      dropped.push(p.slug);
-    }
+  for (const entry of readdirSync(WORK, { withFileTypes: true })) {
+    if (!entry.isDirectory() || live.has(entry.name)) continue;
+    rmSync(join(WORK, entry.name), { recursive: true, force: true });
+    dropped.push(entry.name);
   }
   return dropped;
 }
@@ -318,19 +362,19 @@ for (const p of published)
   if (!studios[p.studio] || !STUDIO_META[p.studio])
     die(`${p.slug}: unknown studio "${p.studio}"`);
 
-// The home page is a capped teaser (2 per studio + "See all work"); /work/
-// carries the full catalogue. They are deliberately different row sets.
+// The home page is a capped teaser grid (2 per studio + "See all work");
+// /work/ is the full catalogue as an editorial sequence. Different surfaces,
+// different shapes — only the home page uses tiles at all.
 const teased = teaser(published);
 const homeRows = pairs(teased);
-const workRows = pairs(published);
 
 buildHome(studios, homeRows);
-buildWorkIndex(studios, workRows, published.length);
+buildLookbook(studios, published);
 published.forEach((_, i) => buildProject(studios, published, i));
-const dropped = prune(all, published);
+const dropped = prune(published);
 
 console.log(`${published.length} published; ${teased.length} on the home teaser`);
-for (const row of workRows) {
+for (const row of homeRows) {
   const kind = row.solo ? "solo" : row.flip ? "pair (flipped)" : "pair";
   console.log(
     `  ${kind.padEnd(15)} ${row.items
@@ -339,13 +383,13 @@ for (const row of workRows) {
   );
 }
 console.log(`\n  home grid   index.html`);
-console.log(`  work index  work/index.html`);
+console.log(`  lookbook    work/index.html`);
 console.log(`  case studies work/<slug>/index.html  x${published.length}`);
 
 const loop = published.map((p) => p.slug).join(" -> ");
 console.log(`\n  next-project loop: ${loop} -> ${published[0].slug}`);
 
-if (dropped.length) console.log(`\n  pruned withheld pages: ${dropped.join(", ")}`);
+if (dropped.length) console.log(`\n  pruned stale case studies: ${dropped.join(", ")}`);
 const held = all.filter((p) => !p.published);
 if (held.length)
   console.log(`  withheld (data retained): ${held.map((p) => p.slug).join(", ")}`);

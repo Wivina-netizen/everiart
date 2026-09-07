@@ -1197,3 +1197,130 @@
   .vov__bar { flex-wrap: wrap; }
   .vov__case { margin-inline-start: 0; }
 }
+
+/* ============================================================
+   /work/ LOOKBOOK
+   An editorial sequence: one near-full-viewport section per
+   project. Deliberately NOT scroll-snap — snapping takes the
+   scroll away from the user mid-gesture, which is the opposite
+   of the interruptibility the rest of this site is built on.
+   ============================================================ */
+.lookbook { background: var(--ink-deep); color: var(--offwhite); }
+
+.lb {
+  position: relative;
+  min-height: 100svh;
+  display: grid;
+  align-items: end;
+  overflow: clip;
+  isolation: isolate;
+  background: var(--ink-deep);
+}
+
+.lb__media { position: absolute; inset: 0; z-index: 0; }
+.lb__still,
+.lb__video {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  display: block;
+}
+/* js cross-fades this in once the section is on screen and playing. */
+.lb__video { opacity: 0; }
+
+/* Keeps the caption legible over any frame of any reel. */
+.lb__caption {
+  position: relative;
+  z-index: 1;
+  width: 100%;
+  padding-block: clamp(3rem, 12vh, 7rem);
+  background: linear-gradient(to top, var(--ink-a80) 0%, var(--ink-a55) 45%, var(--ink-a00) 100%);
+}
+
+.lb__label {
+  margin: 0 0 0.75rem;
+  font: 500 var(--fs-meta)/1.2 var(--sans);
+  letter-spacing: var(--tr-meta);
+  text-transform: uppercase;
+  color: var(--stone);
+}
+.lb__title {
+  margin: 0;
+  font: 400 var(--fs-h1)/var(--lh-h1) var(--serif);
+  letter-spacing: var(--tr-h1);
+}
+.lb__blurb {
+  margin: 1rem 0 0;
+  max-width: var(--measure);
+  font: 400 var(--fs-lede)/1.5 var(--sans);
+  letter-spacing: var(--tr-lede);
+  color: var(--offwhite-a70);
+}
+
+.lb__cta {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.75rem;
+  margin-top: 1.75rem;
+  color: var(--offwhite);
+  text-decoration: none;
+  font: 500 var(--fs-small)/1 var(--sans);
+  letter-spacing: var(--tr-small);
+}
+.lb__cta span:first-child {
+  border-bottom: 1px solid var(--gold-a40);
+  padding-bottom: 3px;
+}
+.lb__cta:hover span:first-child,
+.lb__cta:focus-visible span:first-child { border-bottom-color: var(--gold); }
+.lb__cta-arrow { display: block; width: 2rem; height: 2rem; color: var(--gold); }
+.lb__cta-arrow svg { width: 100%; height: 100%; }
+
+/* --- Position: where am I in the sequence --------------------------- */
+.lb__hud {
+  position: fixed;
+  left: var(--gutter);
+  bottom: var(--gutter);
+  z-index: 90;                /* under the nav at 100 */
+  display: flex;
+  align-items: center;
+  gap: 0.6rem;
+  font: 500 var(--fs-meta)/1 var(--sans);
+  letter-spacing: var(--tr-meta);
+  color: var(--offwhite);
+  mix-blend-mode: difference;  /* legible over any frame beneath it */
+}
+.lb__rule { width: 1.5rem; height: 1px; background: currentColor; opacity: 0.5; }
+.lb__total { opacity: 0.5; }
+
+.lb__rail {
+  position: fixed;
+  right: var(--gutter);
+  top: 50%;
+  transform: translateY(-50%);
+  z-index: 90;
+  display: flex;
+  flex-direction: column;
+  gap: 0.75rem;
+}
+.lb__rail a {
+  display: block;
+  width: 1.5rem;
+  height: 1px;
+  background: var(--offwhite);
+  opacity: 0.28;
+}
+.lb__rail a[aria-current="true"] { opacity: 1; width: 2.25rem; }
+
+/* The rail is a convenience, not the position indicator — the counter is.
+   Below this width, or when js declines to build it, the counter stands
+   alone. */
+@media (max-width: 60rem) {
+  .lb__rail { display: none; }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .lb__rail a { transition: none; }
+}
