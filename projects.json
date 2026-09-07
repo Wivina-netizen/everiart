@@ -1,25 +1,28 @@
 {
   "_comment": [
-    "SINGLE SOURCE OF TRUTH for the work grid.",
-    "Array order IS grid order — reorder entries here, re-run make_projects.py, done.",
-    "Never edit the card markup in index.html by hand; it is generated between the",
-    "PROJECTS:START / PROJECTS:END markers and will be overwritten.",
+    "SINGLE SOURCE OF TRUTH for every project on the site.",
+    "Array order IS grid order — reorder entries here, re-run make_projects.mjs.",
+    "Never hand-edit project markup: the home grid (between the PROJECTS markers",
+    "in index.html), work/index.html and work/<slug>/index.html are all generated",
+    "and will be overwritten.",
     "",
-    "published:false keeps a project's data intact but excludes it from the grid,",
-    "from the card count and from the next-project loop. Flip it to true (and point",
-    "thumb/gallery/reel at real media) to bring the project back.",
+    "published:false keeps a project s data intact but excludes it from the home",
+    "teaser, from /work/, from the next-project loop, and deletes its case-study",
+    "directory so no live URL is stranded. Flip it to true to bring the project",
+    "back — point thumb/hero/gallery at real media first.",
     "",
-    "studio   — discipline / which studio made it. Drives the existing filter pills.",
+    "studio   — which studio made it. Drives the filter pills.",
     "category — project TYPE, orthogonal to studio. Reserved for future filtering.",
     "",
-    "reel/clips still hold assets/<slug>/*.mp4 paths, but those files are NOT in",
-    "the repo — assets/**/*.mp4 is gitignored. Regenerate them locally with",
-    "make_media.mjs. They move to Cloudflare R2 URLs via upload_r2.mjs --write.",
-    "Nothing renders them yet: the site has no <video> element, so these are data",
-    "only, awaiting project detail pages or a lightbox.",
+    "The home page shows a capped teaser (2 per studio, see layout.mjs) followed",
+    "by See all work. /work/ carries the full published set.",
     "",
-    "lede is placeholder copy carried over from make_projects.py. Real project",
-    "narrative goes here — it is deliberately not invented."
+    "reel/clips are Cloudflare R2 URLs, uploaded by upload_r2.mjs. The local",
+    "assets/**/*.mp4 they were derived from are gitignored and never committed;",
+    "regenerate them with make_media.mjs if you need to re-upload. Nothing renders",
+    "them yet — the hover-to-play and lookbook builds are what will consume them.",
+    "",
+    "lede is placeholder copy. Real project narrative goes here — not invented."
   ],
   "studios": {
     "byeveriart": "ByEveriArt",
@@ -42,7 +45,7 @@
         "assets/hope-for-her/gallery-02.jpg",
         "assets/hope-for-her/gallery-03.jpg"
       ],
-      "reel": "assets/hope-for-her/reel.mp4",
+      "reel": "https://pub-22c601fc38564ec79d41e018bfad6bcf.r2.dev/hope-for-her/reel.mp4",
       "clips": [],
       "lede": "Placeholder copy. This is where the brief, the constraint and the decision that shaped the work get written — what the client needed, what we found when we looked, and why the work took the form it did."
     },
@@ -65,10 +68,10 @@
         "assets/regalia-pop-up-events/gallery-06.jpg",
         "assets/regalia-pop-up-events/gallery-07.jpg"
       ],
-      "reel": "assets/regalia-pop-up-events/reel.mp4",
+      "reel": "https://pub-22c601fc38564ec79d41e018bfad6bcf.r2.dev/regalia-pop-up-events/reel.mp4",
       "clips": [
-        "assets/regalia-pop-up-events/clip-01.mp4",
-        "assets/regalia-pop-up-events/clip-02.mp4"
+        "https://pub-22c601fc38564ec79d41e018bfad6bcf.r2.dev/regalia-pop-up-events/clip-01.mp4",
+        "https://pub-22c601fc38564ec79d41e018bfad6bcf.r2.dev/regalia-pop-up-events/clip-02.mp4"
       ],
       "lede": "Placeholder copy. This is where the brief, the constraint and the decision that shaped the work get written — what the client needed, what we found when we looked, and why the work took the form it did."
     },
@@ -164,7 +167,7 @@
         "assets/agra/gallery-09.jpg",
         "assets/agra/gallery-10.jpg"
       ],
-      "reel": "assets/agra/reel.mp4",
+      "reel": "https://pub-22c601fc38564ec79d41e018bfad6bcf.r2.dev/agra/reel.mp4",
       "clips": [],
       "lede": "Placeholder copy. This is where the brief, the constraint and the decision that shaped the work get written — what the client needed, what we found when we looked, and why the work took the form it did."
     },
@@ -187,7 +190,7 @@
         "assets/azusa/gallery-06.jpg",
         "assets/azusa/gallery-07.jpg"
       ],
-      "reel": "assets/azusa/reel.mp4",
+      "reel": "https://pub-22c601fc38564ec79d41e018bfad6bcf.r2.dev/azusa/reel.mp4",
       "clips": [],
       "lede": "Placeholder copy. This is where the brief, the constraint and the decision that shaped the work get written — what the client needed, what we found when we looked, and why the work took the form it did."
     }
