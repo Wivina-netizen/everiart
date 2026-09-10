@@ -318,14 +318,37 @@ function heroSequence() {
 }
 
 /* ------------------------------------------------------------
-   2. Scroll reveals — spring-driven, single mechanism
+   2. Scroll reveals — spring-driven, one mechanism, one cascade
+
+   Everything that crosses the threshold on the same frame is one group, and
+   a group arrives in document order one --stagger-step apart rather than all
+   at once. That is the whole difference: a pair of tiles, a row of client
+   cells or a run of figures used to fade up together, which reads as a
+   single block changing state instead of a sequence of things arriving.
+
+   Grouping by observer batch rather than by container is deliberate. It
+   needs no per-section markup, it works for a two-tile pair and a nine-cell
+   grid alike, and it can never stagger two elements that are not on screen
+   together — the batch IS what the reader just saw appear.
+
+   The tail is capped: past CASCADE_MAX steps the delay stops growing, so a
+   tall viewport that admits a dozen elements at once cannot leave the last
+   of them waiting most of a second for its turn.
    ------------------------------------------------------------ */
+const CASCADE_MAX = 6;
+
 function reveals() {
   const items = document.querySelectorAll('.reveal');
   if (!items.length) return;
 
+  // Document order for whatever arrived together. compareDocumentPosition is
+  // the only ordering that survives the grid being reordered by the filter.
+  const inOrder = (els) => els.sort((a, b) =>
+    (a.compareDocumentPosition(b) & Node.DOCUMENT_POSITION_FOLLOWING) ? -1 : 1);
+
   if (reduced()) {
-    // Cross-fade only, no travel.
+    // Cross-fade only, no travel — and no cascade either: a stagger is
+    // motion, and the ask is for the final readable state (apple-design §14).
     const io = new IntersectionObserver((entries) => {
       entries.forEach((e) => {
         if (e.isIntersecting) { e.target.classList.add('is-in'); io.unobserve(e.target); }
@@ -335,30 +358,53 @@ function reveals() {
     return;
   }
 
+  const step = staggerStep();
+
+  const run = (el, delay) => {
+    const dist = Number(el.dataset.dist || 26);
+
+    el.style.transform = `translate3d(0, ${dist}px, 0)`;
+    el.style.willChange = 'opacity, transform';
+    const s = new Spring(0, {
+      damping: 1.0,
+      response: 0.5,
+      onUpdate: (v) => {
+        el.style.opacity = String(v);
+        el.style.transform = `translate3d(0, ${((1 - v) * dist).toFixed(2)}px, 0)`;
+      },
+      onRest: () => {
+        el.style.willChange = 'auto';
+        el.style.transform = 'none';
+        el.classList.add('is-in');
+      },
+    });
+    setTimeout(() => s.setTarget(1), delay);
+  };
+
+  /* Everything that crosses within one frame is one group.
+     IntersectionObserver does not promise to deliver simultaneous crossings
+     in a single callback, and on load it does not: a six-tile grid produced
+     six callbacks of one entry each, so a per-callback index handed every
+     tile a delay of zero and the pair rose together. Queueing and flushing
+     on the next frame is what makes "arrived together" and "cascades
+     together" the same thing. */
+  let queue = [];
+  let queued = false;
+
+  const flush = () => {
+    const batch = inOrder(queue);
+    queue = [];
+    queued = false;
+    batch.forEach((el, i) => run(el, Math.min(i, CASCADE_MAX) * step));
+  };
+
   const io = new IntersectionObserver((entries) => {
     entries.forEach((e) => {
       if (!e.isIntersecting) return;
-      const el = e.target;
-      const delay = Number(el.dataset.delay || 0);
-      const dist = Number(el.dataset.dist || 26);
-
-      el.style.transform = `translate3d(0, ${dist}px, 0)`;
-      el.style.willChange = 'opacity, transform';
-      const s = new Spring(0, {
-        damping: 1.0,
-        response: 0.5,
-        onUpdate: (v) => {
-          el.style.opacity = String(v);
-          el.style.transform = `translate3d(0, ${(1 - v) * dist}px, 0)`;
-        },
-        onRest: () => {
-          el.style.willChange = 'auto';
-          el.classList.add('is-in');
-        },
-      });
-      setTimeout(() => s.setTarget(1), delay);
-      io.unobserve(el);
+      io.unobserve(e.target);   // one reveal per element, ever
+      queue.push(e.target);
     });
+    if (queue.length && !queued) { queued = true; requestAnimationFrame(flush); }
   }, { rootMargin: '0px 0px -10% 0px', threshold: 0.08 });
 
   items.forEach((el) => io.observe(el));

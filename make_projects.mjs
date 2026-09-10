@@ -140,7 +140,7 @@ function kenPhase(slug) {
 }
 
 // ------------------------------------------------------------------- tiles
-function tile(studios, { project: p, size, delay }, indent, absolute) {
+function tile(studios, { project: p, size }, indent, absolute) {
   const i = " ".repeat(indent);
   const src = absolute ? `/${p.thumb}` : p.thumb;
   // data-reel is what js/video.js keys off. Absent for projects with no
@@ -153,7 +153,7 @@ function tile(studios, { project: p, size, delay }, indent, absolute) {
   // separately animated elements would drift apart and pop mid-fade — and one
   // compositor layer per tile instead of two. The arrow stays outside it, so
   // it is not dragged around by the pan.
-  return `${i}<a class="tile tile--${size} reveal" href="/work/${p.slug}/" data-delay="${delay}"
+return `${i}<a class="tile tile--${size} reveal" href="/work/${p.slug}/"
 ${i}   data-studio="${p.studio}" data-category="${esc(p.category)}" data-slug="${p.slug}"${reel}>
 ${i}  <span class="tile__frame">
 ${i}    <span class="tile__zoom" style="--ken-dur:${k.dur}s;--ken-delay:${k.delay.toFixed(2)}s;--ken-dir:${k.dir}">

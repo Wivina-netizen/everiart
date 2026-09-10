@@ -56,8 +56,8 @@ export function pairs(published) {
           flip,
           solo: false,
           items: [
-            { project: run[i], size: sizes[0], delay: 0 },
-            { project: run[i + 1], size: sizes[1], delay: 80 },
+            { project: run[i], size: sizes[0] },
+            { project: run[i + 1], size: sizes[1] },
           ],
         });
         flip = !flip;
@@ -65,7 +65,7 @@ export function pairs(published) {
         out.push({
           flip: false,
           solo: true,
-          items: [{ project: run[i], size: "lg", delay: 0 }],
+          items: [{ project: run[i], size: "lg" }],
         });
       }
     }
