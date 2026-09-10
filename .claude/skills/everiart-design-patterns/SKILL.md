@@ -59,6 +59,27 @@ these for any new motion rather than inventing a new timing value —
 consistency across the site matters more than a "more correct" custom
 number.
 
+
+**One cascade rhythm: `--stagger-step`, 60ms.** Nothing on this site reveals
+as a block. Everything that arrives together arrives in document order, one
+step apart — the hero's load sequence and every scroll reveal read the same
+token, so the two cannot drift.
+
+The value is derived from the response it staggers rather than picked: at
+response 0.5 a critically damped spring is ~90% in by 300ms, and six
+subjects at 60ms span exactly that, so the last starts as the first arrives.
+Halve it and a group reads as simultaneous; double it and a six-tile row
+takes most of a second. The tail is capped at six steps, so a tall viewport
+cannot strand the last element.
+
+Grouping is **per animation frame, not per observer callback**.
+IntersectionObserver does not deliver simultaneous crossings in a single
+callback — on a six-tile grid it delivers six callbacks of one entry each —
+so indexing per callback silently staggers nothing at all. Queue the
+crossings and flush on the next frame.
+
+Under reduced motion there is no cascade: a stagger is motion, and that path
+owes the reader the final state.
 **Compositor layer discipline:** any element using `will-change` or GPU
 compositing must be armed on `IntersectionObserver` enter and disarmed on
 exit — never a standing/permanent layer. This was a real performance bug
@@ -72,50 +93,93 @@ have played; parallax and decorative motion simply disable.
 
 ## Established interaction patterns
 
-**Magnetic cursor-following arrow** (project card hover)
-A circle-outline arrow (single diagonal stroke, ~45°) that appears at the
-cursor's entry position within a card, follows the cursor with spring lag
-(not 1:1 tracking), clamped to the card's bounds, and springs back out
-from wherever it last was on exit — never resets to center first. Position
-is two springs, X and Y, never one over the 2D distance. Same
-`arrowAffordance()` logic reused for both grid tiles and the next-project
-handover — one shared implementation, not one per context. Following is
-opt-in per call site: the next-project arrow is composed to sit over the
-word and deliberately stays put.
+**Hero load sequence**
+One ordered list of subjects — nav, positioning line, CTA, the two wordmark
+segments, the TM, the scroll cue — each fading up behind the last at
+`--stagger-step`, on the 0.5 reveal response. Not four different motions at
+four hand-written delays, which is what shipped first and read as separate
+events rather than one entrance.
 
-**Exactly one arrow is visible on the page at any moment.** Adjacent tiles
-own separate arrows, so a pointer crossing between them fires leave-then-
-enter and will cross-fade two arrows past each other unless something stops
-it. A page-level registry makes the crossing a handover: the incoming arrow
-inherits the outgoing one's live opacity *and velocity*, and the outgoing
-one is dropped in the same frame. That is also what keeps the gutter between
-tiles from reading as a dead zone — the incoming arrow resumes from where
-the outgoing one got to rather than from zero.
+The wordmark **fades without travelling**. Display type on this site fades
+and is never translated; the case-study title already set that rule, and a
+clip-mask rise on the hero was the only thing breaking it.
+
+**No play control anywhere.** The hero plate's playback is owned entirely by
+its own IntersectionObserver — in view it runs, out of view it stops
+decoding. Where a browser refuses muted autoplay, the next scroll,
+pointerdown or keypress retries it once, passively: a scroll is the gesture
+the hero is already asking for, so nothing has to be pressed. Data Saver and
+reduced motion both keep the still, with nothing offered.
+
+**The wordmark is seated by its ink, not its box.** It is bottom- and
+left-aligned on `--gutter` — the same token that sets the content column
+everywhere else, so both insets come from the site's one spacing primitive.
+But an inset is only worth the edge it is measured to, and a large serif's
+layout box is not its letterforms: the E carries a left side bearing, and
+there is leading below the baseline. Both are measured off the font's own
+metrics at the rendered size and subtracted in CSS, so the stem lands on the
+same column as the copy above it and the baseline lands exactly `--gutter`
+above the hero's bottom edge. Never pick a bleed by eye — an earlier
+`-0.16em` did, and it cut the baseline off the viewport.
+
+**Cursor-following arrow** (project card hover)
+A circle-outline arrow (single diagonal stroke, ~45°) with a deliberately
+narrow contract:
+
+> invisible by default; visible only while the cursor is inside **that one
+> card**; following the cursor with spring lag (not 1:1) while it is; and
+> **gone the instant the cursor leaves**.
+
+It appears at the cursor's entry position within the card, is clamped to the
+card's bounds, and follows via two springs, X and Y, never one over the 2D
+distance. Same `arrowAffordance()` for both grid tiles and the next-project
+handover — one shared implementation. Following is opt-in per call site: the
+next-project arrow is composed to sit over the word and deliberately stays
+put.
+
+**The exit is a cut, not a fade, and that is load-bearing.** A sprung exit
+shipped first, and with it a page-level registry that handed the outgoing
+arrow's live opacity and velocity to the incoming one when the cursor
+crossed between adjacent tiles — built so the gutter between tiles would not
+read as a dead zone. What it actually produced was an arrow that appeared to
+travel between cards rather than belonging to the one under the cursor.
+Cutting the exit removed the registry's entire reason to exist, and "exactly
+one arrow on the page" now falls out of the contract instead of being
+enforced by shared state. Don't reintroduce either.
+
+There is **no touch fallback**. An in-view fallback used to light the arrow
+on every tile as you scrolled a phone; there is no cursor there, so there is
+nothing for the arrow to be about. Keyboard focus is the one deliberate
+exception — it centres the arrow, because a keyboard user has no pointer and
+would otherwise get no affordance at all.
 
 Stroke colour adapts per image from measured luminance, against a 4.5:1
-floor. It is measured once per tile at image load, never per hover — which
-is why it is already correct on a tile-to-tile handover, where there is no
-time to measure anything.
+floor. It is measured once per tile at image load, never per hover.
 
-Activated without a pointer (keyboard focus, or the in-view fallback on
-touch), the arrow centres rather than reappearing wherever a previous hover
-abandoned it.
+**Retired: hover-to-play video tiles.** Tiles cross-faded to a muted loop on
+hover, played in-view on touch, and opened a fullscreen preview on click.
+All of it shipped, and all of it has been removed — on the home grid and on
+`/work` alike, since both run through the same tile builder.
 
-**Hover-to-play video tiles**
-Default state: static thumbnail. On hover (desktop) / in-view (touch):
-cross-fade to muted, looped video with zero native chrome — no visible
-play button, scrubber, or timeline. Pause and reset to first frame on
-exit. Applies only where a project actually has video — static-only
-projects (e.g. identity/branding work) simply keep their thumbnail; this
-is expected, not a gap to fill.
+A tile is a **still and a link**. Nothing on either grid plays video, on any
+input. The footage belongs on the project's own page, where there is room to
+watch it, and where clicking a tile again does the one thing a tile should
+do: go to the case study.
 
-**Fullscreen preview overlay**
-One shared overlay element (not one instance per tile). Custom play/pause
-control only — no native `<video controls>`, since Chrome's default set
-carries a download option in its overflow menu. `controlsList="nodownload"`,
-`disablePictureInPicture`, and a suppressed context menu as a deterrent,
-never claimed as true download prevention. Spring-driven open/close,
-interruptible, focus trapped and restored, dismiss via X/backdrop/Escape.
+**Fullscreen overlay** — reached only from a case-study reel
+One shared overlay element, opened by the reel's expand control. It used to
+be opened by clicking a grid tile, which also meant intercepting the tile's
+own link; both are gone. Custom controls only, never native `<video
+controls>`, since Chrome's default set carries a download item in its
+overflow menu: play/pause, and a **mute control that exists here and nowhere
+else**. It opens muted and lets the reader turn sound on, rather than
+starting audio at them as the panel springs open.
+
+`controlsList="nodownload"`, `disablePictureInPicture`, and a suppressed
+context menu as a deterrent, never claimed as true download prevention.
+Spring-driven open/close, interruptible, focus trapped and restored, dismiss
+via X/backdrop/Escape. The "view full case study" link is hidden when the
+reader is already on that page.
 
 **Asymmetric grid pairing** — the only project grid
 Project grids avoid uniform identical cards. Pair a smaller image beside a
@@ -137,24 +201,17 @@ asymmetric pair. A studio with an odd count closes on a solo full-width
 tile rather than borrowing a partner from the next studio. Nothing is sized
 to the current project count.
 
-**Ambient tile motion**
-Every tile's image carries a slow, continuous Ken Burns drift — always
-running, never gated on hover or any pointer state. The cursor-following
-arrow is the only hover-exclusive behaviour a tile has. Phase, duration and
-direction are derived per tile from its slug, so tiles are never in
-lockstep (lockstep reads as one moving background instead of separate
-images). The still and the hover reel share one animated element so they
-stay framed identically through the cross-fade.
+**Retired: ambient tile motion.** Every tile's image carried a slow,
+continuous Ken Burns drift, phase-derived per slug so no two were in step,
+armed and disarmed by observer. It shipped and has been removed. It lived
+inside the same wrapper the hover reel did — one animated element, so the
+still and the reel stayed framed identically through the cross-fade — and
+when the reel went, its reason went with it. It was also the one piece of
+motion on the site with no functional justification, which is precisely why
+it was the first thing cut. Kept here so it isn't proposed again as new.
 
-The sweep is 30–42s (~0.013 Hz), an order of magnitude clear of the ~0.2 Hz
-slow-oscillation band that causes trouble; the pan never exceeds what the
-baseline scale already hides. It is paused in CSS and armed by observer —
-continuous motion is exactly where a standing compositor layer creeps back.
-
-Note this is the one piece of motion on the site with no functional
-justification — it is atmosphere, not feedback, state or continuity. It is a
-deliberate exception, not licence for more; new decorative motion still has
-to argue for itself.
+A tile now has **one** hover behaviour: the cursor-following arrow. Nothing
+else on a tile moves.
 
 **Case-study scroll sequence** (`/work/<slug>/`)
 Title cross-fades in over the plate on the fastest documented response, both
@@ -165,12 +222,29 @@ discrete transitions on either side of it; scroll-linked motion is 1:1.
 Parallax stays on the plate; the type fades but is never translated. The
 sections below fade up from the bottom edge on the standard reveal.
 
-**Video on a case study**
-Where a project has footage, the reel gets its own section between the brief
-and the gallery — motion first, then stills. Plays while it holds the
-viewport on the armed/disarmed observer. Projects without footage don't get
-an empty section; they simply don't get the section, the same rule the tiles
+**Video on a case study** — the only place video appears
+Where a project has footage, the reel sits **inside the body, after the first
+two stills**, so the page reads still, still, motion, then the rest of the
+stills. It is not a section of its own and it does not sit above the
+gallery; both of those shipped and were replaced. Projects without footage
+don't get an empty slot — they simply don't get one, the same rule the tiles
 follow.
+
+Inline, it reads as one more image until it is touched: muted, looped,
+autoplaying on the armed/disarmed observer while it holds the viewport,
+cross-faded up from the thumbnail, and carrying **no player chrome at all** —
+no scrubber, no timeline, no play button, no Picture-in-Picture. Muted is
+not a preference: a browser refuses an unmuted autoplay, and there is no
+inline control to recover with.
+
+The one interaction is **expand to fullscreen**. Its control is built in JS
+rather than markup — without JS there is no video to expand, and a dead
+button is worse than none — and it stays invisible until the frame is
+hovered or the control itself takes focus, so the resting state really is
+just an image. On touch, with no hover to reveal it, it simply stands. Sound
+lives only in the overlay, which is the first point at which unmuting is
+possible and which is reached deliberately.
+
 
 Reel aspect ratios are **not** uniform (currently 1/1, 4/3 and 16/9 — the
 encoder preserves each source's shape). The ratio is recorded per project
