@@ -500,6 +500,19 @@ function pickArrowInk(tile) {
  */
 let liveArrow = null;
 
+/* Geometry epoch. Every tile's cached rect is stamped with this; anything
+   that could have moved a tile bumps it, and the tile re-measures lazily on
+   its next pointer event.
+ *
+ * One listener for the page, not one per tile: the whole point of caching the
+ * rect is to keep scroll cheap, and N tiles each attaching their own scroll
+ * handler to invalidate themselves gives that back as the grid grows.
+ */
+let geomEpoch = 0;
+const bumpEpoch = () => { geomEpoch += 1; };
+window.addEventListener('scroll', bumpEpoch, { passive: true });
+window.addEventListener('resize', bumpEpoch);
+
 /* One affordance, two callers: the work tiles and the next-project handover.
    Both want the same spring, the same reversal behaviour and the same
    no-hover fallback, so neither gets its own copy of it.
@@ -521,7 +534,8 @@ function arrowAffordance(root, arrow, { follow = false } = {}) {
 
   if (reduced()) {
     // Cross-fade only — no travel, no spring, no tracking (apple-design §14).
-    arrow.style.transition = 'opacity 160ms ease';
+    arrow.style.transition =
+      'opacity 160ms var(--ease-out-quart, cubic-bezier(0.165, 0.84, 0.44, 1))';
     show = (on) => {
       if (on) { if (liveArrow && liveArrow !== api) liveArrow.dismiss(); liveArrow = api; }
       else if (liveArrow === api) liveArrow = null;
@@ -561,16 +575,34 @@ function arrowAffordance(root, arrow, { follow = false } = {}) {
       onUpdate: (v) => { y = v; paint(); } });
 
     /* Clamped to the frame, so the arrow can lead the cursor toward an edge
-       without ever hanging off the image it is drawn against. */
+       without ever hanging off the image it is drawn against.
+
+       The geometry is cached rather than measured per move. Reading the rect
+       inside pointermove while three springs write transform from rAF is a
+       layout read/write pair on every pointer event — 120+ times a second on
+       a high-refresh pointer, on the most-touched interaction on the site.
+       It is re-read on entry and, lazily, after anything that could have
+       moved the tile. */
+    const frame = root.querySelector('.tile__frame') || root;
+    let box = null;
+    let boxEpoch = -1;
+
     const offsetFor = (e) => {
-      const r = (root.querySelector('.tile__frame') || root).getBoundingClientRect();
-      const aw = arrow.offsetWidth || 0;
-      const ah = arrow.offsetHeight || aw;
-      const maxX = Math.max(0, (r.width - aw) / 2);
-      const maxY = Math.max(0, (r.height - ah) / 2);
+      if (!box || boxEpoch !== geomEpoch) {
+        boxEpoch = geomEpoch;
+        const r = frame.getBoundingClientRect();
+        const aw = arrow.offsetWidth || 0;
+        const ah = arrow.offsetHeight || aw;
+        box = {
+          cx: r.left + r.width / 2,
+          cy: r.top + r.height / 2,
+          maxX: Math.max(0, (r.width - aw) / 2),
+          maxY: Math.max(0, (r.height - ah) / 2),
+        };
+      }
       return {
-        x: Math.max(-maxX, Math.min(maxX, e.clientX - (r.left + r.width / 2))),
-        y: Math.max(-maxY, Math.min(maxY, e.clientY - (r.top + r.height / 2))),
+        x: Math.max(-box.maxX, Math.min(box.maxX, e.clientX - box.cx)),
+        y: Math.max(-box.maxY, Math.min(box.maxY, e.clientY - box.cy)),
       };
     };
 
@@ -581,6 +613,12 @@ function arrowAffordance(root, arrow, { follow = false } = {}) {
         if (follow && e && liveArrow !== api) {
           const p = offsetFor(e);
           xs.set(p.x); ys.set(p.y);
+        } else if (follow && !e) {
+          // Activated with no pointer — keyboard focus, or the in-view
+          // fallback on touch. Centre it, rather than leaving it wherever a
+          // previous hover happened to abandon it: tab back to a tile you
+          // once hovered and the arrow would otherwise return to that corner.
+          xs.set(0); ys.set(0);
         }
         if (liveArrow && liveArrow !== api) {
           const prev = liveArrow.read();
@@ -646,26 +684,32 @@ function ambientTileZoom() {
   if (!zooms.length || reduced()) return;   // CSS already stopped it
 
   const onScreen = new Set();
+  const running = new Set();
 
-  const paint = () => {
-    const hidden = document.hidden;
-    zooms.forEach((z) => {
-      const run = !hidden && onScreen.has(z);
-      z.style.animationPlayState = run ? 'running' : 'paused';
-      z.style.willChange = run ? 'transform' : 'auto';
-    });
+  // Only the tiles whose state actually changed are written to. Rewriting
+  // animationPlayState and willChange across every tile each time one
+  // scrolls into view is O(n) style invalidation per callback — which would
+  // undo the very thing this function exists to bound.
+  const settle = (el) => {
+    const run = !document.hidden && onScreen.has(el);
+    if (run === running.has(el)) return;
+    if (run) running.add(el); else running.delete(el);
+    el.style.animationPlayState = run ? 'running' : 'paused';
+    el.style.willChange = run ? 'transform' : 'auto';
   };
 
   const io = new IntersectionObserver((entries) => {
     entries.forEach((e) => {
       if (e.isIntersecting) onScreen.add(e.target);
       else onScreen.delete(e.target);
+      settle(e.target);
     });
-    paint();
   }, { threshold: 0 });
 
   zooms.forEach((z) => io.observe(z));
-  document.addEventListener('visibilitychange', paint);
+  // A visibility flip is the one case that legitimately touches every tile,
+  // and it happens once per tab switch rather than once per scroll.
+  document.addEventListener('visibilitychange', () => zooms.forEach(settle));
 }
 
 function workTiles() {
@@ -812,18 +856,32 @@ function caseStudy() {
   // and then writing transform is a layout read/write pair on every scroll
   // frame, and the height only changes when the viewport does.
   let h = phero.offsetHeight || 1;
+  let ticking = false;
+  let last = -1;
   let rt;
   window.addEventListener('resize', () => {
     clearTimeout(rt);
-    rt = setTimeout(() => { h = phero.offsetHeight || 1; onScroll(); }, 120);
+    rt = setTimeout(() => {
+      h = phero.offsetHeight || 1;
+      // The travel term is scaled by h, so a new height needs a repaint even
+      // when the scroll position resolves to the same p.
+      last = -1;
+      onScroll();
+    }, 120);
   });
 
-  let ticking = false;
   const onScroll = () => {
     if (ticking) return;
     ticking = true;
     requestAnimationFrame(() => {
+      ticking = false;
       const p = Math.min(1, Math.max(0, window.scrollY / h));
+
+      // A case study runs several viewports past its hero. Once the plate has
+      // finished leaving, every further scroll frame would otherwise rewrite
+      // two properties on an element that is off-screen and no longer moving.
+      if (p === last) return;
+      last = p;
 
       // Travel is slower than the scroll, so the plate lags the page and
       // reads as receding rather than sliding.
@@ -835,7 +893,6 @@ function caseStudy() {
       plate.style.opacity = Math.max(0, 1 - p * 1.25).toFixed(3);
       // The type fades, and only fades. It is never translated.
       if (inner) inner.style.opacity = Math.max(0, 1 - p * 1.8).toFixed(3);
-      ticking = false;
     });
   };
   window.addEventListener('scroll', onScroll, { passive: true });
