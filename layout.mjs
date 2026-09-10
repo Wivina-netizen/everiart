@@ -94,14 +94,24 @@ export function teaser(published, perStudio = 2) {
  * slug -> "sm" | "lg", so make_media.mjs can cut thumbnails to the ratio the
  * tile will actually render at.
  *
- * Sizes are derived from the teaser, because the home grid is the only surface
- * that renders tiles. A project outside the teaser has no tile, so its
- * thumbnail defaults to 4:3 — used by /work/ until that page becomes the
- * lookbook, and harmless either way since .tile__frame img is object-fit:cover.
+ * Derived from the /work/ grid, not the home teaser. Both surfaces render
+ * tiles now, but /work/ is the one that renders EVERY published project, so
+ * it is the only grid that has an opinion about every slug. Sizing off the
+ * teaser would leave anything past the cap defaulting to 4:3 while /work/
+ * rendered it at 5:4.
+ *
+ * The two grids can still disagree about a project that appears in both: they
+ * pair over different-length runs, so the same project can land on the small
+ * side of one and the large side of the other. That is a ~6% extra crop by
+ * object-fit on the home page, not a broken tile — 4:3 and 5:4 are close
+ * enough that one cut serves both. It cannot be fixed by choosing the other
+ * grid, only by cutting two thumbnails per project, which is not worth it.
+ *
+ * @param perStudio kept for callers that still reason about the teaser cap.
  */
 export function tileSizes(published, perStudio = 2) {
   const map = {};
-  for (const row of pairs(teaser(published, perStudio)))
+  for (const row of pairs(published))
     for (const { project, size } of row.items) map[project.slug] = size;
   for (const p of published) map[p.slug] ??= "sm";
   return map;

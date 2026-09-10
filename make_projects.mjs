@@ -217,63 +217,60 @@ function buildHome(studios, rowspec) {
   writeFileSync(PAGE, page.slice(0, a) + block + page.slice(b), "utf8");
 }
 
-// ------------------------------------------------------- /work/ lookbook
+// ---------------------------------------------------------- /work/ index
 /**
- * /work/ is an editorial sequence rather than a grid: one near-full-viewport
- * section per project, in projects.json order.
+ * /work/ is the full published catalogue on the same asymmetric grid the home
+ * page uses — one smaller tile beside one larger, alternating which side
+ * carries the weight, full-bleed, no card chrome.
  *
- * Nothing here is sized to the current project count. Sections come from
- * mapping the published array, the counter total is that array's length, and
- * the position rail is built at runtime from however many sections exist — six
- * or sixty behave identically.
+ * It replaces the sequential lookbook, which is gone. The home page and /work/
+ * now differ only in how much they show: home is a capped teaser (2 per studio
+ * + "See all work"), /work/ is everything. Same tile(), same rows(), same
+ * pairing rules out of layout.mjs, so a change to the tile is a change to both
+ * and cannot drift between them.
  *
- * This is the browsing layer only. Full metadata, the gallery and the
- * next-project chain live on /work/<slug>/ and are deliberately not repeated
- * here; each section links across instead of restating.
+ * Nothing is sized to the current project count. Rows come from pairs() over
+ * the whole published array; six or sixty behave identically, and a studio
+ * with an odd count closes on a solo full-width tile rather than borrowing a
+ * partner from the next studio.
+ *
+ * The filter is the home page's control, unchanged. It is worth more here than
+ * there: this is the page that carries everything, so it is the page where
+ * narrowing to one discipline is actually a useful thing to do. Pairs are
+ * studio-pure, so it hides whole rows and can never orphan half of one.
  */
-function buildLookbook(studios, published) {
+function buildWorkIndex(studios, published) {
   const n = published.length;
-
-  const sections = published
-    .map((p, i) => {
-      // data-reel drives scroll-triggered playback. Absent means the section
-      // simply holds its still, which is what Maitro and BMT do.
-      const reel = p.reel ? ` data-reel="${esc(p.reel)}"` : "";
-      // An unwritten blurb omits the line rather than printing filler.
-      const blurb = p.blurb ? `\n        <p class="lb__blurb">${esc(p.blurb)}</p>` : "";
-      return `  <section class="lb" id="p${i + 1}" data-index="${i + 1}" data-slug="${p.slug}"${reel}
-           aria-labelledby="lb-t${i + 1}">
-    <div class="lb__media">
-      <img class="lb__still" src="/${p.hero}" alt="" loading="${i === 0 ? "eager" : "lazy"}" decoding="async">
-    </div>
-    <div class="lb__caption">
-      <div class="wrap">
-        <p class="lb__label">${studios[p.studio]} &middot; ${esc(p.category)}</p>
-        <h2 class="lb__title" id="lb-t${i + 1}">${esc(p.name)}</h2>${blurb}
-        <a class="lb__cta" href="/work/${p.slug}/">
-          <span>View full case study</span>
-          <span class="lb__cta-arrow" aria-hidden="true">${ARROW}</span>
-        </a>
-      </div>
-    </div>
-  </section>`;
-    })
-    .join("\n\n");
+  const rowspec = pairs(published);
 
   const html =
-    head("Work — EveriArt", `${n} projects across three studios.`, "#0B0B0C") +
+    head("Work — EveriArt", `${n} projects across three studios.`) +
     nav("work") +
     `
-<main id="main" class="lookbook">
+<main id="main" class="page on-dark">
+  <div class="wrap">
 
-  <div class="lb__hud" aria-hidden="true">
-    <span class="lb__now">01</span><span class="lb__rule"></span><span class="lb__total">${String(n).padStart(2, "0")}</span>
+    <header class="page__head">
+      <h1 class="page__title">Work.</h1>
+      <p class="page__lede">
+        Every published project across the three studios. Filter by
+        discipline, or see everything at once.
+      </p>
+    </header>
+
+    <div class="filter" role="tablist" aria-label="Filter work by studio">
+      <span class="filter__rule" aria-hidden="true"></span>
+      <button class="filter__btn" role="tab" aria-selected="true"  data-filter="all">All</button>
+      <button class="filter__btn" role="tab" aria-selected="false" data-filter="byeveriart">Film</button>
+      <button class="filter__btn" role="tab" aria-selected="false" data-filter="everidesign">Identity</button>
+      <button class="filter__btn" role="tab" aria-selected="false" data-filter="beframes">Photography</button>
+    </div>
+
+    <div class="work">
+${rows(studios, rowspec, 6, true)}
+    </div>
+
   </div>
-
-  <nav class="lb__rail" aria-label="Project sequence"></nav>
-
-${sections}
-
 ` +
     FOOT +
     `</main>
@@ -282,6 +279,7 @@ ${sections}
 
   mkdirSync(WORK, { recursive: true });
   writeFileSync(join(WORK, "index.html"), html, "utf8");
+  return rowspec;
 }
 
 // ------------------------------------------------- /work/<slug>/ case study
@@ -390,14 +388,14 @@ for (const p of published)
   if (!studios[p.studio] || !STUDIO_META[p.studio])
     die(`${p.slug}: unknown studio "${p.studio}"`);
 
-// The home page is a capped teaser grid (2 per studio + "See all work");
-// /work/ is the full catalogue as an editorial sequence. Different surfaces,
-// different shapes — only the home page uses tiles at all.
+// Both surfaces are the same asymmetric grid; they differ only in how much
+// they show. The home page is a capped teaser (2 per studio + "See all
+// work"), /work/ is the whole published catalogue.
 const teased = teaser(published);
 const homeRows = pairs(teased);
 
 buildHome(studios, homeRows);
-buildLookbook(studios, published);
+const workRows = buildWorkIndex(studios, published);
 published.forEach((_, i) => buildProject(studios, published, i));
 const dropped = prune(published);
 
@@ -410,8 +408,18 @@ for (const row of homeRows) {
       .join("  +  ")}`
   );
 }
-console.log(`\n  home grid   index.html`);
-console.log(`  lookbook    work/index.html`);
+console.log(`\n  ${workRows.length} rows on /work/`);
+for (const row of workRows) {
+  const kind = row.solo ? "solo" : row.flip ? "pair (flipped)" : "pair";
+  console.log(
+    `  ${kind.padEnd(15)} ${row.items
+      .map((it) => `${it.project.slug} [${it.size}]`)
+      .join("  +  ")}`
+  );
+}
+
+console.log(`\n  home grid    index.html`);
+console.log(`  work grid    work/index.html`);
 console.log(`  case studies work/<slug>/index.html  x${published.length}`);
 
 const loop = published.map((p) => p.slug).join(" -> ");
