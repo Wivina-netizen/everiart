@@ -103,8 +103,14 @@
   transform-origin: left;
   transition: transform var(--t-base) var(--ease-out-quart);
 }
-.nav__link:hover::after,
+/* Hover motion is gated: a tap on a touch screen fires a false hover that
+   sticks until the next tap elsewhere, leaving the underline drawn under a
+   link nobody is pointing at. Focus stays ungated — a keyboard has no
+   hover, and this is its only affordance here. */
 .nav__link:focus-visible::after { transform: scaleX(1); }
+@media (hover: hover) and (pointer: fine) {
+  .nav__link:hover::after { transform: scaleX(1); }
+}
 
 /* Chrome sheds progressively — the mark is the last thing standing. */
 @media (max-width: 64rem) {
@@ -241,10 +247,13 @@
   transform-origin: left;
   transition: transform var(--t-base) var(--ease-out-quart);
 }
-.hero__cta:hover .hero__cta-rule::after,
 .hero__cta:focus-visible .hero__cta-rule::after { transform: scaleX(1); }
-.hero__cta:hover .hero__cta-arrow,
 .hero__cta:focus-visible .hero__cta-arrow { transform: translate3d(0.15em, -0.15em, 0); }
+@media (hover: hover) and (pointer: fine) {
+  .hero__cta:hover .hero__cta-rule::after { transform: scaleX(1); }
+  .hero__cta:hover .hero__cta-arrow { transform: translate3d(0.15em, -0.15em, 0); }
+}
+/* Colour is not motion and does not strand anything, so it stays ungated. */
 .hero__cta:hover { color: #fff; }
 
 /* --- Wordmark --- */
@@ -413,13 +422,24 @@
   margin-block-end: clamp(2.5rem, 7vh, 4.5rem);
   border-bottom: 1px solid var(--hairline);
 }
+/* Sized by transform, never by width. The rule is one pixel wide and scaled
+   to the active button's width, because width is a layout property: writing
+   it every frame forced layout, paint and composite on each tick of the
+   spring, on the one control both grid pages carry. scaleX composites.
+
+   transform-origin is the left edge so the scale grows rightward from
+   wherever the translate put it, and scaleX(0) is the resting state so the
+   rule is invisible until js/main.js first paints it. */
 .filter__rule {
   position: absolute;
   z-index: 1;
   inset-block-end: -1px;
   inset-inline-start: 0;
+  width: 1px;
   height: 1px;
   background: var(--parchment);
+  transform: scaleX(0);
+  transform-origin: left center;
   pointer-events: none;
 }
 .filter__btn {
@@ -863,7 +883,12 @@
   flex: none;
   transition: transform var(--t-base) var(--ease-out-quart);
 }
-.btn:hover .btn__arrow { transform: translate3d(0.15em, -0.15em, 0); }
+/* Gained a focus-visible counterpart at the same time: gating the hover
+   alone would have left a keyboard user with no arrow at all. */
+.btn:focus-visible .btn__arrow { transform: translate3d(0.15em, -0.15em, 0); }
+@media (hover: hover) and (pointer: fine) {
+  .btn:hover .btn__arrow { transform: translate3d(0.15em, -0.15em, 0); }
+}
 
 /* Inverted: on a navy ground a navy fill is invisible, so the promoted
    action is the one solid light shape on the page. */

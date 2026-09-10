@@ -437,17 +437,28 @@ function studioFilter() {
     if (!moving.x && !moving.w) rule.style.willChange = 'auto';
   };
 
-  // Two independent springs — X and width never share one spring.
+  /* Position and extent stay two springs — one spring over a 2D quantity
+     desyncs when the axes carry different velocities (apple-design §3) — but
+     they now write through one composed transform instead of one property
+     each. The extent spring carries the button's width in px and is applied
+     as scaleX against a 1px rule (see .filter__rule), so nothing here
+     touches layout. */
+  let x = 0, w = 0;
+  const paint = () => {
+    rule.style.transform =
+      `translate3d(${x.toFixed(2)}px, 0, 0) scaleX(${w.toFixed(2)})`;
+  };
+
   const xs = new Spring(0, {
     damping: 1.0,
     response: 0.36,
-    onUpdate: (v) => { rule.style.transform = `translate3d(${v}px, 0, 0)`; },
+    onUpdate: (v) => { x = v; paint(); },
     onRest: () => { moving.x = false; release(); },
   });
   const ws = new Spring(0, {
     damping: 1.0,
     response: 0.36,
-    onUpdate: (v) => { rule.style.width = `${v}px`; },
+    onUpdate: (v) => { w = v; paint(); },
     onRest: () => { moving.w = false; release(); },
   });
 
@@ -459,7 +470,7 @@ function studioFilter() {
       xs.set(x); ws.set(w);
       release();
     } else {
-      rule.style.willChange = 'transform, width';
+      rule.style.willChange = 'transform';
       moving.x = moving.w = true;
       // Re-target only — carries current value and velocity through.
       xs.setTarget(x);
