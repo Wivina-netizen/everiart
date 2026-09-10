@@ -17,7 +17,12 @@
  *   "contain"  design boards — whole board on its own brand ground; cropping a
  *              brand board slices the logo in half.
  *
- *   node make_media.mjs [slug ...]
+ * Site chrome — the Studios block's two images — is built the same way under
+ * the reserved name "site", writing to assets/ root rather than assets/<slug>/.
+ * A bare run does the projects and the site chrome, so "regenerate assets/"
+ * stays one command.
+ *
+ *   node make_media.mjs [slug ... | site]
  */
 import { execFileSync } from "node:child_process";
 import { existsSync, mkdirSync, statSync } from "node:fs";
@@ -133,6 +138,45 @@ const PROJECTS = {
   },
 };
 
+// -------------------------------------------------------------- site chrome
+/**
+ * Media that belongs to the site rather than to a project.
+ *
+ * These used to be the abstract tonal fields from make_placeholders.py, which
+ * shipped into a live section on the home page — the Studios block was the last
+ * place on the site still showing generated placeholder art as if it were work.
+ * Deriving them here instead puts them under the same rule as everything else:
+ * assets/ is regenerated from 'media source/', never hand-dropped.
+ *
+ * Sizes are the CSS aspect ratio at a 1600px long edge, NOT a free choice.
+ * .studio__visual--motion is 16/10 and --photo is 4/3 (css/site.css, the
+ * .studio__visual--* rules), both object-fit: cover — so cutting to anything
+ * else just hands the browser a second crop to do.
+ *
+ * Neither source is used by any project, so the Studios block does not repeat
+ * an image the work grid is already showing further up the same page.
+ */
+const SITE = {
+  // ByEveriArt: a music-video frame — foreground subject, group falling off
+  // behind it. The studio's own copy is "we shoot for the cut", and this is a
+  // frame that only exists because the setup was lit for one.
+  "studio-film.jpg": {
+    src: [`${BY}/Music Videos/K3ndrick Visualizer_No Holiday_4K No Sub.mov`, 45],
+    w: 1600,
+    h: 1000, // 16 / 10
+  },
+  // BeFrames: an architectural interior, which is one of the four disciplines
+  // that block names. Chosen over the brighter suites in the same set for the
+  // ground it sits on — the bed base carries the navy and the curtains the
+  // warm neutrals, so it reads as part of the palette rather than a lit hole
+  // punched in a dark section.
+  "studio-photo.jpg": {
+    src: [`${BE}/Real Estate/Grand Suite/DSC06920-HDR.jpg`],
+    w: 1600,
+    h: 1200, // 4 / 3
+  },
+};
+
 const ff = (args) =>
   execFileSync("ffmpeg", ["-y", "-v", "error", ...args], { stdio: "pipe" });
 
@@ -235,17 +279,36 @@ function build(slug, spec, tile) {
   return total;
 }
 
+/** Site chrome. Lives in assets/ root, not under a slug. */
+function buildSite() {
+  mkdirSync(OUT, { recursive: true });
+  let total = 0;
+  for (const [name, s] of Object.entries(SITE)) {
+    const p = join(OUT, name);
+    framed(s.src, p, "crop", "0x000000", s.w, s.h);
+    total += mb(p);
+    console.log(
+      `  ${name.padEnd(16)}${mb(p).toFixed(2).padStart(6)} MB  ` +
+        `${s.w}x${s.h}  <- ${basename(s.src[0])}`
+    );
+  }
+  return total;
+}
+
+// "site" is a reserved name alongside the project slugs, so a bare run still
+// regenerates everything assets/ contains and nothing needs remembering.
+const SITE_KEY = "site";
 const wanted = process.argv.slice(2).length
   ? process.argv.slice(2)
-  : Object.keys(PROJECTS);
-const unknown = wanted.filter((s) => !PROJECTS[s]);
+  : [...Object.keys(PROJECTS), SITE_KEY];
+const unknown = wanted.filter((s) => s !== SITE_KEY && !PROJECTS[s]);
 if (unknown.length) {
   console.error(`unknown slug(s): ${unknown.join(", ")}`);
   process.exit(1);
 }
 
 const sizes = tileSizes(load().published);
-const missing = wanted.filter((s) => !sizes[s]);
+const missing = wanted.filter((s) => s !== SITE_KEY && !sizes[s]);
 if (missing.length) {
   console.error(
     `not published in projects.json, so no tile size is defined: ${missing.join(", ")}`
@@ -256,6 +319,7 @@ if (missing.length) {
 let grand = 0;
 for (const slug of wanted) {
   console.log(`\n${slug}`);
-  grand += build(slug, PROJECTS[slug], sizes[slug]);
+  grand +=
+    slug === SITE_KEY ? buildSite() : build(slug, PROJECTS[slug], sizes[slug]);
 }
 console.log(`\ntotal written to assets/: ${grand.toFixed(1)} MB`);

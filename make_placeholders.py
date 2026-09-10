@@ -5,6 +5,23 @@ and not 'PLACEHOLDER' text slabs. They read as intentional art direction while
 the real work is being prepared, so the layout can be judged honestly.
 
 Replace each file in assets/ with real work at the same filename; no code changes needed.
+
+    ---------------------------------------------------------------------
+    MOSTLY SUPERSEDED. Only work-identity-01.jpg and work-identity-02.jpg
+    are still in the repo, held by hawthorn-real-estate and grosource,
+    which are published:false precisely because that is all they have.
+
+    hero.jpg, studio-film.jpg and studio-photo.jpg were real files on a
+    live page. The two studio images are now cut from actual ByEveriArt
+    and BeFrames work by make_media.mjs (see its SITE map); hero.jpg and
+    the other eleven work-* fields were referenced by nothing and have
+    been deleted.
+
+    Running this script rewrites all seventeen. Don't, unless a new
+    project genuinely needs a holding image — and if it does, take the
+    one file you need and leave the rest deleted. Real media comes from
+    make_media.mjs.
+    ---------------------------------------------------------------------
 """
 from PIL import Image, ImageDraw, ImageFilter
 import random
