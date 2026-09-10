@@ -3,6 +3,12 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
+
+<!-- Sets .js before first paint, so css/base.css can hide .reveal blocks
+     only in documents that actually run script. Inline and synchronous on
+     purpose: main.js is a module and therefore deferred, and hiding from
+     there would flash the content it is about to hide. -->
+<script>document.documentElement.classList.add("js")</script>
 <title>Contact — EveriArt</title>
 <meta name="description" content="Start a project with EveriArt. Send the brief, or just the problem — we'll tell you which studio should lead it.">
 <meta name="theme-color" content="#0D132D">
@@ -56,8 +62,15 @@
 
       <!-- Netlify picks the form up from the deployed HTML at build time.
            Without JS this posts normally and Netlify renders its own
-           confirmation; with JS, contactForm() posts it and answers in place. -->
-      <form class="form" name="contact" method="POST"
+           confirmation; with JS, contactForm() posts it and answers in place.
+
+           .reveal, like every other block on the site that is not a page
+           head. This was the one page where nothing arrived — the form and
+           the panel beside it simply existed, which on a phone means the
+           whole page below the lede appears with no motion at all. The head
+           stays static, matching /work/: it is above the fold on load, and
+           the site's entrance sequence belongs to the home hero. -->
+      <form class="form reveal" name="contact" method="POST"
             data-netlify="true" netlify-honeypot="company">
         <input type="hidden" name="form-name" value="contact">
 
@@ -92,7 +105,7 @@
         </div>
       </form>
 
-      <aside class="direct">
+      <aside class="direct reveal">
         <h2 class="direct__title">Or reach us directly</h2>
         <p class="direct__note">
           Same inbox, same people. Whichever is faster for you.

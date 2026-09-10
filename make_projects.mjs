@@ -63,6 +63,12 @@ const head = (title, desc, theme = "#0D132D") => `<!DOCTYPE html>
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
+
+<!-- Sets .js before first paint, so css/base.css can hide .reveal blocks
+     only in documents that actually run script. Inline and synchronous on
+     purpose: main.js is a module and therefore deferred, and hiding from
+     there would flash the content it is about to hide. -->
+<script>document.documentElement.classList.add("js")</script>
 <title>${esc(title)}</title>
 <meta name="description" content="${esc(desc)}">
 <meta name="theme-color" content="${theme}">

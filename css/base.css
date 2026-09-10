@@ -141,21 +141,36 @@ p:last-child { margin-bottom: 0; }
   border: 0;
 }
 
-/* --- Reveal: one shared mechanism, driven by JS springs --- */
-.reveal {
+/* --- Reveal: one shared mechanism, driven by JS springs ---
+   Gated on .js, which the inline script in every <head> sets before first
+   paint. The hiding is the enhancement, not the default: only a document
+   that has already run script hides anything, so with JS off or broken the
+   page is simply all there.
+
+   Ungated, `opacity: 0` here is a permanent blank — nothing else ever sets
+   .is-in — and it covers most of the site: the whole work grid, the studios,
+   the process steps, and the contact form, which is the one that makes it
+   unarguable, since that form is deliberately built to post without JS and
+   let Netlify render the confirmation.
+
+   The flag is set by a synchronous inline script rather than by main.js so
+   the class lands before the first paint. main.js is a module, so it is
+   deferred to after parsing — hiding from there is a visible flash of the
+   content it is about to hide. */
+.js .reveal {
   opacity: 0;
   /* will-change is armed by reveals() as each element animates and dropped
      on rest — declaring it here holds a layer per element from first paint
      until that element is scrolled to, which on this page is most of them. */
 }
-.reveal.is-in { opacity: 1; }
+.js .reveal.is-in { opacity: 1; }
 
 @media (prefers-reduced-motion: reduce) {
   /* Cross-fade only — no travel (apple-design §14) */
-  .reveal {
+  .js .reveal {
     opacity: 0;
     transform: none !important;
     transition: opacity var(--t-slow) ease;
   }
-  .reveal.is-in { opacity: 1; }
+  .js .reveal.is-in { opacity: 1; }
 }
