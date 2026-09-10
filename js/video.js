@@ -18,7 +18,7 @@
    created, and the play/pause button below is ours.
    ============================================================ */
 
-import { Spring, prefersReducedMotion } from './spring.js';
+import { Spring, prefersReducedMotion } from './spring.js?v=2';
 
 const reduced = () => prefersReducedMotion();
 

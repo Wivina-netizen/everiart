@@ -16,12 +16,20 @@
   [headers.values]
     Cache-Control = "public, max-age=31536000, immutable"
 
+# css/ and js/ ship under fixed filenames — there is no build step to
+# fingerprint them — so a max-age here is a promise we cannot keep: change
+# site.css and every browser holding a copy keeps serving the old one until
+# the age expires, with no request to the server to correct it. That is what
+# put desktop browsers on the pre-dark stylesheet while phones with a cold
+# cache got the new one. must-revalidate makes every load ask; Netlify
+# answers with an ETag 304, so the cost is a conditional request, not a
+# re-download.
 [[headers]]
   for = "/css/*"
   [headers.values]
-    Cache-Control = "public, max-age=604800"
+    Cache-Control = "public, max-age=0, must-revalidate"
 
 [[headers]]
   for = "/js/*"
   [headers.values]
-    Cache-Control = "public, max-age=604800"
+    Cache-Control = "public, max-age=0, must-revalidate"

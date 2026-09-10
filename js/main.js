@@ -4,8 +4,8 @@
    presentation-value animation, interruptible, reduced-motion aware.
    ============================================================ */
 
-import { Spring, prefersReducedMotion, REDUCED } from './spring.js';
-import { videoAffordances, caseStudyReel } from './video.js';
+import { Spring, prefersReducedMotion, REDUCED } from './spring.js?v=2';
+import { videoAffordances, caseStudyReel } from './video.js?v=2';
 
 const reduced = () => prefersReducedMotion();
 

@@ -74,9 +74,9 @@ const head = (title, desc, theme = "#0D132D") => `<!DOCTYPE html>
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Instrument+Sans:wght@400;500;600&family=Instrument+Serif:ital@0;1&display=swap" rel="stylesheet">
 
-<link rel="stylesheet" href="/css/tokens.css">
-<link rel="stylesheet" href="/css/base.css">
-<link rel="stylesheet" href="/css/site.css">
+<link rel="stylesheet" href="/css/tokens.css?v=2">
+<link rel="stylesheet" href="/css/base.css?v=2">
+<link rel="stylesheet" href="/css/site.css?v=2">
 </head>
 <body>
 
@@ -115,7 +115,7 @@ const FOOT = `
 `;
 
 const TAIL = `
-<script type="module" src="/js/main.js"></script>
+<script type="module" src="/js/main.js?v=2"></script>
 </body>
 </html>
 `;
