@@ -5,7 +5,7 @@
    ============================================================ */
 
 import { Spring, prefersReducedMotion, REDUCED } from './spring.js?v=2';
-import { videoAffordances, caseStudyReel } from './video.js?v=2';
+import { caseStudyReel } from './video.js?v=2';
 
 const reduced = () => prefersReducedMotion();
 
@@ -764,50 +764,8 @@ function arrowAffordance(root, arrow, { follow = false } = {}) {
 }
 
 /* ------------------------------------------------------------
-   3c. Ambient tile motion — armed, never standing.
-
-   The drift itself is CSS (see .tile__zoom). All this does is decide when
-   it is allowed to run, because a continuous transform animation holds a
-   compositor layer for as long as it runs, and a standing layer per tile is
-   exactly the regression the motion contract already caught once.
-
-   So: paused by default in CSS, running only while the tile is on screen and
-   the tab is visible. Off-screen tiles cost nothing, and a backgrounded tab
-   composites nothing.
+   3c. Work tiles — the arrow, and nothing else.
    ------------------------------------------------------------ */
-function ambientTileZoom() {
-  const zooms = [...document.querySelectorAll('.tile__zoom')];
-  if (!zooms.length || reduced()) return;   // CSS already stopped it
-
-  const onScreen = new Set();
-  const running = new Set();
-
-  // Only the tiles whose state actually changed are written to. Rewriting
-  // animationPlayState and willChange across every tile each time one
-  // scrolls into view is O(n) style invalidation per callback — which would
-  // undo the very thing this function exists to bound.
-  const settle = (el) => {
-    const run = !document.hidden && onScreen.has(el);
-    if (run === running.has(el)) return;
-    if (run) running.add(el); else running.delete(el);
-    el.style.animationPlayState = run ? 'running' : 'paused';
-    el.style.willChange = run ? 'transform' : 'auto';
-  };
-
-  const io = new IntersectionObserver((entries) => {
-    entries.forEach((e) => {
-      if (e.isIntersecting) onScreen.add(e.target);
-      else onScreen.delete(e.target);
-      settle(e.target);
-    });
-  }, { threshold: 0 });
-
-  zooms.forEach((z) => io.observe(z));
-  // A visibility flip is the one case that legitimately touches every tile,
-  // and it happens once per tab switch rather than once per scroll.
-  document.addEventListener('visibilitychange', () => zooms.forEach(settle));
-}
-
 function workTiles() {
   document.querySelectorAll('.tile').forEach((tile) => {
     // Measured once per tile at image load, not per hover — so the ink is
@@ -1082,8 +1040,6 @@ function init() {
   reveals();
   studioFilter();
   workTiles();
-  ambientTileZoom();    // continuous drift, independent of hover
-  videoAffordances();   // hover-to-play + fullscreen preview, home tiles
   caseStudyReel();      // /work/<slug>/: reel plays while it holds the view
   heroParallax();
   caseStudy();          // /work/<slug>/: title in, plate out on scroll

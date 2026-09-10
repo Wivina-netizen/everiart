@@ -1,12 +1,11 @@
 /* ============================================================
-   EVERIART — Video affordances
+   EVERIART — Video
 
-   Two behaviours, one module, because they share a source and a tile:
+   The case-study reel, and the fullscreen overlay it expands into.
 
-     1. Hover-to-play  — a tile with data-reel swaps its still for a muted
-                         loop while pointed at, and rewinds on exit.
-     2. Fullscreen     — clicking that tile opens one shared overlay with
-                         the reel at full size and play/pause only.
+   Hover-to-play on grid tiles used to live here too, and is gone: a tile is
+   a still and a link, and the footage belongs on the project's own page
+   where there is room to watch it.
 
    Built against the same contract as js/main.js: springs everywhere a user
    can touch, animating from the live on-screen value so an interrupted
@@ -15,8 +14,8 @@
 
    No <video controls> anywhere. Native controls carry a download item in
    the overflow menu on Chrome, so the chrome is not hidden — it is never
-   created, and the play/pause button below is ours.
-   ============================================================ */
+   created, and the controls in the overlay are ours.
+   ============ */
 
 import { Spring, prefersReducedMotion } from './spring.js?v=2';
 
@@ -58,109 +57,6 @@ function safePlay(v) {
   const r = v.play();
   if (r && r.catch) r.catch((err) => {
     if (err.name !== 'NotAllowedError' && err.name !== 'AbortError') throw err;
-  });
-}
-
-/* ------------------------------------------------------------
-   1. Hover-to-play
-   ------------------------------------------------------------ */
-function hoverPlay(tile, openOverlay) {
-  const src = tile.dataset.reel;
-  const frame = tile.querySelector('.tile__frame');
-  if (!src || !frame) return;
-
-  bindOpen(tile, src, openOverlay);
-
-  // Motion someone asked not to see, and data they may not want spent — the
-  // still stands on its own in both cases. Only the *hover* loop is skipped:
-  // the fullscreen preview stays reachable, because opening it is a deliberate
-  // act rather than something that happens to you on the way past.
-  if (reduced() || saveData()) {
-    tile.dataset.videoState = reduced() ? 'reduced-motion' : 'save-data';
-    return;
-  }
-
-  let v = null;
-  let spring = null;
-
-  // Built on first intent, not at page load: four tiles preloading metadata
-  // costs four requests before anyone has expressed interest in any of them.
-  function ensure() {
-    if (v) return v;
-    v = makeVideo(src, { loop: true, muted: true });
-    v.className = 'tile__video';
-    v.setAttribute('aria-hidden', 'true');
-    // Into .tile__zoom, not beside it: the reel has to inherit the same
-    // ambient drift as the still it cross-fades with, or the two are framed
-    // differently at the moment they swap and the fade reads as a pop.
-    (frame.querySelector('.tile__zoom') || frame).appendChild(v);
-
-    spring = new Spring(0, {
-      damping: 1.0,
-      response: 0.34,          // matches the arrow it sits under
-      onUpdate: (val) => { v.style.opacity = String(val); },
-      onRest: (s) => {
-        v.style.willChange = 'auto';
-        // Rewind only once the still has fully covered it, so the reset to
-        // frame zero is never visible.
-        if (s.value < 0.01) { v.pause(); try { v.currentTime = 0; } catch {} }
-      },
-    });
-    return v;
-  }
-
-  function show(on) {
-    const el = ensure();
-    el.style.willChange = 'opacity';
-    if (on) {
-      if (el.preload !== 'auto') { el.preload = 'auto'; el.load(); }
-      safePlay(el);
-      tile.dataset.videoState = 'playing';
-    } else {
-      tile.dataset.videoState = 'idle';
-    }
-    spring.setTarget(on ? 1 : 0);   // re-target carries velocity through
-  }
-
-  if (HOVERABLE()) {
-    tile.addEventListener('pointerenter', () => show(true));
-    tile.addEventListener('pointerleave', () => show(false));
-    tile.addEventListener('focus', () => show(true));
-    tile.addEventListener('blur', () => show(false));
-  } else {
-    // No hover to speak of: the reel runs while the tile holds the middle of
-    // the viewport, mirroring how the arrow announces itself on touch.
-    new IntersectionObserver(([e]) => show(e.isIntersecting), {
-      rootMargin: '-35% 0px -35% 0px',
-      threshold: 0,
-    }).observe(tile);
-  }
-
-  // Pause whenever the page is hidden — a backgrounded tab should not decode.
-  document.addEventListener('visibilitychange', () => {
-    if (document.hidden && v) v.pause();
-  });
-}
-
-/**
- * Clicking a video tile opens the preview instead of following the link.
- *
- * NOTE: this replaces the tile's only route to its case study, so the overlay
- * carries a "View full case study" link to the same href. Modifier and middle
- * clicks are left alone, so open-in-new-tab still reaches the case study.
- */
-function bindOpen(tile, src, openOverlay) {
-  tile.addEventListener('click', (e) => {
-    if (e.metaKey || e.ctrlKey || e.shiftKey || e.altKey || e.button !== 0) return;
-    e.preventDefault();
-    tile.querySelector('.tile__video')?.pause();
-    openOverlay({
-      src,
-      title: tile.querySelector('.tile__title')?.textContent ?? '',
-      studio: tile.querySelector('.tile__studio')?.textContent ?? '',
-      href: tile.getAttribute('href'),
-      origin: tile,
-    });
   });
 }
 
@@ -420,12 +316,3 @@ export function caseStudyReel() {
   });
 }
 
-/* ------------------------------------------------------------
-   Boot
-   ------------------------------------------------------------ */
-export function videoAffordances() {
-  const tiles = [...document.querySelectorAll('.tile[data-reel]')];
-  if (!tiles.length) return;
-  const show = overlay();
-  tiles.forEach((t) => hoverPlay(t, show));
-}
