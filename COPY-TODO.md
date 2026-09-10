@@ -37,17 +37,14 @@ near-contentless by necessity — there was nothing to write from.
 
 ## Not copy, but needs a decision: the client list
 
-`index.html`, "Selected clients". The eight `Client One … Client Eight` slugs
-that shipped there are placeholder vocabulary sitting in the same list as real
-named work, which the pattern library rules out. They have been replaced with
-names taken **only** from folders in `media source/` — i.e. work EveriArt
-demonstrably holds footage for.
+The "Selected clients" section is **removed** from `index.html`. Its eight
+`Client One … Client Eight` cells were placeholder vocabulary sitting in the
+same list as real named work; replacing them with a verified logo row was
+attempted and came up three clients short of the floor it was commissioned
+with.
 
-**These names have not been cleared for publication.** Being able to prove the
-work happened is not the same as having permission to say so publicly, and some
-of these are institutional clients where that distinction matters. Cut any that
-should not be listed before this merges. See the comment above that block in
-`index.html` for the per-name provenance.
+Full audit — who cleared, who didn't, why, the verified logo URLs, and which
+entities need your personal sign-off — is in **`CLIENTS-TODO.md`**.
 
 ## Blocked on media, not on copy
 
