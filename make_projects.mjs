@@ -312,11 +312,20 @@ function buildProject(studios, published, idx) {
 <main id="main" class="project">
 
   <header class="phero">
-    <img class="phero__img" src="/${hero}" alt="" fetchpriority="high" decoding="async">
-    <div class="phero__scrim" aria-hidden="true"></div>
+    <!-- The plate is one element so the scrim scales and fades with the image
+         it protects. js/main.js drives it from the scroll position. -->
+    <div class="phero__plate" aria-hidden="true">
+      <img class="phero__img" src="/${hero}" alt="" fetchpriority="high" decoding="async">
+      <div class="phero__scrim"></div>
+    </div>
     <div class="wrap phero__inner">
-      <p class="phero__label">${label} &middot; ${meta.discipline}</p>
-      <h1 class="phero__title">${esc(p.name)}</h1>
+      <!-- Both lines in one box, faded by one spring: the brief asks for no
+           stagger between them, and the cheapest way to guarantee that is to
+           give them nothing to stagger with. -->
+      <div class="phero__intro">
+        <p class="phero__label">${label} &middot; ${meta.discipline}</p>
+        <h1 class="phero__title">${esc(p.name)}</h1>
+      </div>
     </div>
   </header>
 
@@ -333,7 +342,10 @@ function buildProject(studios, published, idx) {
     </div>
   </section>
 
-  <section class="pbody">
+  <!-- The section reveals as a unit, from below, on the same armed/disarmed
+       observer every other reveal on the site uses. The figures keep their
+       own reveals for everything past the first screen. -->
+  <section class="pbody reveal" data-dist="48">
     <div class="wrap">
 ${figures}
     </div>

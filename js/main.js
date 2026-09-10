@@ -727,6 +727,122 @@ function heroParallax() {
 }
 
 /* ------------------------------------------------------------
+   4a. Case study — the scroll sequence.
+
+   Three movements, and they are deliberately not all the same kind of motion:
+
+     1. The title arrives over the plate. Discrete, so it is a spring — the
+        documented 0.34, which is the fastest response in the contract. That
+        is not a 340ms fade: a critically damped spring at response 0.34 is
+        88% of the way there at 200ms and visually in, which is the bar the
+        brief set. Opacity only — no travel, no blur — and one spring over
+        one box holding both lines, so there is nothing to stagger.
+
+     2. The plate shrinks away as you scroll. Scroll-linked, so it is mapped
+        directly from the scroll position and NOT sprung. A spring here would
+        put lag between the scrollbar and the image, which is the one thing
+        continuous scroll-driven motion must never do (apple-design §1).
+
+     3. The gallery below fades up from the bottom edge. That is reveals(),
+        unchanged — the same armed/disarmed observer at response 0.5.
+
+   Accessibility, confirmed against ui-ux-pro-max (Accessibility / Motion
+   Sensitivity, severity High: "Parallax/Scroll-jacking causes nausea. Honor
+   prefers-reduced-motion and present the final readable state"):
+
+     - Under reduced motion the plate does not move at all and the title is
+       simply there. The final state is the readable one, never a blank.
+     - The parallax is on the plate only. The title is faded but never
+       translated — the same source is explicit that parallax belongs on
+       background layers and never on text.
+     - The scale delta is 12%, inside the 5–15% band that source gives, and
+       the plate is fully faded before its shrunken edge could become
+       visible against the ground.
+     - will-change is armed on enter and dropped on exit, never standing.
+   ------------------------------------------------------------ */
+function caseStudy() {
+  const phero = document.querySelector('.phero');
+  if (!phero) return;
+
+  const intro = phero.querySelector('.phero__intro');
+  const plate = phero.querySelector('.phero__plate');
+  const inner = phero.querySelector('.phero__inner');
+
+  /* --- 1. Title in --- */
+  if (intro) {
+    if (reduced()) {
+      intro.style.opacity = '1';
+    } else {
+      intro.style.opacity = '0';
+      const s = new Spring(0, {
+        damping: 1.0,
+        response: 0.34,
+        onUpdate: (v) => { intro.style.opacity = String(v); },
+        onRest: () => { intro.style.willChange = 'auto'; },
+      });
+      const go = () => { intro.style.willChange = 'opacity'; s.setTarget(1); };
+
+      // Over the image, not before it: the transition is composed against the
+      // plate. But a title that never arrives because a hero 404'd is worse
+      // than one that arrives early, so every path ends at go().
+      const img = phero.querySelector('.phero__img');
+      if (!img || (img.complete && img.naturalWidth)) go();
+      else {
+        img.addEventListener('load', go, { once: true });
+        img.addEventListener('error', go, { once: true });
+        window.setTimeout(go, 1200);
+      }
+    }
+  }
+
+  /* --- 2. Plate shrinks away on scroll --- */
+  if (!plate || reduced()) return;
+
+  let armed = false;
+  const arm = (on) => {
+    if (on === armed) return;
+    armed = on;
+    plate.style.willChange = on ? 'transform, opacity' : 'auto';
+    if (inner) inner.style.willChange = on ? 'opacity' : 'auto';
+  };
+  new IntersectionObserver(([e]) => arm(e.isIntersecting), { threshold: 0 })
+    .observe(phero);
+
+  // Measured on resize, not per frame. Reading offsetHeight inside the rAF
+  // and then writing transform is a layout read/write pair on every scroll
+  // frame, and the height only changes when the viewport does.
+  let h = phero.offsetHeight || 1;
+  let rt;
+  window.addEventListener('resize', () => {
+    clearTimeout(rt);
+    rt = setTimeout(() => { h = phero.offsetHeight || 1; onScroll(); }, 120);
+  });
+
+  let ticking = false;
+  const onScroll = () => {
+    if (ticking) return;
+    ticking = true;
+    requestAnimationFrame(() => {
+      const p = Math.min(1, Math.max(0, window.scrollY / h));
+
+      // Travel is slower than the scroll, so the plate lags the page and
+      // reads as receding rather than sliding.
+      plate.style.transform =
+        `translate3d(0, ${(p * h * 0.12).toFixed(1)}px, 0) ` +
+        `scale(${(1.06 - p * 0.12).toFixed(4)})`;
+      // Gone by 80% of the hero's height, which is before the shrunken edge
+      // could be read against the ground behind it.
+      plate.style.opacity = Math.max(0, 1 - p * 1.25).toFixed(3);
+      // The type fades, and only fades. It is never translated.
+      if (inner) inner.style.opacity = Math.max(0, 1 - p * 1.8).toFixed(3);
+      ticking = false;
+    });
+  };
+  window.addEventListener('scroll', onScroll, { passive: true });
+  onScroll();
+}
+
+/* ------------------------------------------------------------
    4b. Contact form — post in place, answer in place.
        The form is a plain Netlify form first: with JS off it posts
        normally and Netlify renders its own confirmation. This only
@@ -816,6 +932,7 @@ function init() {
   ambientTileZoom();    // continuous drift, independent of hover
   videoAffordances();   // hover-to-play + fullscreen preview, home tiles
   heroParallax();
+  caseStudy();          // /work/<slug>/: title in, plate out on scroll
   contactForm();
   navTheme();
 }

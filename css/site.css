@@ -1015,7 +1015,22 @@
   align-items: end;
   overflow: clip;
   isolation: isolate;
+  /* The base ground, not --ink-deep: this is what the plate uncovers as it
+     shrinks away, so it has to be the same colour as the page below or the
+     hero's bottom edge steps as you scroll. The cinematic black stays on
+     .phero__plate, behind the image, where it belongs. */
+  background: var(--navy-base);
+}
+
+/* The plate: image and scrim as one element, so the scrim scales and fades
+   with the image it exists to protect. js/main.js owns its transform and
+   opacity from the scroll position — directly, not through a spring. */
+.phero__plate {
+  position: absolute;
+  inset: 0;
+  z-index: 0;
   background: var(--ink-deep);
+  transform: scale(1.06);
 }
 .phero__img {
   position: absolute;
@@ -1044,6 +1059,11 @@
   z-index: 2;
   padding-block: clamp(7rem, 16vh, 11rem) clamp(2.5rem, 7vh, 4.5rem);
 }
+
+/* Deliberately not opacity:0 here. js/main.js sets the start value before
+   first paint, the same way heroSequence() does — so with JS off, or if the
+   module fails, the title is simply visible rather than permanently gone. */
+.phero__intro { will-change: auto; }
 .phero__label {
   margin: 0 0 0.9rem;
   font-size: var(--fs-meta);
