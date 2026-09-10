@@ -120,6 +120,25 @@ const TAIL = `
 </html>
 `;
 
+/**
+ * The ambient zoom's phase, per tile.
+ *
+ * Derived from the slug rather than from Math.random or the array index: the
+ * value has to be stable across builds (a random one would dirty every page
+ * on every run) and it has to survive reordering projects.json. All that
+ * actually matters is that no two tiles are in step — tiles drifting in
+ * lockstep read as one moving background, which is the opposite of the point.
+ */
+function kenPhase(slug) {
+  const h = [...slug].reduce((a, c) => (a * 31 + c.charCodeAt(0)) >>> 0, 7);
+  const dur = 30 + (h % 13);                          // 30–42s per sweep
+  return {
+    dur,
+    delay: -((h >>> 5) % 100) / 100 * dur,           // start anywhere in it
+    dir: (h >>> 3) % 2 ? "alternate-reverse" : "alternate",
+  };
+}
+
 // ------------------------------------------------------------------- tiles
 function tile(studios, { project: p, size, delay }, indent, absolute) {
   const i = " ".repeat(indent);
@@ -127,10 +146,19 @@ function tile(studios, { project: p, size, delay }, indent, absolute) {
   // data-reel is what js/video.js keys off. Absent for projects with no
   // reel, so those tiles keep the still and never build a <video>.
   const reel = p.reel ? ` data-reel="${esc(p.reel)}"` : "";
+  const k = kenPhase(p.slug);
+  // .tile__zoom carries the ambient motion, and js/video.js appends the hover
+  // reel INTO it rather than beside it. One animated element, so the still and
+  // the video are framed identically at every instant of the cross-fade — two
+  // separately animated elements would drift apart and pop mid-fade — and one
+  // compositor layer per tile instead of two. The arrow stays outside it, so
+  // it is not dragged around by the pan.
   return `${i}<a class="tile tile--${size} reveal" href="/work/${p.slug}/" data-delay="${delay}"
 ${i}   data-studio="${p.studio}" data-category="${esc(p.category)}" data-slug="${p.slug}"${reel}>
 ${i}  <span class="tile__frame">
-${i}    <img src="${src}" alt="${esc(`${p.name} — ${p.discipline.toLowerCase()}`)}" loading="lazy" decoding="async">
+${i}    <span class="tile__zoom" style="--ken-dur:${k.dur}s;--ken-delay:${k.delay.toFixed(2)}s;--ken-dir:${k.dir}">
+${i}      <img src="${src}" alt="${esc(`${p.name} — ${p.discipline.toLowerCase()}`)}" loading="lazy" decoding="async">
+${i}    </span>
 ${i}    <span class="tile__arrow" aria-hidden="true">
 ${i}      ${ARROW}
 ${i}    </span>

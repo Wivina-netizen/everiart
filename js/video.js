@@ -90,7 +90,10 @@ function hoverPlay(tile, openOverlay) {
     v = makeVideo(src, { loop: true, muted: true });
     v.className = 'tile__video';
     v.setAttribute('aria-hidden', 'true');
-    frame.insertBefore(v, frame.querySelector('.tile__arrow'));
+    // Into .tile__zoom, not beside it: the reel has to inherit the same
+    // ambient drift as the still it cross-fades with, or the two are framed
+    // differently at the moment they swap and the fade reads as a pop.
+    (frame.querySelector('.tile__zoom') || frame).appendChild(v);
 
     spring = new Spring(0, {
       damping: 1.0,

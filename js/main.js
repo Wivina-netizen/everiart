@@ -630,6 +630,45 @@ function arrowAffordance(root, arrow, { follow = false } = {}) {
   root.addEventListener('blur', () => show(false));
 }
 
+/* ------------------------------------------------------------
+   3c. Ambient tile motion — armed, never standing.
+
+   The drift itself is CSS (see .tile__zoom). All this does is decide when
+   it is allowed to run, because a continuous transform animation holds a
+   compositor layer for as long as it runs, and a standing layer per tile is
+   exactly the regression the motion contract already caught once.
+
+   So: paused by default in CSS, running only while the tile is on screen and
+   the tab is visible. Off-screen tiles cost nothing, and a backgrounded tab
+   composites nothing.
+   ------------------------------------------------------------ */
+function ambientTileZoom() {
+  const zooms = [...document.querySelectorAll('.tile__zoom')];
+  if (!zooms.length || reduced()) return;   // CSS already stopped it
+
+  const onScreen = new Set();
+
+  const paint = () => {
+    const hidden = document.hidden;
+    zooms.forEach((z) => {
+      const run = !hidden && onScreen.has(z);
+      z.style.animationPlayState = run ? 'running' : 'paused';
+      z.style.willChange = run ? 'transform' : 'auto';
+    });
+  };
+
+  const io = new IntersectionObserver((entries) => {
+    entries.forEach((e) => {
+      if (e.isIntersecting) onScreen.add(e.target);
+      else onScreen.delete(e.target);
+    });
+    paint();
+  }, { threshold: 0 });
+
+  zooms.forEach((z) => io.observe(z));
+  document.addEventListener('visibilitychange', paint);
+}
+
 function workTiles() {
   document.querySelectorAll('.tile').forEach((tile) => {
     // Measured once per tile at image load, not per hover — so the ink is
@@ -775,6 +814,7 @@ function init() {
   reveals();
   studioFilter();
   workTiles();
+  ambientTileZoom();    // continuous drift, independent of hover
   videoAffordances();   // hover-to-play + fullscreen preview, home tiles
   lookbook();           // /work/ sequence: scroll-triggered reels + position
   heroParallax();

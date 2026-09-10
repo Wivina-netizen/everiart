@@ -489,6 +489,57 @@
   object-fit: cover;
 }
 
+/* ---------- Ambient tile motion ----------
+   A slow, continuous drift on every tile's image. It is NOT a hover effect
+   and is not gated on any pointer state — the cursor-following arrow is the
+   only hover-exclusive behaviour these tiles have. The still and the hover
+   reel both live inside this element, so they share one motion and stay
+   framed identically through the cross-fade.
+
+   Frequency is deliberate: a 30–42s sweep is ~0.013 Hz, an order of
+   magnitude clear of the ~0.2 Hz slow-oscillation band apple-design §14
+   warns about. Amplitude is bounded by the baseline scale — the pan never
+   exceeds what scale(1.045) already hides, so no tile can expose its own
+   edge mid-sweep.
+
+   Phase comes from the generator, per tile, so no two are in step. Lockstep
+   would read as one moving background rather than eight independent images.
+
+   The animation is armed and disarmed by js/main.js on IntersectionObserver
+   rather than left running — a permanent compositor layer on every tile is
+   the exact regression the motion contract already caught once.
+   -------------------------------------------------------------------- */
+.tile__zoom {
+  position: absolute;
+  inset: 0;
+  display: block;
+  transform: scale(1.045);
+  animation: tile-ken var(--ken-dur, 34s) ease-in-out infinite var(--ken-dir, alternate);
+  animation-delay: var(--ken-delay, 0s);
+  animation-play-state: paused;   /* js arms it when the tile is on screen */
+}
+.tile__zoom > * {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+
+@keyframes tile-ken {
+  from { transform: scale(1.045) translate3d(-1.4%, 0.8%, 0); }
+  to   { transform: scale(1.085) translate3d(1.4%, -0.8%, 0); }
+}
+
+/* Motion someone has asked not to see. The final state is a real, complete
+   one — the image at its baseline framing, simply not moving. */
+@media (prefers-reduced-motion: reduce) {
+  .tile__zoom {
+    animation: none;
+    transform: scale(1.045);
+  }
+}
+
 /* Arrow: invisible until interaction, driven entirely by the springs in
    js/main.js — opacity, and X and Y as two more, since it follows the cursor.
    No transition here: a CSS transition cannot be grabbed and reversed
@@ -1108,12 +1159,8 @@
 /* --- Hover-to-play ------------------------------------------------ */
 /* Sits between the still and the arrow: the arrow stays legible on top,
    exactly as it was over the image. */
+/* Sizing comes from .tile__zoom > *, which this now lives inside. */
 .tile__video {
-  position: absolute;
-  inset: 0;
-  width: 100%;
-  height: 100%;
-  object-fit: cover;
   opacity: 0;                /* js owns this value from first hover on */
   pointer-events: none;      /* the tile keeps the pointer, not the video */
   z-index: 1;
