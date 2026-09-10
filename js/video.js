@@ -234,7 +234,6 @@ function overlay() {
     video.preload = 'auto';
     video.addEventListener('play', paintToggle);
     video.addEventListener('pause', paintToggle);
-    video.addEventListener('ended', paintToggle);
     stage.appendChild(video);
 
     root.hidden = false;

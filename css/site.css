@@ -302,18 +302,23 @@
   margin-inline-start: calc(-1 * var(--word-ink-left, 0px));
 }
 
-/* Mask boxes. Padding grows the clip upward so ascenders never crop, while
-   the negative margin keeps layout identical; the bottom edge still cuts. */
+/* The padding/negative-margin pair is kept, but not as a mask any more: the
+   segments fade without travelling, so there is nothing to clip. It stays
+   because .hero__tm's align-self: flex-start reads the wordmark's own box
+   top, which this pair is what pulls the margin box back to — see the note
+   on .hero__tm below. Removing it moves the trademark mark. */
 .hero__seg {
   display: inline-block;
   flex: none;
-  overflow: hidden;
   padding-block-start: 0.32em;
   margin-block-start: -0.32em;
 }
+/* No will-change here. It hinted transform, which these no longer animate,
+   and it held a compositor layer for the life of the page — the standing
+   layer the motion contract already caught once. heroSequence() arms and
+   drops the hint per subject, as every other reveal on the site does. */
 .hero__seg > span {
   display: inline-block;
-  will-change: transform;
 }
 
 /* Trademark mark: the terminal device, carrying the wordmark's gold. */

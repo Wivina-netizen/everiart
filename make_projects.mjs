@@ -285,10 +285,15 @@ function buildProject(studios, published, idx) {
   // pillarbox it. Sizing it up front also reserves the box before the video
   // loads, so revealing it cannot shift the gallery underneath.
   //
+  // Not a .reveal of its own. It sits inside .pbody, which is one, and
+  // nested reveals multiply their opacity — the reel would fade in behind
+  // its parent's fade rather than with it, arriving darker and later than
+  // its place in the cascade says. The section reveals; the reel rides it.
+  //
   // No expand control in the markup. js/video.js adds it, because without JS
   // there is no video to expand and a dead button is worse than none.
   const reelBlock = p.reel
-    ? `      <div class="preel reveal" data-dist="48" data-reel="${esc(p.reel)}"
+    ? `      <div class="preel" data-reel="${esc(p.reel)}"
            aria-label="${esc(p.name)} — reel">
         <div class="preel__frame" style="--reel-ar: ${esc(p.reelAspect ?? "16 / 9")}">
           <img class="preel__still" src="/${p.thumb}" alt="" loading="lazy" decoding="async">

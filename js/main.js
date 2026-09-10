@@ -63,13 +63,21 @@ function heroVideo() {
   function armGesture() {
     if (gestureArmed) return;
     gestureArmed = true;
+    // One handler, torn down as a set. Three separate { once: true }
+    // listeners only remove the one that fires, leaving the other two armed
+    // to call this again later — and if the plate has not reached
+    // readyState 2 by then (likely, on the slow connection that blocked
+    // autoplay in the first place) the second call re-enters attach() and
+    // restarts the video from frame zero under the reader.
+    const events = ['scroll', 'pointerdown', 'keydown'];
     const go = () => {
+      events.forEach((t) => window.removeEventListener(t, go));
       attempt += 1;
       if (v.src && v.readyState >= 2 && !v.error) tryPlay(attempt);
       else attach();
     };
-    ['scroll', 'pointerdown', 'keydown'].forEach((t) =>
-      window.addEventListener(t, go, { once: true, passive: true }));
+    events.forEach((t) =>
+      window.addEventListener(t, go, { passive: true }));
   }
 
   function attach() {
