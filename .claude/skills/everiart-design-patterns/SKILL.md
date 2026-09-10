@@ -89,6 +89,26 @@ caught and fixed once already; don't reintroduce it.
 a blank or broken one. Silent stills are acceptable where a video would
 have played; parallax and decorative motion simply disable.
 
+**Reduced motion drops position, not opacity — and "disable the whole
+sequence" is how that gets broken.** The case study proved it: the scroll
+sequence returned early under the setting, which looked like the safe
+choice and was not. The nav is deliberately transparent over a plate, so
+with nothing fading, the title scrolled up through the nav links and sat on
+top of them — nav 0–64px, title 49–130px, no background and no blur between
+them. A fade can be load-bearing rather than decorative, and this one was
+the only thing keeping type off the chrome. The plate now never moves or
+scales for those readers and both fades still run. Before disabling a
+sequence wholesale, check what each part was holding up.
+
+**The reveal is an enhancement, and the hiding is the enhanced part.**
+`.reveal` is gated behind a `.js` flag set by a synchronous inline script in
+every `<head>`; only a document that has already run script hides anything.
+Ungated, `opacity: 0` with `.is-in` added solely by JS is a permanent blank
+for anyone whose JS is off or broken — and that is most of the site. The
+flag is set inline rather than from `main.js`, which is a module and
+therefore deferred: hiding from there flashes the content it is about to
+hide. Any new always-hidden-then-revealed state inherits this rule.
+
 ---
 
 ## Established interaction patterns
@@ -275,6 +295,29 @@ identified and removed once already as a templated tell.
   named work in the same list.
 - Trademark symbols (®) are a legal claim, not a style choice — only used
   where registration is actually confirmed; ™ otherwise.
+- Draft copy is **gated, not remembered.** `projects.json` carries
+  `copyStatus` per project; while it reads `draft`, the generator stamps the
+  rendered page and the build prints a warning naming every unapproved
+  project. Copy written from the factual record still asserts nothing about
+  outcomes, metrics or quotes — if the evidence doesn't say why a direction
+  was rejected, neither does the lede.
+- **A folder name is not proof of a client relationship.** Verify from what
+  the work itself carries: a logo bug burned into the delivered cut, a title
+  card, branding on the event backdrop. That distinguishes "they hired us"
+  from "we filmed an event they attended", and it corrected two folders that
+  were simply mislabelled. Institutional and government clients need explicit
+  human sign-off regardless of how strong the evidence is — holding the
+  footage is not permission to claim the relationship publicly.
+
+**Retired before it shipped: the monochrome client logo row.** Ten clients
+were inventoried and verified; the section was still pulled. The reason is
+worth keeping, because sourcing was never the bottleneck: a single-colour
+silhouette at row height (~48px) works for a wordmark, where the shape *is*
+the identity, and destroys a detailed institutional seal, where the identity
+is carried by colour separation and circular micro-text. NUPRC reduced to a
+plain disc and NAMA to a featureless blob, and no better source file fixes
+that. If a client set is seal-heavy, the row is the wrong pattern — full
+colour on light chips, or names set as type. See `CLIENTS-TODO.md`.
 
 ---
 
