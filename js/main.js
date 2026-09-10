@@ -19,7 +19,6 @@ function heroVideo() {
   if (!v) return;
 
   const media = v.closest('.hero__media');
-  const play = document.querySelector('.hero__play');
   const d = v.dataset;
 
   // Why the plate is or isn't running, readable from the DOM. Four separate
@@ -27,16 +26,6 @@ function heroVideo() {
   // of "it doesn't play" impossible to act on.
   const setState = (state) => { if (media) media.dataset.videoState = state; };
 
-  // Offered only where a click can actually help. If nothing decodes, a play
-  // button would just fail again, so the still is left to stand on its own.
-  const offer = (label) => {
-    if (!play) return;
-    const text = play.querySelector('.hero__play-label');
-    if (text && label) text.textContent = label;
-    play.hidden = false;
-  };
-
-  // Built before any early return below, so the Data Saver opt-in can use it.
   // canPlayType is advisory only — Safari reports WebM support it cannot
   // always decode — so the MP4 stays queued behind the WebM rather than being
   // discarded on the strength of that claim.
@@ -49,6 +38,7 @@ function heroVideo() {
 
   let i = 0;
   let attempt = 0;   // guards against a superseded attempt reporting state
+  let gestureArmed = false;
 
   function tryPlay(token) {
     const r = v.play();
@@ -57,17 +47,33 @@ function heroVideo() {
       // NotAllowedError is the only rejection that means "the browser refused
       // to autoplay". AbortError is our own load() superseding this attempt,
       // and NotSupportedError is a source problem the 'error' handler owns —
-      // reporting either as a refusal puts a play button on a video that
-      // cannot play at all.
+      // reporting either as a refusal puts recovery on a video that cannot
+      // play at all.
       if (token !== attempt || err.name !== 'NotAllowedError') return;
       setState('autoplay-blocked');
-      offer('Play background');
+      armGesture();
     });
+  }
+
+  /* There is no play control any more, so a refusal is recovered from by the
+     next thing the reader does rather than by asking them to press something.
+     A scroll is the gesture the hero is already asking for, and it carries the
+     activation a refusing browser was holding out for. Once only, and
+     passively — this must not sit in the scroll path for the whole session. */
+  function armGesture() {
+    if (gestureArmed) return;
+    gestureArmed = true;
+    const go = () => {
+      attempt += 1;
+      if (v.src && v.readyState >= 2 && !v.error) tryPlay(attempt);
+      else attach();
+    };
+    ['scroll', 'pointerdown', 'keydown'].forEach((t) =>
+      window.addEventListener(t, go, { once: true, passive: true }));
   }
 
   function attach() {
     attempt += 1;
-    if (play) play.hidden = true;
     setState('loading');
     v.src = sources[i];
     v.preload = 'auto';
@@ -83,7 +89,6 @@ function heroVideo() {
       return;
     }
     setState('undecodable');
-    if (play) play.hidden = true;
   });
 
   // Only once frames are actually running is the plate faded up. Waiting on
@@ -93,38 +98,32 @@ function heroVideo() {
   v.addEventListener('playing', () => {
     v.dataset.ready = '1';
     setState('playing');
-    if (play) play.hidden = true;
   });
 
-  if (play) {
-    play.addEventListener('click', () => {
-      // Already buffered and merely refused — the gesture is all that was
-      // missing, so don't re-download it.
-      if (v.src && v.readyState >= 2 && !v.error) { attempt += 1; tryPlay(attempt); }
-      else attach();
-    });
-  }
-
-  // A motion-sensitive user gets the still, and no invitation to start motion
-  // they have explicitly asked not to see.
+  // A motion-sensitive user gets the still, and nothing invites them to start
+  // motion they have explicitly asked not to see.
   if (reduced()) { setState('reduced-motion'); return; }
 
-  // A decorative loop is never worth someone's data plan — but it is their
-  // call to make, so the button is offered with the reason written on it.
+  // A decorative loop is never worth someone's data plan. This used to offer
+  // an opt-in button; with the button gone the still simply stands, which is
+  // the answer reduced motion already gets.
   const conn = navigator.connection;
   if (conn && (conn.saveData || /(^|-)2g$/.test(conn.effectiveType || ''))) {
     setState('save-data');
-    offer('Data Saver is on — play background');
     return;
   }
 
-  attach();
-
-  // Don't burn cycles decoding video that isn't on screen.
+  /* Playback is owned entirely by where the plate is on screen — the same
+     armed/disarmed observer the rest of the site's motion runs on. The hero
+     holds the viewport at load, so it starts there; scroll past and it stops
+     decoding; scroll back and it resumes. There is no manual control. */
   const io = new IntersectionObserver(([e]) => {
-    if (!v.src || v.error) return;
-    if (e.isIntersecting) { attempt += 1; tryPlay(attempt); }
-    else v.pause();
+    if (e.isIntersecting) {
+      if (!v.src) attach();
+      else if (!v.error) { attempt += 1; tryPlay(attempt); }
+    } else if (v.src) {
+      v.pause();
+    }
   }, { threshold: 0.01 });
   io.observe(v);
 
@@ -152,6 +151,52 @@ function fitWordmark() {
 
   const REF = 100;   // measure at a known size, then scale by ratio
 
+  /* The two offsets that seat the mark on the corner.
+   *
+   * The mark is bottom- and left-aligned on spacing derived the way the rest
+   * of the site's spacing is: --gutter supplies the inset itself, on both
+   * edges (see .hero__markline). What CSS cannot know is how far the word's
+   * ink sits inside its layout box — and insetting a box edge nobody can see
+   * is what leaves large type looking high and indented:
+   *
+   *   --word-ink-left   the serif E's left side bearing. The lead copy above
+   *                     has almost none, so without this the two are out of
+   *                     line by exactly that bearing.
+   *   --word-ink-below  the gap between the box bottom and the letterforms.
+   *                     "Everiart" has no descenders, so its ink bottom is
+   *                     its baseline and what is left below it is leading.
+   *
+   * Both come off the font's own metrics at the size actually rendered, so
+   * they follow a font swap, a resize and the fit below without being told.
+   */
+  const measureInk = () => {
+    let g;
+    try { g = document.createElement('canvas').getContext('2d'); } catch { return; }
+    if (!g) return;
+
+    const cw = getComputedStyle(word);
+    const px = parseFloat(cw.fontSize);
+    if (!px) return;
+    g.font = cw.fontStyle + ' ' + cw.fontWeight + ' ' + px + 'px ' + cw.fontFamily;
+
+    const m = g.measureText((word.textContent || '').replace(/\s+/g, ''));
+    // TextMetrics' ink box is optional in the spec. Where it is missing the
+    // custom properties stay unset and the CSS falls back to 0 — the mark
+    // then sits on its layout box, which is where it sat before this existed.
+    if (!m || typeof m.actualBoundingBoxLeft !== 'number'
+           || typeof m.fontBoundingBoxAscent !== 'number') return;
+
+    const lh = parseFloat(cw.lineHeight) || px;
+    const halfLeading =
+      (lh - (m.fontBoundingBoxAscent + m.fontBoundingBoxDescent)) / 2;
+    const inkBelow =
+      lh - (halfLeading + m.fontBoundingBoxAscent + m.actualBoundingBoxDescent);
+
+    line.style.setProperty('--word-ink-below', inkBelow.toFixed(2) + 'px');
+    word.style.setProperty('--word-ink-left',
+      Math.max(0, -m.actualBoundingBoxLeft).toFixed(2) + 'px');
+  };
+
   const fit = () => {
     const cs = getComputedStyle(line);
     const avail = line.clientWidth
@@ -170,6 +215,7 @@ function fitWordmark() {
     if (!natural) return;
 
     word.style.fontSize = (REF * (avail * fill / natural)).toFixed(2) + 'px';
+    measureInk();   // the offsets are size-dependent, so they follow the fit
   };
 
   fit();
@@ -186,71 +232,88 @@ function fitWordmark() {
 }
 
 /* ------------------------------------------------------------
-   1c. Hero — ONE orchestrated load sequence (not per-section fades)
+   1c. Hero — ONE staggered load sequence (not per-section fades)
    ------------------------------------------------------------ */
+/* The one stagger interval on the site, read from CSS so the hero's load
+   sequence and the scroll reveals cannot drift apart. See --stagger-step in
+   tokens.css for where the value comes from. */
+function staggerStep() {
+  const raw = getComputedStyle(document.documentElement)
+    .getPropertyValue('--stagger-step').trim();
+  const n = parseFloat(raw);
+  if (!n) return 60;
+  return /ms$/.test(raw) ? n : n * 1000;
+}
+
+/* One subject per step, in reading order, each fading up behind the last.
+ *
+ * Everything here is opacity. The two wordmark segments do not travel: the
+ * mark is the largest type on the site and the case-study title already
+ * establishes that display type fades and is never translated. The smaller
+ * subjects carry the same 14px rise the scroll reveals use, so the hero's
+ * entrance and the rest of the page read as one mechanism.
+ */
 function heroSequence() {
-  const segs = document.querySelectorAll('.hero__seg > span');
-  const tm = document.querySelector('.hero__tm');
-  const lead = document.querySelector('.hero__lead');
   const nav = document.querySelector('.nav');
+  const sub = document.querySelector('.hero__sub');
+  const cta = document.querySelector('.hero__cta');
+  const segs = [...document.querySelectorAll('.hero__seg > span')];
+  const tm = document.querySelector('.hero__tm');
+  const cue = document.querySelector('.scroll-cue');
   const cueLine = document.querySelector('.scroll-cue__line');
 
+  // The word's two segments are separate subjects on purpose — it assembles
+  // left to right rather than arriving whole.
+  const steps = [
+    { el: nav, rise: 14 },
+    { el: sub, rise: 14 },
+    { el: cta, rise: 14 },
+    ...segs.map((el) => ({ el, rise: 0 })),
+    { el: tm, rise: 0 },
+    { el: cue, rise: 14 },
+  ].filter((s) => s.el);
+
   if (reduced()) {
-    [...segs, tm, lead, nav].forEach((el) => {
-      if (el) { el.style.transform = 'none'; el.style.opacity = '1'; }
-    });
+    steps.forEach(({ el }) => { el.style.opacity = '1'; el.style.transform = 'none'; });
     if (cueLine) cueLine.style.transform = 'scaleX(1)';
     return;
   }
 
-  // Wordmark segments rise from their own clipped mask, staggered.
-  segs.forEach((seg, i) => {
-    seg.style.transform = 'translate3d(0, 108%, 0)';
-    const s = new Spring(108, {
+  const step = staggerStep();
+
+  steps.forEach(({ el, rise }, idx) => {
+    el.style.opacity = '0';
+    if (rise) el.style.transform = `translate3d(0, ${rise}px, 0)`;
+    el.style.willChange = rise ? 'opacity, transform' : 'opacity';
+
+    const s = new Spring(0, {
       damping: 1.0,
-      response: 0.68,
-      onUpdate: (v) => { seg.style.transform = `translate3d(0, ${v}%, 0)`; },
-      onRest: () => { seg.style.willChange = 'auto'; },
+      response: 0.5,   // the documented reveal response: this IS a reveal
+      onUpdate: (v) => {
+        el.style.opacity = String(v);
+        if (rise) {
+          el.style.transform = `translate3d(0, ${((1 - v) * rise).toFixed(2)}px, 0)`;
+        }
+      },
+      onRest: () => {
+        if (rise) el.style.transform = 'none';
+        el.style.willChange = 'auto';
+      },
     });
-    setTimeout(() => s.setTarget(0), 160 + i * 110);
+    setTimeout(() => s.setTarget(1), idx * step);
   });
 
-  // The trademark mark settles after the word it belongs to.
-  if (tm) {
-    tm.style.opacity = '0';
+  // The cue's rule draws itself last, once the thing it belongs to is up.
+  if (cueLine) {
+    cueLine.style.transform = 'scaleX(0)';
+    cueLine.style.willChange = 'transform';
     const s = new Spring(0, {
       damping: 1.0,
       response: 0.5,
-      onUpdate: (v) => { tm.style.opacity = String(v); },
-    });
-    setTimeout(() => s.setTarget(1), 620);
-  }
-
-  // Chrome and copy follow the wordmark — they never compete with it.
-  [nav, lead].forEach((el, i) => {
-    if (!el) return;
-    el.style.opacity = '0';
-    el.style.transform = 'translate3d(0, 14px, 0)';
-    const s = new Spring(0, {
-      damping: 1.0,
-      response: 0.55,
-      onUpdate: (v) => {
-        el.style.opacity = String(v);
-        el.style.transform = `translate3d(0, ${(1 - v) * 14}px, 0)`;
-      },
-      onRest: () => { el.style.transform = 'none'; el.style.willChange = 'auto'; },
-    });
-    setTimeout(() => s.setTarget(1), 420 + i * 120);
-  });
-
-  if (cueLine) {
-    cueLine.style.transform = 'scaleX(0)';
-    const s = new Spring(0, {
-      damping: 1.0,
-      response: 0.7,
       onUpdate: (v) => { cueLine.style.transform = `scaleX(${v})`; },
+      onRest: () => { cueLine.style.willChange = 'auto'; },
     });
-    setTimeout(() => s.setTarget(1), 900);
+    setTimeout(() => s.setTarget(1), steps.length * step);
   }
 }
 

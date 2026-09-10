@@ -117,7 +117,7 @@
 
 /* ---------- Hero ----------
    Composition: chrome at the top edge, the ask at two-thirds, and the
-   wordmark seated on the bottom edge so its baseline bleeds off-canvas.
+   wordmark seated in the bottom-left corner on the site's own gutter.
    Everything sits over a slow-breathing background plate.
    -------------------------------------------------------------------- */
 .hero {
@@ -262,6 +262,19 @@
      past 30% of the viewport and crowds the lead copy above it. On a narrow
      screen there is nothing to crowd, so it takes the whole line. */
   --wordmark-fill: 0.86;
+
+  /* Bottom inset = --gutter, the same token that sets the left inset on this
+     element and the content column of every other section. Equal insets on
+     the two edges the mark is seated against is what "bottom-aligned and
+     left-aligned" resolves to, and it is derived from the site's one spacing
+     primitive rather than picked to look right (apple-design §7, §16).
+
+     --word-ink-below corrects for the gap between the word's layout box and
+     the bottom of its letterforms. "Everiart" has no descenders, so its ink
+     bottom is its baseline; the offset comes from the font's own metrics,
+     measured by fitWordmark(). Without it the inset would be measured to a
+     box edge nobody can see, and the mark would sit visibly high. */
+  padding-block-end: calc(var(--gutter) - var(--word-ink-below, 0px));
 }
 @media (max-width: 48rem) {
   .hero__markline { --wordmark-fill: 1; }
@@ -280,10 +293,13 @@
   column-gap: 0;      /* split for the reveal mask only — reads as one word */
   white-space: nowrap;
   color: var(--parchment);
-  /* Seats the baseline past the bottom edge so the word bleeds off-canvas.
-     em here resolves against the wordmark's own size, so the bleed holds
-     its proportion at every viewport. .hero clips the overflow. */
-  margin-block-end: -0.16em;
+  margin-block-end: 0;
+  /* Optical left alignment. The serif E carries a left side bearing, so the
+     glyph's layout box starts on the gutter while its stem lands right of
+     it — out of line with the lead copy directly above, which has almost
+     none. Pulling the box left by exactly that bearing puts the stem on the
+     same column. Measured off the font by fitWordmark(), not eyeballed. */
+  margin-inline-start: calc(-1 * var(--word-ink-left, 0px));
 }
 
 /* Mask boxes. Padding grows the clip upward so ascenders never crop, while
@@ -320,10 +336,7 @@
   letter-spacing: 0;
 }
 
-/* --- Play affordance ---
-   Shown only when clicking will actually start the plate. Sized and coloured
-   to sit under the CTA in the hierarchy — it is a recovery control, not a
-   second call to action. --- */
+/* --- Hero aside: the scroll cue's rail --- */
 .hero__aside {
   display: flex;
   align-items: center;
@@ -331,33 +344,6 @@
   flex: none;
 }
 
-.hero__play {
-  display: inline-flex;
-  align-items: center;
-  gap: 0.5rem;
-  padding: 0.5rem 0.9rem;
-  border: 1px solid var(--gold-a40);
-  border-radius: 999px;
-  color: rgba(244, 241, 222, 0.9);
-  background: rgba(11, 11, 12, 0.45);
-  backdrop-filter: blur(10px);
-  -webkit-backdrop-filter: blur(10px);
-  font-size: var(--fs-meta);
-  letter-spacing: var(--tr-meta);
-  line-height: 1;
-  white-space: nowrap;
-  transition:
-    border-color var(--t-base) var(--ease-out-quart),
-    color var(--t-base) var(--ease-out-quart);
-}
-.hero__play:hover,
-.hero__play:focus-visible { border-color: var(--gold-hi); color: #fff; }
-.hero__play:active { transform: scale(0.97); transition: transform 100ms ease-out; }
-.hero__play-icon { width: 0.6em; height: 0.72em; flex: none; color: var(--gold); }
-
-@media (prefers-reduced-transparency: reduce) {
-  .hero__play { background: var(--ink-deep); backdrop-filter: none; -webkit-backdrop-filter: none; }
-}
 
 /* --- Scroll cue --- */
 .scroll-cue {
@@ -381,9 +367,6 @@
 /* The cue would collide with the wordmark once the viewport is short. */
 @media (max-width: 48rem) {
   .scroll-cue { display: none; }
-  /* The play control stays: on a phone it is the only route back to the
-     plate, and it is exactly where Data Saver is most likely to be on. */
-  .hero__play { font-size: var(--fs-small); padding: 0.55rem 1rem; }
 }
 
 @media (prefers-reduced-motion: reduce) {

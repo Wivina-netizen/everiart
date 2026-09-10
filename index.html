@@ -64,12 +64,12 @@
     <!-- Lead: positioning line + the one action the hero asks for -->
     <div class="wrap hero__inner">
       <div class="hero__lead">
-        <p class="hero__sub">
+        <p class="hero__sub" data-hero-step>
           A creative house making films, identities and photographs
           that outlive the brief.
         </p>
 
-        <a class="hero__cta" href="/contact/">
+        <a class="hero__cta" href="/contact/" data-hero-step>
           <span class="hero__cta-label">Start a project</span>
           <svg class="hero__cta-arrow" viewBox="0 0 12 12" fill="none" aria-hidden="true" focusable="false">
             <path d="M2.5 9.5 9.5 2.5M4 2.5h5.5V8" stroke="currentColor" stroke-width="1.4"
@@ -80,15 +80,6 @@
       </div>
 
       <div class="hero__aside">
-        <!-- Revealed by heroVideo() only when a click can actually start the
-             plate: Data Saver on, or autoplay refused. Hidden otherwise. -->
-        <button class="hero__play" type="button" hidden>
-          <svg class="hero__play-icon" viewBox="0 0 10 12" aria-hidden="true" focusable="false">
-            <path d="M1 1.2v9.6L9 6z" fill="currentColor"/>
-          </svg>
-          <span class="hero__play-label">Play background</span>
-        </button>
-
         <span class="scroll-cue">
           <span class="scroll-cue__line" aria-hidden="true"></span>
           Scroll
@@ -96,8 +87,9 @@
       </div>
     </div>
 
-    <!-- Wordmark: type as the composition. Sized to the measure by JS,
-         seated so the baseline bleeds past the bottom edge. -->
+    <!-- Wordmark: type as the composition. Sized to the measure by JS, and
+         seated on the hero's bottom-left corner by its own ink box — see
+         fitWordmark() for where --word-ink-below / --word-ink-left come from. -->
     <div class="wrap hero__markline">
       <h1 class="hero__word">
         <span class="hero__seg"><span>Everi</span></span><span class="hero__seg"><span>art</span></span><span class="hero__tm">&#8482;</span>

@@ -120,6 +120,18 @@
   --spring-response-ui:      0.36;
   --spring-damping-momentum: 0.8;
   --spring-response-momentum: 0.34;
+
+  /* Stagger interval between subjects in a reveal. The hero's load sequence
+     and every scroll reveal share it, so the site has one cascade rhythm
+     rather than one per section. Read by js/main.js.
+
+     Derived from the response it staggers rather than picked: a critically
+     damped spring at response 0.5 is ~90% of the way in by 300ms. Six
+     subjects at 60ms span 300ms, so the last one starts as the first
+     arrives — the cascade is continuous, with no gap between subjects and
+     no pile-up at the end. Halve it and a group reads as simultaneous;
+     double it and a six-tile row takes most of a second to finish. */
+  --stagger-step: 60ms;
 }
 
 /* Accessibility signals (apple-design §14) */
