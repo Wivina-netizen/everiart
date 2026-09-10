@@ -489,10 +489,18 @@
   object-fit: cover;
 }
 
-/* Arrow: invisible until interaction, driven entirely by the spring in
-   js/main.js. No transition here — a CSS transition cannot be grabbed and
-   reversed mid-flight (apple-design §3). --arrow-ink is set per image from
-   its measured luminance; the token below is only the pre-measurement floor. */
+/* Arrow: invisible until interaction, driven entirely by the springs in
+   js/main.js — opacity, and X and Y as two more, since it follows the cursor.
+   No transition here: a CSS transition cannot be grabbed and reversed
+   mid-flight (apple-design §3).
+
+   The 50%/50% anchor below is load-bearing. JS applies its px offset BEFORE
+   the -50% centring, so an offset of zero resolves to exactly this resting
+   position — which is where the keyboard path, the reduced-motion path and
+   the pre-JS state all land.
+
+   --arrow-ink is set per image from its measured luminance; the token below
+   is only the pre-measurement floor. */
 .tile__arrow {
   position: absolute;
   inset-block-start: 50%;

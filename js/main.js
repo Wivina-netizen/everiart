@@ -485,10 +485,31 @@ function pickArrowInk(tile) {
   else img.addEventListener('load', measure, { once: true });
 }
 
+/* Exactly one arrow may be visible on the page at a time.
+ *
+ * Adjacent tiles are separate elements with separate arrows, so a pointer
+ * crossing from one into the next fires leave-then-enter and, left alone,
+ * cross-fades two arrows past each other. This registry makes the crossing a
+ * handover instead: the incoming arrow inherits the outgoing one's live
+ * opacity AND velocity (apple-design §3 — carry velocity through a re-target,
+ * never hard-cut it), and the outgoing one is dropped in the same frame.
+ *
+ * The consequence is that the gutter between two tiles stops reading as a
+ * dead zone. Crossing it at a normal pointer speed takes ~40ms, over which
+ * the outgoing arrow has only fallen to ~0.83; the incoming arrow picks up
+ * from there rather than from zero, so there is no dip out and back.
+ */
+let liveArrow = null;
+
 /* One affordance, two callers: the work tiles and the next-project handover.
    Both want the same spring, the same reversal behaviour and the same
-   no-hover fallback, so neither gets its own copy of it. */
-function arrowAffordance(root, arrow) {
+   no-hover fallback, so neither gets its own copy of it.
+
+   `follow` is the one thing they disagree on. On a tile the arrow tracks the
+   cursor. On the next-project handover it stays put, because there it is
+   composed to overlap the word — dragging it off the type by the pointer
+   would break the one thing that composition is for. */
+function arrowAffordance(root, arrow, { follow = false } = {}) {
   if (!root || !arrow) return;
 
   // Hover is not available everywhere, and a hover-only affordance is
@@ -497,48 +518,130 @@ function arrowAffordance(root, arrow) {
   const hoverable = window.matchMedia('(hover: hover) and (pointer: fine)').matches;
 
   let show;
+  let handoff = null;
+
   if (reduced()) {
-    // Cross-fade only — no travel, no spring (apple-design §14).
+    // Cross-fade only — no travel, no spring, no tracking (apple-design §14).
     arrow.style.transition = 'opacity 160ms ease';
-    show = (on) => { arrow.style.opacity = on ? '1' : '0'; };
+    show = (on) => {
+      if (on) { if (liveArrow && liveArrow !== api) liveArrow.dismiss(); liveArrow = api; }
+      else if (liveArrow === api) liveArrow = null;
+      arrow.style.opacity = on ? '1' : '0';
+    };
+    handoff = { read: () => ({ value: parseFloat(arrow.style.opacity) || 0, velocity: 0 }),
+                dismiss: () => { arrow.style.opacity = '0'; } };
   } else {
-    const s = new Spring(0, {
+    // Three springs, never one: opacity, and X and Y decomposed, because a
+    // single spring over a 2D distance desyncs when the axes carry different
+    // velocities (apple-design §3).
+    let x = 0, y = 0, o = 0;
+    const paint = () => {
+      arrow.style.opacity = String(o);
+      // The px offset is applied before the -50% centring, so an offset of
+      // zero is the frame's centre — which is what the CSS resting position,
+      // the keyboard path and the reduced-motion path all resolve to.
+      arrow.style.transform =
+        `translate3d(${x.toFixed(2)}px, ${y.toFixed(2)}px, 0) ` +
+        `translate(-50%, -50%) scale(${(0.9 + o * 0.1).toFixed(4)})`;
+    };
+
+    const os = new Spring(0, {
       damping: 1.0,
       response: 0.34,
-      onUpdate: (v) => {
-        arrow.style.opacity = String(v);
-        arrow.style.transform =
-          `translate(-50%, -50%) scale(${(0.9 + v * 0.1).toFixed(4)})`;
+      onUpdate: (v) => { o = v; paint(); },
+      onRest: (s) => {
+        // The layer is held for as long as the arrow is up, not dropped the
+        // moment it finishes fading in — it is still being moved by the
+        // pointer at that point. Dropped only once it is actually gone.
+        if (s.value < 0.01) arrow.style.willChange = 'auto';
       },
-      onRest: () => { arrow.style.willChange = 'auto'; },
     });
-    show = (on) => {
-      arrow.style.willChange = 'transform, opacity';
-      s.setTarget(on ? 1 : 0);   // re-target carries velocity through
+    const xs = new Spring(0, { damping: 1.0, response: 0.34,
+      onUpdate: (v) => { x = v; paint(); } });
+    const ys = new Spring(0, { damping: 1.0, response: 0.34,
+      onUpdate: (v) => { y = v; paint(); } });
+
+    /* Clamped to the frame, so the arrow can lead the cursor toward an edge
+       without ever hanging off the image it is drawn against. */
+    const offsetFor = (e) => {
+      const r = (root.querySelector('.tile__frame') || root).getBoundingClientRect();
+      const aw = arrow.offsetWidth || 0;
+      const ah = arrow.offsetHeight || aw;
+      const maxX = Math.max(0, (r.width - aw) / 2);
+      const maxY = Math.max(0, (r.height - ah) / 2);
+      return {
+        x: Math.max(-maxX, Math.min(maxX, e.clientX - (r.left + r.width / 2))),
+        y: Math.max(-maxY, Math.min(maxY, e.clientY - (r.top + r.height / 2))),
+      };
     };
+
+    show = (on, e) => {
+      if (on) {
+        // Seed the position hard, never animate it in: the arrow belongs at
+        // the point the cursor entered, not flying out from the centre.
+        if (follow && e && liveArrow !== api) {
+          const p = offsetFor(e);
+          xs.set(p.x); ys.set(p.y);
+        }
+        if (liveArrow && liveArrow !== api) {
+          const prev = liveArrow.read();
+          liveArrow.dismiss();
+          os.value = prev.value;
+          os.velocity = prev.velocity;
+        }
+        liveArrow = api;
+        arrow.style.willChange = 'transform, opacity';
+      } else if (liveArrow === api) {
+        liveArrow = null;
+      }
+      // Exit leaves X and Y exactly where they are: the arrow springs back
+      // out from wherever it last was, it never returns to centre first.
+      os.setTarget(on ? 1 : 0);   // re-target carries velocity through
+    };
+
+    handoff = {
+      read: () => ({ value: os.value, velocity: os.velocity }),
+      dismiss: () => { os.set(0); arrow.style.willChange = 'auto'; },
+    };
+
+    if (follow && hoverable) {
+      root.addEventListener('pointermove', (e) => {
+        if (liveArrow !== api) return;
+        const p = offsetFor(e);
+        xs.setTarget(p.x);        // spring lag, deliberately not 1:1
+        ys.setTarget(p.y);
+      });
+    }
   }
 
+  const api = { read: () => handoff.read(), dismiss: () => handoff.dismiss() };
+
   if (hoverable) {
-    root.addEventListener('pointerenter', () => show(true));
+    root.addEventListener('pointerenter', (e) => show(true, e));
     root.addEventListener('pointerleave', () => show(false));
   } else {
     new IntersectionObserver(([e]) => show(e.isIntersecting),
       { rootMargin: '-35% 0px -35% 0px', threshold: 0 }).observe(root);
   }
 
-  // Keyboard reaches the same affordance on both.
+  // Keyboard reaches the same affordance on both — centred, since there is
+  // no pointer position to answer to.
   root.addEventListener('focus', () => show(true));
   root.addEventListener('blur', () => show(false));
 }
 
 function workTiles() {
   document.querySelectorAll('.tile').forEach((tile) => {
+    // Measured once per tile at image load, not per hover — so the ink is
+    // already correct on the frame the arrow becomes visible, including on a
+    // tile-to-tile handover where there is no time to measure anything.
     pickArrowInk(tile);
-    arrowAffordance(tile, tile.querySelector('.tile__arrow'));
+    arrowAffordance(tile, tile.querySelector('.tile__arrow'), { follow: true });
   });
 
   // The handover at the foot of a case study sits on a flat ground, so its
-  // ink is known — no image to measure.
+  // ink is known — no image to measure. It does not follow the cursor: the
+  // arrow is composed to sit over the word, which is the point of it.
   const next = document.querySelector('.next');
   if (next) arrowAffordance(next, next.querySelector('.next__arrow'));
 }
