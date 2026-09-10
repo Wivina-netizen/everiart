@@ -593,22 +593,6 @@ function pickArrowInk(tile) {
   else img.addEventListener('load', measure, { once: true });
 }
 
-/* Exactly one arrow may be visible on the page at a time.
- *
- * Adjacent tiles are separate elements with separate arrows, so a pointer
- * crossing from one into the next fires leave-then-enter and, left alone,
- * cross-fades two arrows past each other. This registry makes the crossing a
- * handover instead: the incoming arrow inherits the outgoing one's live
- * opacity AND velocity (apple-design §3 — carry velocity through a re-target,
- * never hard-cut it), and the outgoing one is dropped in the same frame.
- *
- * The consequence is that the gutter between two tiles stops reading as a
- * dead zone. Crossing it at a normal pointer speed takes ~40ms, over which
- * the outgoing arrow has only fallen to ~0.83; the incoming arrow picks up
- * from there rather than from zero, so there is no dip out and back.
- */
-let liveArrow = null;
-
 /* Geometry epoch. Every tile's cached rect is stamped with this; anything
    that could have moved a tile bumps it, and the tile re-measures lazily on
    its next pointer event.
@@ -623,35 +607,50 @@ window.addEventListener('scroll', bumpEpoch, { passive: true });
 window.addEventListener('resize', bumpEpoch);
 
 /* One affordance, two callers: the work tiles and the next-project handover.
-   Both want the same spring, the same reversal behaviour and the same
-   no-hover fallback, so neither gets its own copy of it.
+   Both want the same spring, the same tracking and the same exit, so neither
+   gets its own copy of it.
 
-   `follow` is the one thing they disagree on. On a tile the arrow tracks the
-   cursor. On the next-project handover it stays put, because there it is
-   composed to overlap the word — dragging it off the type by the pointer
-   would break the one thing that composition is for. */
+   The contract, and it is deliberately narrow:
+
+     invisible by default;
+     visible only while the cursor is inside THIS element;
+     following the cursor with spring lag while it is;
+     gone the instant the cursor leaves.
+
+   That last clause is why there is no exit spring and no cross-element
+   handover any more. Both are documented below where they were removed,
+   because both looked correct in isolation and were the reason the arrow
+   read as distracting.
+
+   `follow` is the one thing the two callers disagree on. On a tile the arrow
+   tracks the cursor. On the next-project handover it stays put, because
+   there it is composed to overlap the word — dragging it off the type by the
+   pointer would break the one thing that composition is for. */
 function arrowAffordance(root, arrow, { follow = false } = {}) {
   if (!root || !arrow) return;
 
-  // Hover is not available everywhere, and a hover-only affordance is
-  // invisible on touch. Where there is no fine pointer, the arrow is
-  // emphasised while its target holds the middle of the viewport.
+  /* No cursor, no arrow.
+     There used to be an IntersectionObserver fallback here that lit the
+     arrow while the tile held the middle of the viewport, standing in for
+     hover on touch. But the affordance is defined as "the cursor is over
+     this card", and on a touch screen that is never true — so the fallback
+     put an arrow on screen with nothing pointing at it, on every tile, as
+     you scrolled. A tile on touch is a link with a picture on it, and it
+     does not need an arrow to say so. */
   const hoverable = window.matchMedia('(hover: hover) and (pointer: fine)').matches;
 
   let show;
-  let handoff = null;
 
   if (reduced()) {
-    // Cross-fade only — no travel, no spring, no tracking (apple-design §14).
-    arrow.style.transition =
-      'opacity 160ms var(--ease-out-quart, cubic-bezier(0.165, 0.84, 0.44, 1))';
+    // Cross-fade in, cut out. No travel, no spring, no tracking
+    // (apple-design §14) — but the exit is still immediate, because that is
+    // the affordance's contract rather than a motion decision.
     show = (on) => {
-      if (on) { if (liveArrow && liveArrow !== api) liveArrow.dismiss(); liveArrow = api; }
-      else if (liveArrow === api) liveArrow = null;
+      arrow.style.transition = on
+        ? 'opacity 160ms var(--ease-out-quart, cubic-bezier(0.165, 0.84, 0.44, 1))'
+        : 'none';
       arrow.style.opacity = on ? '1' : '0';
     };
-    handoff = { read: () => ({ value: parseFloat(arrow.style.opacity) || 0, velocity: 0 }),
-                dismiss: () => { arrow.style.opacity = '0'; } };
   } else {
     // Three springs, never one: opacity, and X and Y decomposed, because a
     // single spring over a 2D distance desyncs when the axes carry different
@@ -660,8 +659,8 @@ function arrowAffordance(root, arrow, { follow = false } = {}) {
     const paint = () => {
       arrow.style.opacity = String(o);
       // The px offset is applied before the -50% centring, so an offset of
-      // zero is the frame's centre — which is what the CSS resting position,
-      // the keyboard path and the reduced-motion path all resolve to.
+      // zero is the frame's centre — which is what the CSS resting position
+      // and the keyboard path both resolve to.
       arrow.style.transform =
         `translate3d(${x.toFixed(2)}px, ${y.toFixed(2)}px, 0) ` +
         `translate(-50%, -50%) scale(${(0.9 + o * 0.1).toFixed(4)})`;
@@ -671,12 +670,6 @@ function arrowAffordance(root, arrow, { follow = false } = {}) {
       damping: 1.0,
       response: 0.34,
       onUpdate: (v) => { o = v; paint(); },
-      onRest: (s) => {
-        // The layer is held for as long as the arrow is up, not dropped the
-        // moment it finishes fading in — it is still being moved by the
-        // pointer at that point. Dropped only once it is actually gone.
-        if (s.value < 0.01) arrow.style.willChange = 'auto';
-      },
     });
     const xs = new Spring(0, { damping: 1.0, response: 0.34,
       onUpdate: (v) => { x = v; paint(); } });
@@ -719,59 +712,53 @@ function arrowAffordance(root, arrow, { follow = false } = {}) {
       if (on) {
         // Seed the position hard, never animate it in: the arrow belongs at
         // the point the cursor entered, not flying out from the centre.
-        if (follow && e && liveArrow !== api) {
+        if (follow && e) {
           const p = offsetFor(e);
           xs.set(p.x); ys.set(p.y);
-        } else if (follow && !e) {
-          // Activated with no pointer — keyboard focus, or the in-view
-          // fallback on touch. Centre it, rather than leaving it wherever a
-          // previous hover happened to abandon it: tab back to a tile you
-          // once hovered and the arrow would otherwise return to that corner.
+        } else if (follow) {
+          // Activated with no pointer — keyboard focus. Centre it rather
+          // than leaving it wherever a previous hover abandoned it.
           xs.set(0); ys.set(0);
         }
-        if (liveArrow && liveArrow !== api) {
-          const prev = liveArrow.read();
-          liveArrow.dismiss();
-          os.value = prev.value;
-          os.velocity = prev.velocity;
-        }
-        liveArrow = api;
         arrow.style.willChange = 'transform, opacity';
-      } else if (liveArrow === api) {
-        liveArrow = null;
+        os.setTarget(1);
+        return;
       }
-      // Exit leaves X and Y exactly where they are: the arrow springs back
-      // out from wherever it last was, it never returns to centre first.
-      os.setTarget(on ? 1 : 0);   // re-target carries velocity through
-    };
 
-    handoff = {
-      read: () => ({ value: os.value, velocity: os.velocity }),
-      dismiss: () => { os.set(0); arrow.style.willChange = 'auto'; },
+      /* Immediate, not sprung.
+         The exit used to be os.setTarget(0) at the same 0.34 response as the
+         entry, which left the arrow hanging over a card the cursor had
+         already left — and, crossing between two adjacent tiles, meant a
+         page-level registry had to hand the outgoing arrow's live opacity
+         and velocity to the incoming one to stop two arrows cross-fading
+         past each other. All of that machinery existed to manage a fade
+         that should not be there. With the exit cut, leaving a card ends
+         that card's arrow, entering the next one starts its own, and
+         "exactly one arrow on the page" falls out for free. */
+      os.set(0);
+      arrow.style.willChange = 'auto';
     };
 
     if (follow && hoverable) {
       root.addEventListener('pointermove', (e) => {
-        if (liveArrow !== api) return;
+        if (o <= 0) return;         // not this card's turn
         const p = offsetFor(e);
-        xs.setTarget(p.x);        // spring lag, deliberately not 1:1
+        xs.setTarget(p.x);          // spring lag, deliberately not 1:1
         ys.setTarget(p.y);
       });
     }
   }
 
-  const api = { read: () => handoff.read(), dismiss: () => handoff.dismiss() };
-
   if (hoverable) {
     root.addEventListener('pointerenter', (e) => show(true, e));
     root.addEventListener('pointerleave', () => show(false));
-  } else {
-    new IntersectionObserver(([e]) => show(e.isIntersecting),
-      { rootMargin: '-35% 0px -35% 0px', threshold: 0 }).observe(root);
   }
 
-  // Keyboard reaches the same affordance on both — centred, since there is
-  // no pointer position to answer to.
+  /* Keyboard reaches the affordance too — centred, since there is no pointer
+     position to answer to. This is the one deliberate exception to
+     "only while the cursor is over the card": a keyboard user gets no cursor
+     and no hover, and dropping it would leave the focused tile with no
+     affordance at all. */
   root.addEventListener('focus', () => show(true));
   root.addEventListener('blur', () => show(false));
 }
