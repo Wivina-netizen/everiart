@@ -1051,7 +1051,10 @@
    are not a common shape (1/1, 4/3 and 16/9 today). Declaring it here also
    reserves the box before the video loads, so revealing the section cannot
    shift the gallery below it. --- */
-.preel { padding-block-end: clamp(3rem, 9vh, 6rem); }
+/* The reel sits among the stills, so it takes the stills' rhythm rather
+   than a section's — the same margin as .pfig, and the same last-child rule. */
+.preel { margin: 0 0 clamp(1.5rem, 4vh, 2.5rem); }
+.preel:last-child { margin-block-end: 0; }
 
 .preel__frame {
   position: relative;
@@ -1081,6 +1084,55 @@
 }
 /* js cross-fades this in once the section holds the viewport. */
 .preel__video { opacity: 0; }
+
+/* Expand to fullscreen — the reel's only control.
+   Invisible at rest, because the brief is that the reel reads as a still
+   until it is touched. It appears on hover of the frame and on its own
+   keyboard focus, so it is never unreachable without a pointer.
+
+   A CSS transition rather than a spring: this is a discrete hover state on a
+   control, not a gesture being tracked, which is the same call .hero__cta and
+   .filter__btn already make. Nothing here can be grabbed mid-flight. */
+.preel__expand {
+  position: absolute;
+  inset-block-end: clamp(0.75rem, 2vw, 1.25rem);
+  inset-inline-end: clamp(0.75rem, 2vw, 1.25rem);
+  z-index: 2;
+  display: grid;
+  place-items: center;
+  width: 2.75rem;
+  height: 2.75rem;
+  border: 1px solid var(--hairline);
+  border-radius: 50%;
+  color: var(--offwhite);
+  /* Over footage of unknown brightness, so it carries its own ground rather
+     than trusting the frame underneath it (apple-design §12). */
+  background: rgba(11, 11, 12, 0.45);
+  backdrop-filter: blur(10px);
+  -webkit-backdrop-filter: blur(10px);
+  opacity: 0;
+  transition:
+    opacity var(--t-base) var(--ease-out-quart),
+    border-color var(--t-base) var(--ease-out-quart);
+}
+.preel__expand svg { width: 1.1rem; height: 1.1rem; display: block; }
+.preel__frame:hover .preel__expand,
+.preel__expand:focus-visible { opacity: 1; }
+.preel__expand:hover { border-color: var(--gold-hi); }
+.preel__expand:active { transform: scale(0.97); transition: transform 100ms ease-out; }
+
+@media (prefers-reduced-transparency: reduce) {
+  .preel__expand { background: var(--ink-deep); backdrop-filter: none; -webkit-backdrop-filter: none; }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .preel__expand { transition: opacity var(--t-fast) ease; }
+}
+
+/* No hover to reveal it with, so it simply stands. */
+@media (hover: none) {
+  .preel__expand { opacity: 1; }
+}
 
 .pbody { padding-block-end: clamp(4rem, 12vh, 8rem); }
 .pfig { margin: 0 0 clamp(1.5rem, 4vh, 2.5rem); }

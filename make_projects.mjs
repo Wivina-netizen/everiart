@@ -268,31 +268,39 @@ function buildProject(studios, published, idx) {
       (src, i) => `      <figure class="pfig reveal">
         <img src="/${src}" alt="${esc(p.name)} — image ${i + 1}" loading="lazy" decoding="async">
       </figure>`
-    )
-    .join("\n");
+    );
 
   const hero = p.hero ?? p.thumb;
 
   // The reel, where there is one. Maitro and BMT are identity work with no
-  // footage, and they simply do not get this section rather than getting an
-  // empty one — the same rule the tiles already follow.
+  // footage, and they simply do not get it rather than getting an empty
+  // section — the same rule the tiles already follow.
+  //
+  // It sits INSIDE the body, after the first two stills, so the page reads
+  // stills, motion, then the rest of the stills. It used to be a section of
+  // its own above the gallery.
   //
   // The frame is sized from reelAspect, not from a house ratio: the reels are
   // 1/1, 4/3 and 16/9, so a fixed slot would either crop the square one or
   // pillarbox it. Sizing it up front also reserves the box before the video
   // loads, so revealing it cannot shift the gallery underneath.
-  const reelSection = p.reel
-    ? `
-  <section class="preel reveal" data-dist="48" data-reel="${esc(p.reel)}"
+  //
+  // No expand control in the markup. js/video.js adds it, because without JS
+  // there is no video to expand and a dead button is worse than none.
+  const reelBlock = p.reel
+    ? `      <div class="preel reveal" data-dist="48" data-reel="${esc(p.reel)}"
            aria-label="${esc(p.name)} — reel">
-    <div class="wrap">
-      <div class="preel__frame" style="--reel-ar: ${esc(p.reelAspect ?? "16 / 9")}">
-        <img class="preel__still" src="/${p.thumb}" alt="" loading="lazy" decoding="async">
-      </div>
-    </div>
-  </section>
-`
+        <div class="preel__frame" style="--reel-ar: ${esc(p.reelAspect ?? "16 / 9")}">
+          <img class="preel__still" src="/${p.thumb}" alt="" loading="lazy" decoding="async">
+        </div>
+      </div>`
     : "";
+
+  // Two stills, the reel, then everything else. A project with fewer than two
+  // stills gets the reel after what it has rather than an empty slot.
+  const body = [...figures.slice(0, 2), reelBlock, ...figures.slice(2)]
+    .filter(Boolean)
+    .join("\n");
 
   const html =
     head(
@@ -334,13 +342,12 @@ function buildProject(studios, published, idx) {
       </dl>
     </div>
   </section>
-${reelSection}
   <!-- The section reveals as a unit, from below, on the same armed/disarmed
        observer every other reveal on the site uses. The figures keep their
        own reveals for everything past the first screen. -->
   <section class="pbody reveal" data-dist="48">
     <div class="wrap">
-${figures}
+${body}
     </div>
   </section>
 
