@@ -301,6 +301,27 @@ function buildProject(studios, published, idx) {
 
   const hero = p.hero ?? p.thumb;
 
+  // The reel, where there is one. Maitro and BMT are identity work with no
+  // footage, and they simply do not get this section rather than getting an
+  // empty one — the same rule the tiles already follow.
+  //
+  // The frame is sized from reelAspect, not from a house ratio: the reels are
+  // 1/1, 4/3 and 16/9, so a fixed slot would either crop the square one or
+  // pillarbox it. Sizing it up front also reserves the box before the video
+  // loads, so revealing it cannot shift the gallery underneath.
+  const reelSection = p.reel
+    ? `
+  <section class="preel reveal" data-dist="48" data-reel="${esc(p.reel)}"
+           aria-label="${esc(p.name)} — reel">
+    <div class="wrap">
+      <div class="preel__frame" style="--reel-ar: ${esc(p.reelAspect ?? "16 / 9")}">
+        <img class="preel__still" src="/${p.thumb}" alt="" loading="lazy" decoding="async">
+      </div>
+    </div>
+  </section>
+`
+    : "";
+
   const html =
     head(
       `${p.name} — EveriArt`,
@@ -341,7 +362,7 @@ function buildProject(studios, published, idx) {
       </dl>
     </div>
   </section>
-
+${reelSection}
   <!-- The section reveals as a unit, from below, on the same armed/disarmed
        observer every other reveal on the site uses. The figures keep their
        own reveals for everything past the first screen. -->

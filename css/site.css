@@ -1110,6 +1110,45 @@
 }
 .pmeta__row dd { margin: 0; font-size: var(--fs-small); letter-spacing: var(--tr-small); }
 
+/* --- The reel ---
+   Sits between the brief and the gallery: motion first, then the stills.
+   Only rendered for projects that actually have footage.
+
+   The frame's ratio comes from the project, via --reel-ar, because the reels
+   are not a common shape (1/1, 4/3 and 16/9 today). Declaring it here also
+   reserves the box before the video loads, so revealing the section cannot
+   shift the gallery below it. --- */
+.preel { padding-block-end: clamp(3rem, 9vh, 6rem); }
+
+.preel__frame {
+  position: relative;
+  aspect-ratio: var(--reel-ar, 16 / 9);
+  /* Capped so a square or 4:3 reel cannot run taller than the viewport and
+     leave the reader scrolling through a single shot.
+
+     The cap is on WIDTH, not height: capping the height would leave the width
+     at 100% and simply break the ratio, which object-fit would then crop back
+     out. The same custom property drives both, because "4 / 3" is a valid
+     division inside calc() as well as a valid aspect-ratio. */
+  max-width: calc(82svh * (var(--reel-ar, 16 / 9)));
+  margin-inline: auto;
+  overflow: hidden;
+  background: var(--ink-deep);
+}
+.preel__still,
+.preel__video {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  /* The frame is cut to the reel's own ratio, so cover and contain agree for
+     the video; cover is what crops the still, whose ratio is the tile's. */
+  object-fit: cover;
+  display: block;
+}
+/* js cross-fades this in once the section holds the viewport. */
+.preel__video { opacity: 0; }
+
 .pbody { padding-block-end: clamp(4rem, 12vh, 8rem); }
 .pfig { margin: 0 0 clamp(1.5rem, 4vh, 2.5rem); }
 .pfig:last-child { margin-block-end: 0; }

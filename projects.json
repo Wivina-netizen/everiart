@@ -21,7 +21,17 @@
     "reel/clips are Cloudflare R2 URLs, uploaded by upload_r2.mjs. The local",
     "assets/**/*.mp4 they were derived from are gitignored and never committed;",
     "regenerate them with make_media.mjs if you need to re-upload. reel drives",
-    "hover-to-play on every tile and the fullscreen preview behind it.",
+    "hover-to-play on every tile, the fullscreen preview behind it, and the",
+    "reel section on that project's case study.",
+    "",
+    "reelAspect is the reel's own aspect ratio, as a CSS ratio. It is recorded",
+    "rather than derived because the encoder preserves each source's shape, so",
+    "the reels are NOT a common ratio — currently 1/1, 4/3 and 16/9. The case",
+    "study sizes its frame from this, which both reserves the box before the",
+    "video loads (no layout shift) and keeps a square reel from being cropped",
+    "into a widescreen slot. It cannot be probed at build time: the local mp4s",
+    "are gitignored, so a clean checkout has nothing to measure. Re-probe with",
+    "ffprobe and update this by hand if a reel is re-cut at a new shape.",
     "",
     "lede is placeholder copy. Real project narrative goes here — not invented.",
     "",
@@ -51,6 +61,7 @@
         "assets/hope-for-her/gallery-03.jpg"
       ],
       "reel": "https://pub-22c601fc38564ec79d41e018bfad6bcf.r2.dev/hope-for-her/reel.mp4",
+      "reelAspect": "1 / 1",
       "clips": [],
       "lede": "Placeholder copy. This is where the brief, the constraint and the decision that shaped the work get written — what the client needed, what we found when we looked, and why the work took the form it did.",
       "blurb": ""
@@ -75,6 +86,7 @@
         "assets/regalia-pop-up-events/gallery-07.jpg"
       ],
       "reel": "https://pub-22c601fc38564ec79d41e018bfad6bcf.r2.dev/regalia-pop-up-events/reel.mp4",
+      "reelAspect": "4 / 3",
       "clips": [
         "https://pub-22c601fc38564ec79d41e018bfad6bcf.r2.dev/regalia-pop-up-events/clip-01.mp4",
         "https://pub-22c601fc38564ec79d41e018bfad6bcf.r2.dev/regalia-pop-up-events/clip-02.mp4"
@@ -179,6 +191,7 @@
         "assets/agra/gallery-10.jpg"
       ],
       "reel": "https://pub-22c601fc38564ec79d41e018bfad6bcf.r2.dev/agra/reel.mp4",
+      "reelAspect": "4 / 3",
       "clips": [],
       "lede": "Placeholder copy. This is where the brief, the constraint and the decision that shaped the work get written — what the client needed, what we found when we looked, and why the work took the form it did.",
       "blurb": ""
@@ -203,6 +216,7 @@
         "assets/azusa/gallery-07.jpg"
       ],
       "reel": "https://pub-22c601fc38564ec79d41e018bfad6bcf.r2.dev/azusa/reel.mp4",
+      "reelAspect": "16 / 9",
       "clips": [],
       "lede": "Placeholder copy. This is where the brief, the constraint and the decision that shaped the work get written — what the client needed, what we found when we looked, and why the work took the form it did.",
       "blurb": ""

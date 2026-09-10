@@ -345,6 +345,82 @@ function overlay() {
 }
 
 /* ------------------------------------------------------------
+   3. Case-study reel — plays while it holds the viewport.
+
+   A case-study section is scrolled to rather than pointed at, so intent is
+   expressed by scrolling: the same armed/disarmed observer the reveals use,
+   with a ratio threshold because "on screen" for a large surface means most
+   of it, not a corner of it.
+
+   Everything else it shares with the tiles — one makeVideo(), so it gets the
+   same no-native-chrome contract, and a spring cross-fade from the still at
+   the reveal response rather than a hard cut.
+   ------------------------------------------------------------ */
+export function caseStudyReel() {
+  const section = document.querySelector('.preel[data-reel]');
+  if (!section) return;
+
+  const src = section.dataset.reel;
+  const frame = section.querySelector('.preel__frame');
+  if (!src || !frame) return;
+
+  // Motion someone asked not to see, and data they may not want spent. The
+  // still is already in place and simply stays — a real final state.
+  if (reduced() || saveData()) {
+    section.dataset.videoState = reduced() ? 'reduced-motion' : 'save-data';
+    return;
+  }
+
+  let v = null;
+  let spring = null;
+
+  // Built on first approach, not at page load: this is below the fold on
+  // every case study, and most of them are read without ever reaching it.
+  function ensure() {
+    if (v) return v;
+    v = makeVideo(src, { loop: true, muted: true });
+    v.className = 'preel__video';
+    v.setAttribute('aria-hidden', 'true');
+    frame.appendChild(v);
+
+    spring = new Spring(0, {
+      damping: 1.0,
+      response: 0.5,           // a large surface, as reveals() treats one
+      onUpdate: (val) => { v.style.opacity = String(val); },
+      onRest: (s) => {
+        v.style.willChange = 'auto';
+        // Rewind only once the still has fully covered it, so the reset to
+        // frame zero is never visible.
+        if (s.value < 0.01) { v.pause(); try { v.currentTime = 0; } catch {} }
+      },
+    });
+    return v;
+  }
+
+  function set(on) {
+    const el = ensure();
+    el.style.willChange = 'opacity';
+    if (on) {
+      if (el.preload !== 'auto') { el.preload = 'auto'; el.load(); }
+      safePlay(el);
+      section.dataset.videoState = 'playing';
+    } else {
+      section.dataset.videoState = 'idle';
+    }
+    spring.setTarget(on ? 1 : 0);   // re-target carries velocity through
+  }
+
+  new IntersectionObserver(([e]) => {
+    set(e.isIntersecting && e.intersectionRatio >= 0.4);
+  }, { threshold: [0, 0.4, 0.75] }).observe(frame);
+
+  // A backgrounded tab should not decode video.
+  document.addEventListener('visibilitychange', () => {
+    if (document.hidden && v) v.pause();
+  });
+}
+
+/* ------------------------------------------------------------
    Boot
    ------------------------------------------------------------ */
 export function videoAffordances() {

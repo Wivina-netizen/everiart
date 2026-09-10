@@ -5,7 +5,7 @@
    ============================================================ */
 
 import { Spring, prefersReducedMotion, REDUCED } from './spring.js';
-import { videoAffordances } from './video.js';
+import { videoAffordances, caseStudyReel } from './video.js';
 
 const reduced = () => prefersReducedMotion();
 
@@ -988,6 +988,7 @@ function init() {
   workTiles();
   ambientTileZoom();    // continuous drift, independent of hover
   videoAffordances();   // hover-to-play + fullscreen preview, home tiles
+  caseStudyReel();      // /work/<slug>/: reel plays while it holds the view
   heroParallax();
   caseStudy();          // /work/<slug>/: title in, plate out on scroll
   contactForm();
