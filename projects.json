@@ -33,9 +33,20 @@
     "are gitignored, so a clean checkout has nothing to measure. Re-probe with",
     "ffprobe and update this by hand if a reel is re-cut at a new shape.",
     "",
-    "lede is placeholder copy. Real project narrative goes here — not invented.",
+    "lede and blurb are DRAFT copy, written in EveriArt's voice from the",
+    "factual record only — studio, category, discipline, and what is actually",
+    "in 'media source/' for that project. No outcome, metric, quote or",
+    "testimonial is asserted anywhere, because none was known.",
     "",
-    "blurb is currently read by nothing. It existed for the /work lookbook, which",
+    "copyStatus gates it. While it reads \"draft\", make_projects.mjs stamps an",
+    "HTML comment above the lede on the generated case study and prints a",
+    "warning at the end of every build. Flip a project to \"approved\" only once",
+    "the client-facing wording has actually been signed off — see COPY-TODO.md",
+    "for the full list and what each draft is based on.",
+    "",
+    "blurb is still read by nothing. It existed for the /work lookbook, which",
+    "was replaced by the asymmetric grid; the field is kept, and now carries a",
+    "draft line, because the copy it asks for is worth having.",
     "was replaced by the asymmetric grid; the field is kept because the copy it",
     "asks for is worth writing, but nothing renders it today."
   ],
@@ -63,8 +74,9 @@
       "reel": "https://pub-22c601fc38564ec79d41e018bfad6bcf.r2.dev/hope-for-her/reel.mp4",
       "reelAspect": "1 / 1",
       "clips": [],
-      "lede": "Placeholder copy. This is where the brief, the constraint and the decision that shaped the work get written — what the client needed, what we found when we looked, and why the work took the form it did.",
-      "blurb": ""
+      "lede": "Documentary coverage for the Hope For Her Foundation, across a World Mental Health Day film, the Pad A Girl campaign, and a spoken-word piece. The spoken word carries the argument on its own — no narrator, no voiceover explaining what the frame is already saying.",
+      "blurb": "Foundation documentary, cut to let the subject speak first.",
+      "copyStatus": "draft"
     },
     {
       "slug": "regalia-pop-up-events",
@@ -91,8 +103,9 @@
         "https://pub-22c601fc38564ec79d41e018bfad6bcf.r2.dev/regalia-pop-up-events/clip-01.mp4",
         "https://pub-22c601fc38564ec79d41e018bfad6bcf.r2.dev/regalia-pop-up-events/clip-02.mp4"
       ],
-      "lede": "Placeholder copy. This is where the brief, the constraint and the decision that shaped the work get written — what the client needed, what we found when we looked, and why the work took the form it did.",
-      "blurb": ""
+      "lede": "A pop-up that runs in dated editions, so each one has to be sold as its own event. Event film and jingle ads cut from the same coverage — the room as it actually was, and the thirty seconds that has to fill the next one.",
+      "blurb": "Event film and jingle ads for a pop-up that returns on a date.",
+      "copyStatus": "draft"
     },
     {
       "slug": "maitro-tech",
@@ -110,8 +123,9 @@
       ],
       "reel": null,
       "clips": [],
-      "lede": "Placeholder copy. This is where the brief, the constraint and the decision that shaped the work get written — what the client needed, what we found when we looked, and why the work took the form it did.",
-      "blurb": ""
+      "lede": "An identity system for a technology company, worked up from concept boards rather than a logo pass. The mark is the smallest part of it — what had to hold is everything the mark sits inside once the company starts shipping.",
+      "blurb": "Identity system built from concepts out, not from the mark in.",
+      "copyStatus": "draft"
     },
     {
       "slug": "bmt-apparels",
@@ -131,8 +145,9 @@
       ],
       "reel": null,
       "clips": [],
-      "lede": "Placeholder copy. This is where the brief, the constraint and the decision that shaped the work get written — what the client needed, what we found when we looked, and why the work took the form it did.",
-      "blurb": ""
+      "lede": "Brand identity for an apparel label, resolved on a deep green ground. A black-and-gold direction was worked up alongside it and set aside; what shipped is the system built on the green, carried across mark, type and application.",
+      "blurb": "Apparel identity, resolved on green after a second direction was cut.",
+      "copyStatus": "draft"
     },
     {
       "slug": "hawthorn-real-estate",
@@ -148,8 +163,9 @@
       "gallery": [],
       "reel": null,
       "clips": [],
-      "lede": "Placeholder copy. This is where the brief, the constraint and the decision that shaped the work get written — what the client needed, what we found when we looked, and why the work took the form it did.",
-      "blurb": ""
+      "lede": "An identity system for a real estate business — the mark, the type and the rules for putting both to work across property, print and site.",
+      "blurb": "Identity system for a real estate business.",
+      "copyStatus": "draft"
     },
     {
       "slug": "grosource",
@@ -165,8 +181,9 @@
       "gallery": [],
       "reel": null,
       "clips": [],
-      "lede": "Placeholder copy. This is where the brief, the constraint and the decision that shaped the work get written — what the client needed, what we found when we looked, and why the work took the form it did.",
-      "blurb": ""
+      "lede": "Brand identity for a sourcing business, built from consultation rather than a template: the mark, the palette and the system that has to hold once it leaves the deck.",
+      "blurb": "Brand identity built from consultation, not a template.",
+      "copyStatus": "draft"
     },
     {
       "slug": "agra",
@@ -193,8 +210,9 @@
       "reel": "https://pub-22c601fc38564ec79d41e018bfad6bcf.r2.dev/agra/reel.mp4",
       "reelAspect": "4 / 3",
       "clips": [],
-      "lede": "Placeholder copy. This is where the brief, the constraint and the decision that shaped the work get written — what the client needed, what we found when we looked, and why the work took the form it did.",
-      "blurb": ""
+      "lede": "Event photography across the day, shot to be read as a set rather than a gallery of highlights. It ran alongside a square-format film from ByEveriArt — same event, two studios, one standard.",
+      "blurb": "A day covered as a set, photographed alongside the film crew.",
+      "copyStatus": "draft"
     },
     {
       "slug": "azusa",
@@ -218,8 +236,9 @@
       "reel": "https://pub-22c601fc38564ec79d41e018bfad6bcf.r2.dev/azusa/reel.mp4",
       "reelAspect": "16 / 9",
       "clips": [],
-      "lede": "Placeholder copy. This is where the brief, the constraint and the decision that shaped the work get written — what the client needed, what we found when we looked, and why the work took the form it did.",
-      "blurb": ""
+      "lede": "Property film for a hotel and apartment building, delivered in both a widescreen cut and a square one — the same walk-through, reframed for where it had to run. The stills are pulled from the film rather than shot separately, so the rooms read the same in both.",
+      "blurb": "One walk-through, cut widescreen and square for where it had to run.",
+      "copyStatus": "draft"
     }
   ]
 }

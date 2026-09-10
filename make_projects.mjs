@@ -272,6 +272,20 @@ function buildProject(studios, published, idx) {
 
   const hero = p.hero ?? p.thumb;
 
+  // Draft copy is stamped where it renders, not just tracked in a list.
+  // projects.json carries copyStatus per project; anything not "approved" gets
+  // this marker in the generated HTML and a warning at the end of the build, so
+  // unapproved wording cannot quietly reach a page and look finished. It is an
+  // HTML comment rather than anything visible: the draft is meant to be read in
+  // place and judged as copy, not fenced off behind a banner.
+  const draftMark =
+    p.copyStatus === "approved"
+      ? ""
+      : `\n      <!-- DRAFT COPY — written in EveriArt's voice from the factual
+           record only; NOT client-approved. Nothing here asserts an outcome,
+           metric or quote. See COPY-TODO.md, and flip copyStatus to
+           "approved" in projects.json once the wording is signed off. -->`;
+
   // The reel, where there is one. Maitro and BMT are identity work with no
   // footage, and they simply do not get it rather than getting an empty
   // section — the same rule the tiles already follow.
@@ -336,7 +350,7 @@ function buildProject(studios, published, idx) {
   </header>
 
   <section class="section">
-    <div class="wrap pmeta">
+    <div class="wrap pmeta">${draftMark}
       <p class="pmeta__lede">${esc(p.lede ?? "")}</p>
       <dl class="pmeta__facts">
         <div class="pmeta__row"><dt>Client</dt><dd>${esc(p.name)}</dd></div>
@@ -446,3 +460,20 @@ if (dropped.length) console.log(`\n  pruned stale case studies: ${dropped.join("
 const held = all.filter((p) => !p.published);
 if (held.length)
   console.log(`  withheld (data retained): ${held.map((p) => p.slug).join(", ")}`);
+
+// Draft copy is a build-time warning, not a note someone has to remember to
+// re-read. It reports on the whole file rather than the published set: a
+// withheld project's copy still has to be signed off before it can go live,
+// and finding that out at publish time is finding out too late.
+const draft = all.filter((p) => p.copyStatus !== "approved");
+if (draft.length) {
+  console.log(
+    `\n  ⚠ DRAFT COPY on ${draft.length} of ${all.length} projects — not client-approved:`
+  );
+  for (const p of draft)
+    console.log(`      ${p.slug}${p.published ? "" : "  (withheld)"}`);
+  console.log(
+    `    Each is stamped in its generated page. See COPY-TODO.md; flip\n` +
+      `    copyStatus to "approved" in projects.json once wording is signed off.`
+  );
+}
