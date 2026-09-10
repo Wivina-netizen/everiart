@@ -58,7 +58,7 @@ const ARROW = `<svg viewBox="0 0 48 48" fill="none" focusable="false">
             </svg>`;
 
 // ------------------------------------------------------------------ chrome
-const head = (title, desc, theme = "#F8F8F8") => `<!DOCTYPE html>
+const head = (title, desc, theme = "#0D132D") => `<!DOCTYPE html>
 <html lang="en">
 <head>
 <meta charset="utf-8">

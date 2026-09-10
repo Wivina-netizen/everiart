@@ -29,13 +29,23 @@
     border-color var(--t-base) var(--ease-out-quart);
 }
 
-/* Past the hero: translucent light material, content scrolls under it. */
+/* Past the hero: translucent material over the base ground, content scrolls
+   under it. The attribute is still called "light" because it is the lifted
+   state, not a light colour — the site has none. */
 .nav[data-theme="light"] {
-  background: var(--offwhite-a70);
-  color: var(--charcoal);
+  background: var(--navy-base-a72);
+  color: var(--parchment);
   backdrop-filter: blur(20px) saturate(180%);
   -webkit-backdrop-filter: blur(20px) saturate(180%);
   border-bottom-color: var(--hairline);
+}
+
+@media (prefers-reduced-transparency: reduce) {
+  .nav[data-theme="light"] {
+    background: var(--navy-base);
+    backdrop-filter: none;
+    -webkit-backdrop-filter: none;
+  }
 }
 
 @media (prefers-reduced-motion: reduce) {
@@ -156,8 +166,8 @@
       var(--ink-a80) 0%,
       rgba(11, 11, 12, 0.46) 26%,
       rgba(11, 11, 12, 0.46) 44%,
-      rgba(11, 11, 12, 0.88) 86%,
-      var(--ink-deep) 100%
+      rgba(13, 19, 45, 0.88) 86%,
+      var(--navy-base) 100%
     ),
     rgba(11, 11, 12, 0.30);
 }
@@ -390,7 +400,7 @@
 }
 .head__title { max-width: 20ch; }
 .head__note { max-width: 44ch; color: var(--stone); }
-.section--dark .head__note { color: rgba(244, 241, 222, 0.65); }
+.on-dark .head__note { color: rgba(244, 241, 222, 0.65); }
 
 @media (min-width: 56rem) {
   .head {
@@ -421,7 +431,7 @@
   inset-block-end: -1px;
   inset-inline-start: 0;
   height: 1px;
-  background: var(--charcoal);
+  background: var(--parchment);
   pointer-events: none;
 }
 .filter__btn {
@@ -435,8 +445,8 @@
   white-space: nowrap;
   transition: color var(--t-base) var(--ease-out-quart);
 }
-.filter__btn[aria-selected="true"] { color: var(--charcoal); }
-.filter__btn:hover { color: var(--charcoal); }
+.filter__btn[aria-selected="true"] { color: var(--parchment); }
+.filter__btn:hover { color: var(--parchment); }
 /* Instant press feedback — on pointer-down, not release (apple-design §1) */
 .filter__btn:active { transform: translateY(1px); transition: transform 100ms ease-out; }
 
@@ -518,7 +528,7 @@
 
 /* Keyboard users get the same affordance as the pointer; the focus ring is
    on the tile, and js/main.js runs the same spring on focus. */
-.tile:focus-visible { outline: 2px solid var(--gunmetal); outline-offset: 4px; }
+.tile:focus-visible { outline: 2px solid var(--parchment); outline-offset: 4px; }
 
 .work__more {
   display: flex;
@@ -547,7 +557,7 @@
   margin: 0 0 0.5rem;
 }
 .studio__disc { color: var(--stone); margin-block-end: 1rem; }
-.section--dark .studio__disc { color: rgba(244, 241, 222, 0.6); }
+.on-dark .studio__disc { color: rgba(244, 241, 222, 0.6); }
 .studio__copy { max-width: 42ch; }
 
 .studio__visual { position: relative; overflow: hidden; }
@@ -559,18 +569,17 @@
 /* EveriDesign — systems-led: a live grid demonstration, not a logo in a box */
 .studio__visual--system {
   aspect-ratio: 16 / 10;
-  background: var(--parchment);
+  /* The gap between cells is what draws the grid, so this is the rule
+     colour showing through, not a surface. */
+  background: rgba(244, 241, 222, 0.08);
   display: grid;
   grid-template-columns: repeat(6, 1fr);
   grid-template-rows: repeat(4, 1fr);
   gap: 1px;
   padding: 1px;
 }
-.section--dark .studio__visual--system { background: rgba(244,241,222,0.08); }
-.studio__cell { background: var(--offwhite); }
-.section--dark .studio__cell { background: var(--navy); }
-.studio__cell--ink { background: var(--navy); }
-.section--dark .studio__cell--ink { background: var(--parchment); }
+.studio__cell { background: var(--navy); }
+.studio__cell--ink { background: var(--parchment); }
 .studio__cell--accent { background: var(--gunmetal); }
 
 /* BeFrames — photography-led, full bleed, minimal chrome */
@@ -615,7 +624,9 @@
   border: 1px solid var(--hairline);
 }
 .client {
-  background: var(--offwhite);
+  /* A step above the base ground, so the cells read as tiles and the 1px
+     gaps between them read as the grid. */
+  background: var(--navy);
   padding: clamp(1.25rem, 3vw, 2rem) 1rem;
   display: grid;
   place-items: center;
@@ -699,8 +710,8 @@
    needs to clear it rather than sit under it.
    -------------------------------------------------------------------- */
 .page {
-  background: var(--offwhite);
-  color: var(--charcoal);
+  background: var(--navy-base);
+  color: var(--parchment);
   min-height: 100svh;
   padding-block-start: clamp(7rem, 16vh, 11rem);
   padding-block-end: clamp(3rem, 8vh, 6rem);
@@ -725,10 +736,7 @@
   margin: 0;
 }
 
-/* Footer sits on light here, so it cannot use the on-dark values. */
 .page .foot {
-  border-top-color: var(--hairline);
-  color: var(--stone);
   margin-block-start: clamp(3rem, 9vh, 6rem);
 }
 
@@ -771,8 +779,8 @@
 .field__input {
   font: inherit;
   font-size: var(--fs-body);
-  color: var(--charcoal);
-  background: #fff;
+  color: var(--parchment);
+  background: var(--lift-a06);
   border: 1px solid var(--hairline);
   border-radius: 2px;
   padding: 0.85rem 1rem;
@@ -788,16 +796,18 @@
 }
 .field__input::placeholder { color: var(--stone); }
 .field__input:hover { border-color: var(--stone); }
+/* The ring lightens rather than darkens: on Authority Navy, Gunmetal is
+   barely a step off the ground and read as no focus at all. */
 .field__input:focus {
   outline: none;
-  border-color: var(--gunmetal);
-  box-shadow: 0 0 0 3px rgba(58, 80, 107, 0.14);
+  border-color: var(--parchment);
+  box-shadow: 0 0 0 3px var(--lift-a12);
 }
 /* Only flag a field once the browser considers it genuinely invalid, so
    an untouched required field is never pre-marked as an error. */
 .field__input:user-invalid {
-  border-color: #9B3D3D;
-  box-shadow: 0 0 0 3px rgba(155, 61, 61, 0.12);
+  border-color: var(--danger);
+  box-shadow: 0 0 0 3px var(--danger-a12);
 }
 
 .form__foot {
@@ -815,8 +825,8 @@
   color: var(--stone);
   min-height: 1.4em;
 }
-.form__status[data-state="ok"]  { color: #3F6B4A; }
-.form__status[data-state="err"] { color: #9B3D3D; }
+.form__status[data-state="ok"]  { color: var(--ok); }
+.form__status[data-state="err"] { color: var(--danger); }
 
 /* ---------- Buttons ----------
    .btn is the shared weight. The two direct actions carry it unmodified
@@ -829,10 +839,10 @@
   justify-content: center;
   gap: 0.5rem;
   padding: 0.85rem 1.4rem;
-  border: 1px solid var(--charcoal);
+  border: 1px solid var(--parchment);
   border-radius: 2px;
   background: transparent;
-  color: var(--charcoal);
+  color: var(--parchment);
   font-size: var(--fs-small);
   font-weight: 500;
   letter-spacing: var(--tr-small);
@@ -844,7 +854,10 @@
     color var(--t-base) var(--ease-out-quart),
     border-color var(--t-base) var(--ease-out-quart);
 }
-.btn:hover { background: var(--charcoal); color: var(--offwhite); }
+/* The outline button lifts into a lighter material rather than inverting.
+   Inverting it would land on exactly the same fill as .btn--primary, which
+   is the one thing that has to stay louder than everything around it. */
+.btn:hover { background: var(--lift-a12); color: var(--parchment); }
 .btn:active { transform: scale(0.985); transition: transform 100ms ease-out; }
 
 .btn__arrow {
@@ -855,13 +868,15 @@
 }
 .btn:hover .btn__arrow { transform: translate3d(0.15em, -0.15em, 0); }
 
+/* Inverted: on a navy ground a navy fill is invisible, so the promoted
+   action is the one solid light shape on the page. */
 .btn--primary {
-  background: var(--navy);
-  border-color: var(--navy);
-  color: var(--parchment);
+  background: var(--parchment);
+  border-color: var(--parchment);
+  color: var(--navy-base);
   padding-inline: 1.75rem;
 }
-.btn--primary:hover { background: var(--gunmetal); border-color: var(--gunmetal); }
+.btn--primary:hover { background: var(--offwhite); border-color: var(--offwhite); }
 .btn[disabled] { opacity: 0.55; pointer-events: none; }
 
 /* ---------- Direct actions ---------- */
@@ -929,7 +944,10 @@
    is the only thing guaranteeing the overlay stays legible on an image
    nobody has vetted yet.
    -------------------------------------------------------------------- */
-.project { background: var(--ink-deep); color: var(--parchment); }
+/* The page rides the base ground like every other surface. Only .phero keeps
+   the cinematic black, because it sits under a photographic plate and navy
+   behind it would tint the plate's warm highlights cold (see tokens.css). */
+.project { background: var(--navy-base); color: var(--parchment); }
 
 .phero {
   position: relative;
@@ -952,12 +970,14 @@
   position: absolute;
   inset: 0;
   z-index: 1;
+  /* Neutral over the plate, then turning navy at the foot so the scrim hands
+     off to the page ground with no seam. */
   background:
     linear-gradient(to bottom,
       rgba(11, 11, 12, 0.55) 0%,
       rgba(11, 11, 12, 0.18) 38%,
-      rgba(11, 11, 12, 0.82) 88%,
-      var(--ink-deep) 100%),
+      rgba(13, 19, 45, 0.82) 88%,
+      var(--navy-base) 100%),
     rgba(11, 11, 12, 0.18);
 }
 .phero__inner {

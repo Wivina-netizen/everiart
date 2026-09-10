@@ -15,8 +15,8 @@ html {
 
 body {
   margin: 0;
-  background: var(--offwhite);
-  color: var(--charcoal);
+  background: var(--navy-base);
+  color: var(--parchment);
   font-family: var(--sans);
   font-size: var(--fs-body);
   line-height: var(--lh-body);
@@ -40,13 +40,15 @@ button {
   cursor: pointer;
 }
 
-/* Visible keyboard focus — quality floor, never removed */
+/* Visible keyboard focus — quality floor, never removed.
+   Parchment, not Gunmetal: against Authority Navy the old ring measured
+   2.2:1, under the 3:1 floor a focus indicator has to clear. There is no
+   light ground left for Gunmetal to be read against. */
 :focus-visible {
-  outline: 2px solid var(--gunmetal);
+  outline: 2px solid var(--parchment);
   outline-offset: 3px;
   border-radius: 2px;
 }
-.on-dark :focus-visible { outline-color: var(--parchment); }
 
 /* --- Type roles --- */
 .display {
@@ -114,13 +116,13 @@ p:last-child { margin-bottom: 0; }
 
 .section { padding-block: var(--section-y); }
 
+/* The raised ground. The base is Authority Navy on <body>, so a section only
+   declares a background when it wants to sit a step above it. */
 .section--dark {
   background: var(--navy);
   color: var(--parchment);
 }
-.section--dark .meta { color: rgba(244, 241, 222, 0.6); }
-
-.section--warm { background: var(--parchment); }
+.on-dark .meta { color: rgba(244, 241, 222, 0.6); }
 
 .rule {
   height: 1px;
@@ -128,7 +130,6 @@ p:last-child { margin-bottom: 0; }
   border: 0;
   margin: 0;
 }
-.section--dark .rule { background: var(--hairline-dk); }
 
 .sr-only {
   position: absolute;
