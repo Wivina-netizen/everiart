@@ -867,8 +867,12 @@ function heroParallax() {
    Sensitivity, severity High: "Parallax/Scroll-jacking causes nausea. Honor
    prefers-reduced-motion and present the final readable state"):
 
-     - Under reduced motion the plate does not move at all and the title is
-       simply there. The final state is the readable one, never a blank.
+     - Under reduced motion the plate does not move or scale at all. The
+       fades stay: both are opacity, which is the property that path is meant
+       to keep, and the title's fade is load-bearing rather than decorative —
+       the nav is transparent over a plate, so a title that never fades
+       scrolls up through the nav links and lands on top of them. Dropping
+       the fade too was the bug, not the accommodation.
      - The parallax is on the plate only. The title is faded but never
        translated — the same source is explicit that parallax belongs on
        background layers and never on text.
@@ -912,14 +916,28 @@ function caseStudy() {
     }
   }
 
-  /* --- 2. Plate shrinks away on scroll --- */
-  if (!plate || reduced()) return;
+  /* --- 2. Plate shrinks away on scroll ---
+     Reduced motion keeps the FADES and drops only the travel and the scale.
+     It used to return here, which read as the safe choice and was not: the
+     nav is transparent over a plate by design, and with nothing fading, the
+     title scrolled straight up through the nav links and sat on top of them.
+     Measured on /work/azusa/ at scrollY 600 — nav 0-64px, title 49-130px,
+     .phero__inner opacity 1, no nav background and no blur between them.
+
+     That is the readable final state failing in exactly the path that owes
+     it, and the fix is the one the guidance already points at: gentler, not
+     zero — keep opacity, drop position. So the plate never moves or scales
+     for these readers, and the type fades on the same mapping everyone else
+     gets. */
+  if (!plate) return;
+  const still = reduced();
 
   let armed = false;
   const arm = (on) => {
     if (on === armed) return;
     armed = on;
-    plate.style.willChange = on ? 'transform, opacity' : 'auto';
+    // Nothing hints transform when nothing transforms.
+    plate.style.willChange = on ? (still ? 'opacity' : 'transform, opacity') : 'auto';
     if (inner) inner.style.willChange = on ? 'opacity' : 'auto';
   };
   new IntersectionObserver(([e]) => arm(e.isIntersecting), { threshold: 0 })
@@ -957,10 +975,13 @@ function caseStudy() {
       last = p;
 
       // Travel is slower than the scroll, so the plate lags the page and
-      // reads as receding rather than sliding.
-      plate.style.transform =
-        `translate3d(0, ${(p * h * 0.12).toFixed(1)}px, 0) ` +
-        `scale(${(1.06 - p * 0.12).toFixed(4)})`;
+      // reads as receding rather than sliding. Skipped entirely under reduced
+      // motion — this is the position change that path drops.
+      if (!still) {
+        plate.style.transform =
+          `translate3d(0, ${(p * h * 0.12).toFixed(1)}px, 0) ` +
+          `scale(${(1.06 - p * 0.12).toFixed(4)})`;
+      }
       // Gone by 80% of the hero's height, which is before the shrunken edge
       // could be read against the ground behind it.
       plate.style.opacity = Math.max(0, 1 - p * 1.25).toFixed(3);
