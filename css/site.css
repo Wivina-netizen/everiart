@@ -29,13 +29,23 @@
     border-color var(--t-base) var(--ease-out-quart);
 }
 
-/* Past the hero: translucent light material, content scrolls under it. */
+/* Past the hero: translucent material over the base ground, content scrolls
+   under it. The attribute is still called "light" because it is the lifted
+   state, not a light colour — the site has none. */
 .nav[data-theme="light"] {
-  background: var(--offwhite-a70);
-  color: var(--charcoal);
+  background: var(--navy-base-a72);
+  color: var(--parchment);
   backdrop-filter: blur(20px) saturate(180%);
   -webkit-backdrop-filter: blur(20px) saturate(180%);
   border-bottom-color: var(--hairline);
+}
+
+@media (prefers-reduced-transparency: reduce) {
+  .nav[data-theme="light"] {
+    background: var(--navy-base);
+    backdrop-filter: none;
+    -webkit-backdrop-filter: none;
+  }
 }
 
 @media (prefers-reduced-motion: reduce) {
@@ -93,8 +103,14 @@
   transform-origin: left;
   transition: transform var(--t-base) var(--ease-out-quart);
 }
-.nav__link:hover::after,
+/* Hover motion is gated: a tap on a touch screen fires a false hover that
+   sticks until the next tap elsewhere, leaving the underline drawn under a
+   link nobody is pointing at. Focus stays ungated — a keyboard has no
+   hover, and this is its only affordance here. */
 .nav__link:focus-visible::after { transform: scaleX(1); }
+@media (hover: hover) and (pointer: fine) {
+  .nav__link:hover::after { transform: scaleX(1); }
+}
 
 /* Chrome sheds progressively — the mark is the last thing standing. */
 @media (max-width: 64rem) {
@@ -107,7 +123,7 @@
 
 /* ---------- Hero ----------
    Composition: chrome at the top edge, the ask at two-thirds, and the
-   wordmark seated on the bottom edge so its baseline bleeds off-canvas.
+   wordmark seated in the bottom-left corner on the site's own gutter.
    Everything sits over a slow-breathing background plate.
    -------------------------------------------------------------------- */
 .hero {
@@ -156,8 +172,8 @@
       var(--ink-a80) 0%,
       rgba(11, 11, 12, 0.46) 26%,
       rgba(11, 11, 12, 0.46) 44%,
-      rgba(11, 11, 12, 0.88) 86%,
-      var(--ink-deep) 100%
+      rgba(13, 19, 45, 0.88) 86%,
+      var(--navy-base) 100%
     ),
     rgba(11, 11, 12, 0.30);
 }
@@ -231,10 +247,13 @@
   transform-origin: left;
   transition: transform var(--t-base) var(--ease-out-quart);
 }
-.hero__cta:hover .hero__cta-rule::after,
 .hero__cta:focus-visible .hero__cta-rule::after { transform: scaleX(1); }
-.hero__cta:hover .hero__cta-arrow,
 .hero__cta:focus-visible .hero__cta-arrow { transform: translate3d(0.15em, -0.15em, 0); }
+@media (hover: hover) and (pointer: fine) {
+  .hero__cta:hover .hero__cta-rule::after { transform: scaleX(1); }
+  .hero__cta:hover .hero__cta-arrow { transform: translate3d(0.15em, -0.15em, 0); }
+}
+/* Colour is not motion and does not strand anything, so it stays ungated. */
 .hero__cta:hover { color: #fff; }
 
 /* --- Wordmark --- */
@@ -252,6 +271,19 @@
      past 30% of the viewport and crowds the lead copy above it. On a narrow
      screen there is nothing to crowd, so it takes the whole line. */
   --wordmark-fill: 0.86;
+
+  /* Bottom inset = --gutter, the same token that sets the left inset on this
+     element and the content column of every other section. Equal insets on
+     the two edges the mark is seated against is what "bottom-aligned and
+     left-aligned" resolves to, and it is derived from the site's one spacing
+     primitive rather than picked to look right (apple-design §7, §16).
+
+     --word-ink-below corrects for the gap between the word's layout box and
+     the bottom of its letterforms. "Everiart" has no descenders, so its ink
+     bottom is its baseline; the offset comes from the font's own metrics,
+     measured by fitWordmark(). Without it the inset would be measured to a
+     box edge nobody can see, and the mark would sit visibly high. */
+  padding-block-end: calc(var(--gutter) - var(--word-ink-below, 0px));
 }
 @media (max-width: 48rem) {
   .hero__markline { --wordmark-fill: 1; }
@@ -270,24 +302,32 @@
   column-gap: 0;      /* split for the reveal mask only — reads as one word */
   white-space: nowrap;
   color: var(--parchment);
-  /* Seats the baseline past the bottom edge so the word bleeds off-canvas.
-     em here resolves against the wordmark's own size, so the bleed holds
-     its proportion at every viewport. .hero clips the overflow. */
-  margin-block-end: -0.16em;
+  margin-block-end: 0;
+  /* Optical left alignment. The serif E carries a left side bearing, so the
+     glyph's layout box starts on the gutter while its stem lands right of
+     it — out of line with the lead copy directly above, which has almost
+     none. Pulling the box left by exactly that bearing puts the stem on the
+     same column. Measured off the font by fitWordmark(), not eyeballed. */
+  margin-inline-start: calc(-1 * var(--word-ink-left, 0px));
 }
 
-/* Mask boxes. Padding grows the clip upward so ascenders never crop, while
-   the negative margin keeps layout identical; the bottom edge still cuts. */
+/* The padding/negative-margin pair is kept, but not as a mask any more: the
+   segments fade without travelling, so there is nothing to clip. It stays
+   because .hero__tm's align-self: flex-start reads the wordmark's own box
+   top, which this pair is what pulls the margin box back to — see the note
+   on .hero__tm below. Removing it moves the trademark mark. */
 .hero__seg {
   display: inline-block;
   flex: none;
-  overflow: hidden;
   padding-block-start: 0.32em;
   margin-block-start: -0.32em;
 }
+/* No will-change here. It hinted transform, which these no longer animate,
+   and it held a compositor layer for the life of the page — the standing
+   layer the motion contract already caught once. heroSequence() arms and
+   drops the hint per subject, as every other reveal on the site does. */
 .hero__seg > span {
   display: inline-block;
-  will-change: transform;
 }
 
 /* Trademark mark: the terminal device, carrying the wordmark's gold. */
@@ -310,10 +350,7 @@
   letter-spacing: 0;
 }
 
-/* --- Play affordance ---
-   Shown only when clicking will actually start the plate. Sized and coloured
-   to sit under the CTA in the hierarchy — it is a recovery control, not a
-   second call to action. --- */
+/* --- Hero aside: the scroll cue's rail --- */
 .hero__aside {
   display: flex;
   align-items: center;
@@ -321,33 +358,6 @@
   flex: none;
 }
 
-.hero__play {
-  display: inline-flex;
-  align-items: center;
-  gap: 0.5rem;
-  padding: 0.5rem 0.9rem;
-  border: 1px solid var(--gold-a40);
-  border-radius: 999px;
-  color: rgba(244, 241, 222, 0.9);
-  background: rgba(11, 11, 12, 0.45);
-  backdrop-filter: blur(10px);
-  -webkit-backdrop-filter: blur(10px);
-  font-size: var(--fs-meta);
-  letter-spacing: var(--tr-meta);
-  line-height: 1;
-  white-space: nowrap;
-  transition:
-    border-color var(--t-base) var(--ease-out-quart),
-    color var(--t-base) var(--ease-out-quart);
-}
-.hero__play:hover,
-.hero__play:focus-visible { border-color: var(--gold-hi); color: #fff; }
-.hero__play:active { transform: scale(0.97); transition: transform 100ms ease-out; }
-.hero__play-icon { width: 0.6em; height: 0.72em; flex: none; color: var(--gold); }
-
-@media (prefers-reduced-transparency: reduce) {
-  .hero__play { background: var(--ink-deep); backdrop-filter: none; -webkit-backdrop-filter: none; }
-}
 
 /* --- Scroll cue --- */
 .scroll-cue {
@@ -371,9 +381,6 @@
 /* The cue would collide with the wordmark once the viewport is short. */
 @media (max-width: 48rem) {
   .scroll-cue { display: none; }
-  /* The play control stays: on a phone it is the only route back to the
-     plate, and it is exactly where Data Saver is most likely to be on. */
-  .hero__play { font-size: var(--fs-small); padding: 0.55rem 1rem; }
 }
 
 @media (prefers-reduced-motion: reduce) {
@@ -390,7 +397,7 @@
 }
 .head__title { max-width: 20ch; }
 .head__note { max-width: 44ch; color: var(--stone); }
-.section--dark .head__note { color: rgba(244, 241, 222, 0.65); }
+.on-dark .head__note { color: rgba(244, 241, 222, 0.65); }
 
 @media (min-width: 56rem) {
   .head {
@@ -415,13 +422,24 @@
   margin-block-end: clamp(2.5rem, 7vh, 4.5rem);
   border-bottom: 1px solid var(--hairline);
 }
+/* Sized by transform, never by width. The rule is one pixel wide and scaled
+   to the active button's width, because width is a layout property: writing
+   it every frame forced layout, paint and composite on each tick of the
+   spring, on the one control both grid pages carry. scaleX composites.
+
+   transform-origin is the left edge so the scale grows rightward from
+   wherever the translate put it, and scaleX(0) is the resting state so the
+   rule is invisible until js/main.js first paints it. */
 .filter__rule {
   position: absolute;
   z-index: 1;
   inset-block-end: -1px;
   inset-inline-start: 0;
+  width: 1px;
   height: 1px;
-  background: var(--charcoal);
+  background: var(--parchment);
+  transform: scaleX(0);
+  transform-origin: left center;
   pointer-events: none;
 }
 .filter__btn {
@@ -435,8 +453,8 @@
   white-space: nowrap;
   transition: color var(--t-base) var(--ease-out-quart);
 }
-.filter__btn[aria-selected="true"] { color: var(--charcoal); }
-.filter__btn:hover { color: var(--charcoal); }
+.filter__btn[aria-selected="true"] { color: var(--parchment); }
+.filter__btn:hover { color: var(--parchment); }
 /* Instant press feedback — on pointer-down, not release (apple-design §1) */
 .filter__btn:active { transform: translateY(1px); transition: transform 100ms ease-out; }
 
@@ -479,10 +497,19 @@
   object-fit: cover;
 }
 
-/* Arrow: invisible until interaction, driven entirely by the spring in
-   js/main.js. No transition here — a CSS transition cannot be grabbed and
-   reversed mid-flight (apple-design §3). --arrow-ink is set per image from
-   its measured luminance; the token below is only the pre-measurement floor. */
+
+/* Arrow: invisible until interaction, driven entirely by the springs in
+   js/main.js — opacity, and X and Y as two more, since it follows the cursor.
+   No transition here: a CSS transition cannot be grabbed and reversed
+   mid-flight (apple-design §3).
+
+   The 50%/50% anchor below is load-bearing. JS applies its px offset BEFORE
+   the -50% centring, so an offset of zero resolves to exactly this resting
+   position — which is where the keyboard path, the reduced-motion path and
+   the pre-JS state all land.
+
+   --arrow-ink is set per image from its measured luminance; the token below
+   is only the pre-measurement floor. */
 .tile__arrow {
   position: absolute;
   inset-block-start: 50%;
@@ -518,7 +545,7 @@
 
 /* Keyboard users get the same affordance as the pointer; the focus ring is
    on the tile, and js/main.js runs the same spring on focus. */
-.tile:focus-visible { outline: 2px solid var(--gunmetal); outline-offset: 4px; }
+.tile:focus-visible { outline: 2px solid var(--parchment); outline-offset: 4px; }
 
 .work__more {
   display: flex;
@@ -547,7 +574,7 @@
   margin: 0 0 0.5rem;
 }
 .studio__disc { color: var(--stone); margin-block-end: 1rem; }
-.section--dark .studio__disc { color: rgba(244, 241, 222, 0.6); }
+.on-dark .studio__disc { color: rgba(244, 241, 222, 0.6); }
 .studio__copy { max-width: 42ch; }
 
 .studio__visual { position: relative; overflow: hidden; }
@@ -559,18 +586,17 @@
 /* EveriDesign — systems-led: a live grid demonstration, not a logo in a box */
 .studio__visual--system {
   aspect-ratio: 16 / 10;
-  background: var(--parchment);
+  /* The gap between cells is what draws the grid, so this is the rule
+     colour showing through, not a surface. */
+  background: rgba(244, 241, 222, 0.08);
   display: grid;
   grid-template-columns: repeat(6, 1fr);
   grid-template-rows: repeat(4, 1fr);
   gap: 1px;
   padding: 1px;
 }
-.section--dark .studio__visual--system { background: rgba(244,241,222,0.08); }
-.studio__cell { background: var(--offwhite); }
-.section--dark .studio__cell { background: var(--navy); }
-.studio__cell--ink { background: var(--navy); }
-.section--dark .studio__cell--ink { background: var(--parchment); }
+.studio__cell { background: var(--navy); }
+.studio__cell--ink { background: var(--parchment); }
 .studio__cell--accent { background: var(--gunmetal); }
 
 /* BeFrames — photography-led, full bleed, minimal chrome */
@@ -606,7 +632,11 @@
 .step__t { font-family: var(--serif); font-size: clamp(1.375rem, 2.4vw, 2rem); letter-spacing: -0.02em; line-height: 1.15; }
 .step__d { color: rgba(244, 241, 222, 0.7); max-width: 46ch; }
 
-/* ---------- Clients ---------- */
+/* ---------- Clients ----------
+   Currently unused: the "Selected clients" section is out of index.html
+   until there is an approved client list to put in it (see CLIENTS-TODO.md).
+   Kept, not deleted — the grid is the shape the section comes back as, and
+   these two rules are the whole of it. */
 .clients {
   display: grid;
   grid-template-columns: repeat(auto-fill, minmax(9rem, 1fr));
@@ -615,7 +645,9 @@
   border: 1px solid var(--hairline);
 }
 .client {
-  background: var(--offwhite);
+  /* A step above the base ground, so the cells read as tiles and the 1px
+     gaps between them read as the grid. */
+  background: var(--navy);
   padding: clamp(1.25rem, 3vw, 2rem) 1rem;
   display: grid;
   place-items: center;
@@ -699,8 +731,8 @@
    needs to clear it rather than sit under it.
    -------------------------------------------------------------------- */
 .page {
-  background: var(--offwhite);
-  color: var(--charcoal);
+  background: var(--navy-base);
+  color: var(--parchment);
   min-height: 100svh;
   padding-block-start: clamp(7rem, 16vh, 11rem);
   padding-block-end: clamp(3rem, 8vh, 6rem);
@@ -725,10 +757,7 @@
   margin: 0;
 }
 
-/* Footer sits on light here, so it cannot use the on-dark values. */
 .page .foot {
-  border-top-color: var(--hairline);
-  color: var(--stone);
   margin-block-start: clamp(3rem, 9vh, 6rem);
 }
 
@@ -771,8 +800,8 @@
 .field__input {
   font: inherit;
   font-size: var(--fs-body);
-  color: var(--charcoal);
-  background: #fff;
+  color: var(--parchment);
+  background: var(--lift-a06);
   border: 1px solid var(--hairline);
   border-radius: 2px;
   padding: 0.85rem 1rem;
@@ -788,16 +817,18 @@
 }
 .field__input::placeholder { color: var(--stone); }
 .field__input:hover { border-color: var(--stone); }
+/* The ring lightens rather than darkens: on Authority Navy, Gunmetal is
+   barely a step off the ground and read as no focus at all. */
 .field__input:focus {
   outline: none;
-  border-color: var(--gunmetal);
-  box-shadow: 0 0 0 3px rgba(58, 80, 107, 0.14);
+  border-color: var(--parchment);
+  box-shadow: 0 0 0 3px var(--lift-a12);
 }
 /* Only flag a field once the browser considers it genuinely invalid, so
    an untouched required field is never pre-marked as an error. */
 .field__input:user-invalid {
-  border-color: #9B3D3D;
-  box-shadow: 0 0 0 3px rgba(155, 61, 61, 0.12);
+  border-color: var(--danger);
+  box-shadow: 0 0 0 3px var(--danger-a12);
 }
 
 .form__foot {
@@ -815,8 +846,8 @@
   color: var(--stone);
   min-height: 1.4em;
 }
-.form__status[data-state="ok"]  { color: #3F6B4A; }
-.form__status[data-state="err"] { color: #9B3D3D; }
+.form__status[data-state="ok"]  { color: var(--ok); }
+.form__status[data-state="err"] { color: var(--danger); }
 
 /* ---------- Buttons ----------
    .btn is the shared weight. The two direct actions carry it unmodified
@@ -829,10 +860,10 @@
   justify-content: center;
   gap: 0.5rem;
   padding: 0.85rem 1.4rem;
-  border: 1px solid var(--charcoal);
+  border: 1px solid var(--parchment);
   border-radius: 2px;
   background: transparent;
-  color: var(--charcoal);
+  color: var(--parchment);
   font-size: var(--fs-small);
   font-weight: 500;
   letter-spacing: var(--tr-small);
@@ -844,7 +875,10 @@
     color var(--t-base) var(--ease-out-quart),
     border-color var(--t-base) var(--ease-out-quart);
 }
-.btn:hover { background: var(--charcoal); color: var(--offwhite); }
+/* The outline button lifts into a lighter material rather than inverting.
+   Inverting it would land on exactly the same fill as .btn--primary, which
+   is the one thing that has to stay louder than everything around it. */
+.btn:hover { background: var(--lift-a12); color: var(--parchment); }
 .btn:active { transform: scale(0.985); transition: transform 100ms ease-out; }
 
 .btn__arrow {
@@ -853,15 +887,22 @@
   flex: none;
   transition: transform var(--t-base) var(--ease-out-quart);
 }
-.btn:hover .btn__arrow { transform: translate3d(0.15em, -0.15em, 0); }
+/* Gained a focus-visible counterpart at the same time: gating the hover
+   alone would have left a keyboard user with no arrow at all. */
+.btn:focus-visible .btn__arrow { transform: translate3d(0.15em, -0.15em, 0); }
+@media (hover: hover) and (pointer: fine) {
+  .btn:hover .btn__arrow { transform: translate3d(0.15em, -0.15em, 0); }
+}
 
+/* Inverted: on a navy ground a navy fill is invisible, so the promoted
+   action is the one solid light shape on the page. */
 .btn--primary {
-  background: var(--navy);
-  border-color: var(--navy);
-  color: var(--parchment);
+  background: var(--parchment);
+  border-color: var(--parchment);
+  color: var(--navy-base);
   padding-inline: 1.75rem;
 }
-.btn--primary:hover { background: var(--gunmetal); border-color: var(--gunmetal); }
+.btn--primary:hover { background: var(--offwhite); border-color: var(--offwhite); }
 .btn[disabled] { opacity: 0.55; pointer-events: none; }
 
 /* ---------- Direct actions ---------- */
@@ -929,7 +970,10 @@
    is the only thing guaranteeing the overlay stays legible on an image
    nobody has vetted yet.
    -------------------------------------------------------------------- */
-.project { background: var(--ink-deep); color: var(--parchment); }
+/* The page rides the base ground like every other surface. Only .phero keeps
+   the cinematic black, because it sits under a photographic plate and navy
+   behind it would tint the plate's warm highlights cold (see tokens.css). */
+.project { background: var(--navy-base); color: var(--parchment); }
 
 .phero {
   position: relative;
@@ -938,7 +982,22 @@
   align-items: end;
   overflow: clip;
   isolation: isolate;
+  /* The base ground, not --ink-deep: this is what the plate uncovers as it
+     shrinks away, so it has to be the same colour as the page below or the
+     hero's bottom edge steps as you scroll. The cinematic black stays on
+     .phero__plate, behind the image, where it belongs. */
+  background: var(--navy-base);
+}
+
+/* The plate: image and scrim as one element, so the scrim scales and fades
+   with the image it exists to protect. js/main.js owns its transform and
+   opacity from the scroll position — directly, not through a spring. */
+.phero__plate {
+  position: absolute;
+  inset: 0;
+  z-index: 0;
   background: var(--ink-deep);
+  transform: scale(1.06);
 }
 .phero__img {
   position: absolute;
@@ -952,12 +1011,14 @@
   position: absolute;
   inset: 0;
   z-index: 1;
+  /* Neutral over the plate, then turning navy at the foot so the scrim hands
+     off to the page ground with no seam. */
   background:
     linear-gradient(to bottom,
       rgba(11, 11, 12, 0.55) 0%,
       rgba(11, 11, 12, 0.18) 38%,
-      rgba(11, 11, 12, 0.82) 88%,
-      var(--ink-deep) 100%),
+      rgba(13, 19, 45, 0.82) 88%,
+      var(--navy-base) 100%),
     rgba(11, 11, 12, 0.18);
 }
 .phero__inner {
@@ -965,6 +1026,11 @@
   z-index: 2;
   padding-block: clamp(7rem, 16vh, 11rem) clamp(2.5rem, 7vh, 4.5rem);
 }
+
+/* Deliberately not opacity:0 here. js/main.js sets the start value before
+   first paint, the same way heroSequence() does — so with JS off, or if the
+   module fails, the title is simply visible rather than permanently gone. */
+.phero__intro { will-change: auto; }
 .phero__label {
   margin: 0 0 0.9rem;
   font-size: var(--fs-meta);
@@ -1010,6 +1076,97 @@
   color: rgba(244, 241, 222, 0.55);
 }
 .pmeta__row dd { margin: 0; font-size: var(--fs-small); letter-spacing: var(--tr-small); }
+
+/* --- The reel ---
+   Sits between the brief and the gallery: motion first, then the stills.
+   Only rendered for projects that actually have footage.
+
+   The frame's ratio comes from the project, via --reel-ar, because the reels
+   are not a common shape (1/1, 4/3 and 16/9 today). Declaring it here also
+   reserves the box before the video loads, so revealing the section cannot
+   shift the gallery below it. --- */
+/* The reel sits among the stills, so it takes the stills' rhythm rather
+   than a section's — the same margin as .pfig, and the same last-child rule. */
+.preel { margin: 0 0 clamp(1.5rem, 4vh, 2.5rem); }
+.preel:last-child { margin-block-end: 0; }
+
+.preel__frame {
+  position: relative;
+  aspect-ratio: var(--reel-ar, 16 / 9);
+  /* Capped so a square or 4:3 reel cannot run taller than the viewport and
+     leave the reader scrolling through a single shot.
+
+     The cap is on WIDTH, not height: capping the height would leave the width
+     at 100% and simply break the ratio, which object-fit would then crop back
+     out. The same custom property drives both, because "4 / 3" is a valid
+     division inside calc() as well as a valid aspect-ratio. */
+  max-width: calc(82svh * (var(--reel-ar, 16 / 9)));
+  margin-inline: auto;
+  overflow: hidden;
+  background: var(--ink-deep);
+}
+.preel__still,
+.preel__video {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  /* The frame is cut to the reel's own ratio, so cover and contain agree for
+     the video; cover is what crops the still, whose ratio is the tile's. */
+  object-fit: cover;
+  display: block;
+}
+/* js cross-fades this in once the section holds the viewport. */
+.preel__video { opacity: 0; }
+
+/* Expand to fullscreen — the reel's only control.
+   Invisible at rest, because the brief is that the reel reads as a still
+   until it is touched. It appears on hover of the frame and on its own
+   keyboard focus, so it is never unreachable without a pointer.
+
+   A CSS transition rather than a spring: this is a discrete hover state on a
+   control, not a gesture being tracked, which is the same call .hero__cta and
+   .filter__btn already make. Nothing here can be grabbed mid-flight. */
+.preel__expand {
+  position: absolute;
+  inset-block-end: clamp(0.75rem, 2vw, 1.25rem);
+  inset-inline-end: clamp(0.75rem, 2vw, 1.25rem);
+  z-index: 2;
+  display: grid;
+  place-items: center;
+  width: 2.75rem;
+  height: 2.75rem;
+  border: 1px solid var(--hairline);
+  border-radius: 50%;
+  color: var(--offwhite);
+  /* Over footage of unknown brightness, so it carries its own ground rather
+     than trusting the frame underneath it (apple-design §12). */
+  background: rgba(11, 11, 12, 0.45);
+  backdrop-filter: blur(10px);
+  -webkit-backdrop-filter: blur(10px);
+  opacity: 0;
+  transition:
+    opacity var(--t-base) var(--ease-out-quart),
+    border-color var(--t-base) var(--ease-out-quart);
+}
+.preel__expand svg { width: 1.1rem; height: 1.1rem; display: block; }
+.preel__frame:hover .preel__expand,
+.preel__expand:focus-visible { opacity: 1; }
+.preel__expand:hover { border-color: var(--gold-hi); }
+.preel__expand:active { transform: scale(0.97); transition: transform 100ms ease-out; }
+
+@media (prefers-reduced-transparency: reduce) {
+  .preel__expand { background: var(--ink-deep); backdrop-filter: none; -webkit-backdrop-filter: none; }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .preel__expand { transition: opacity var(--t-fast) ease; }
+}
+
+/* No hover to reveal it with, so it simply stands. */
+@media (hover: none) {
+  .preel__expand { opacity: 1; }
+}
 
 .pbody { padding-block-end: clamp(4rem, 12vh, 8rem); }
 .pfig { margin: 0 0 clamp(1.5rem, 4vh, 2.5rem); }
@@ -1069,3 +1226,115 @@
 
 /* A 15th tile has no partner; it closes the page full width. */
 .pair--solo { grid-template-columns: 1fr !important; }
+
+/* ============================================================
+   VIDEO AFFORDANCES
+   The shared fullscreen overlay for a case-study reel.
+   Motion lives in js/video.js — springs, not transitions, so a
+   reversed gesture continues from where it is (apple-design §3).
+   ============================================================ */
+
+/* --- Fullscreen preview ------------------------------------------- */
+.vov {
+  position: fixed;
+  inset: 0;
+  z-index: 200;              /* over the nav, which sits at 100 */
+  display: grid;
+  place-items: center;
+  opacity: 0;                /* js owns this */
+}
+.vov[hidden] { display: none; }
+
+.vov__scrim {
+  position: absolute;
+  inset: 0;
+  background: var(--ink-a80);
+  -webkit-backdrop-filter: blur(18px);
+  backdrop-filter: blur(18px);
+}
+/* Blur is decoration, and a signal that some users switch off. */
+@media (prefers-reduced-transparency: reduce) {
+  .vov__scrim {
+    -webkit-backdrop-filter: none;
+    backdrop-filter: none;
+    background: var(--ink-deep);
+  }
+}
+
+.vov__panel {
+  position: relative;
+  width: min(94vw, 84rem);
+  display: grid;
+  gap: 1rem;
+  transform: scale(0.92);    /* js owns this */
+}
+
+.vov__stage {
+  position: relative;
+  background: #000;
+  overflow: hidden;
+  display: grid;
+  place-items: center;
+}
+.vov__video {
+  display: block;
+  width: 100%;
+  max-height: 78svh;
+  object-fit: contain;
+  background: #000;
+}
+
+.vov__bar {
+  display: flex;
+  align-items: center;
+  gap: 1rem;
+  color: var(--offwhite);
+  font: 500 var(--fs-meta)/1.2 var(--sans);
+  letter-spacing: var(--tr-meta);
+}
+.vov__meta {
+  margin: 0;
+  display: flex;
+  gap: 0.75rem;
+  align-items: baseline;
+  min-width: 0;
+}
+.vov__title { text-transform: uppercase; }
+.vov__studio { color: var(--stone); }
+
+.vov__case {
+  margin-inline-start: auto;
+  color: var(--offwhite);
+  text-decoration: none;
+  border-bottom: 1px solid var(--gold-a40);
+  padding-bottom: 2px;
+  white-space: nowrap;
+}
+.vov__case:hover,
+.vov__case:focus-visible { border-bottom-color: var(--gold); }
+
+.vov__btn {
+  flex: none;
+  display: grid;
+  place-items: center;
+  width: 2.75rem;
+  height: 2.75rem;
+  border: 1px solid var(--hairline);
+  border-radius: 50%;
+  background: transparent;
+  color: var(--offwhite);
+  cursor: pointer;
+  padding: 0;
+}
+.vov__btn svg { width: 1.25rem; height: 1.25rem; fill: currentColor; }
+.vov__btn:hover { border-color: var(--gold-a40); }
+
+.vov__close {
+  position: absolute;
+  top: -3.5rem;
+  right: 0;
+}
+
+@media (max-width: 40rem) {
+  .vov__bar { flex-wrap: wrap; }
+  .vov__case { margin-inline-start: 0; }

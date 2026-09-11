@@ -1,0 +1,325 @@
+/**
+ * Derive web-ready assets/ media from the untouched originals in 'media source/'.
+ *
+ * Read-only with respect to 'media source/' — nothing there is renamed, moved or
+ * rewritten. Every output is a new file under assets/<slug>/.
+ *
+ *   thumb.jpg       cut to the project's tile ratio — 4:3 for .tile--sm, 5:4
+ *                   for .tile--lg. layout.mjs decides which, so the generator
+ *                   and this script can never disagree and double-crop.
+ *   hero.jpg        2400x1500, the full-bleed .phero plate on the case study
+ *   gallery-NN.jpg  long edge capped at 1600 (.pfig renders natural aspect)
+ *   reel.mp4        H.264 / AAC, capped at 1920, +faststart
+ *   clip-NN.mp4     supplementary videos, same encode
+ *
+ * Fit differs by source type, because they fail differently when cropped:
+ *   "crop"     photographs and video frames — centre-crop to fill.
+ *   "contain"  design boards — whole board on its own brand ground; cropping a
+ *              brand board slices the logo in half.
+ *
+ * Site chrome — the Studios block's two images — is built the same way under
+ * the reserved name "site", writing to assets/ root rather than assets/<slug>/.
+ * A bare run does the projects and the site chrome, so "regenerate assets/"
+ * stays one command.
+ *
+ *   node make_media.mjs [slug ... | site]
+ */
+import { execFileSync } from "node:child_process";
+import { existsSync, mkdirSync, statSync } from "node:fs";
+import { basename, dirname, join, sep } from "node:path";
+import { fileURLToPath } from "node:url";
+import { load, tileSizes, RATIOS } from "./layout.mjs";
+
+const ROOT = dirname(fileURLToPath(import.meta.url));
+const SRC = join(ROOT, "media source");
+const OUT = join(ROOT, "assets");
+
+const THUMB_W = 1400;          // height derives from the tile's aspect ratio
+const HERO_W = 2400;
+const HERO_H = 1500;
+const GALLERY_MAX = 1600;
+const VIDEO_MAX = 1920;
+
+// ------------------------------------------------------------- source map
+// ["path"]          -> a still on disk
+// ["path", 12]      -> the frame 12s into that video
+const BE = "beFrames";
+const BY = "byEveriart";
+const ED = "everiDesign";
+
+const H4H = `${BY}/Documenataries/Hope for Her`;
+const RPUE = `${BY}/Regalia Pop Up Events`;
+const AGRA_V = `${BY}/Documenataries/AGRA`;
+const BMT = `${ED}/BMT Apparel/BMT BRANDING FILES`;
+const MT = `${ED}/Maitro Tech/Maitro Tech`;
+
+const WLR = `${RPUE}/WLR- RPUE 01.mov`;
+const APR26 = `${RPUE}/RPUE- APR 26- THE JINGLE AD.mov`;
+const APR13 = `${RPUE}/RPUE APR 13TH EDTION JINGLE II.mov`;
+const AZ_HD = `${BY}/Real Estate/Azusa/AZUSA HOTEL AND APARTMENT HD 02.mov`;
+
+const PROJECTS = {
+  "hope-for-her": {
+    fit: "crop",
+    thumb: ["Thumbs/thumb2.png"],
+    hero: ["Thumbs/thumb3.png"],
+    gallery: [["Thumbs/thumb2.png"], ["Thumbs/thumb.png"], ["Thumbs/thumb3.png"]],
+    reel: `${H4H}/Spoken Words- H4H.mov`,
+    clips: [],
+  },
+  "regalia-pop-up-events": {
+    fit: "crop",
+    thumb: [WLR, 8],
+    hero: [WLR, 5],
+    gallery: [
+      [WLR, 8], [WLR, 5], [WLR, 2], [WLR, 14], [WLR, 17],
+      [APR26, 40], [APR13, 40],
+    ],
+    reel: WLR,
+    clips: [APR26, APR13],
+  },
+  "maitro-tech": {
+    fit: "contain",
+    ground: "0xFCFCFC",
+    thumb: [`${MT}/MT1@500x-100.jpg`],
+    hero: [`${MT}/Maitro Concept 1@500x-100.jpg`],
+    gallery: [[`${MT}/MT1@500x-100.jpg`], [`${MT}/Maitro Concept 1@500x-100.jpg`]],
+    reel: null,
+    clips: [],
+  },
+  "bmt-apparels": {
+    fit: "contain",
+    ground: "0x0B1612",
+    thumb: [`${BMT}/500ppi/Artboard 1 copy 5@500x-100.jpg`],
+    hero: [`${BMT}/500ppi/Artboard 1 copy 5@500x-100.jpg`],
+    gallery: [
+      [`${BMT}/500ppi/Artboard 1 copy 5@500x-100.jpg`],
+      [`${BMT}/500ppi/Artboard 1 copy 4@500x-100.jpg`],
+      [`${BMT}/500ppi/Artboard 1 copy 3.jpg`],
+      // The six moodboard pages below were removed from 'media source/' on
+      // 2026-09-06, mid-build, by something outside this script — it only ever
+      // reads from there. Restore the files and un-comment to get them back.
+      //   [`${BMT}/BMT MoodboardiArtboard 4.jpg`],   // swatches
+      //   [`${BMT}/BMT MoodboardiArtboard 6.jpg`],   // typography refs
+      //   [`${BMT}/BMT MoodboardiArtboard 8.jpg`],   // iconography I
+      //   [`${BMT}/BMT MoodboardiArtboard 9.jpg`],   // iconography II
+      //   [`${BMT}/BMT MoodboardiArtboard 11.jpg`],  // textures
+      //   [`${BMT}/BMT MoodboardiArtboard 15.jpg`],  // photography
+      // (Artboard 13, the black/gold Colours page, stays excluded regardless —
+      //  it documents the rejected direction's palette.)
+    ],
+    reel: null,
+    clips: [],
+  },
+  agra: {
+    fit: "crop",
+    thumb: [`${BE}/AGRA/DSC08151.jpg`],
+    hero: [`${BE}/AGRA/DSC08431.jpg`],
+    gallery: [
+      [`${BE}/AGRA/DSC08151.jpg`], [`${BE}/AGRA/DSC08157.jpg`],
+      [`${BE}/AGRA/DSC08273.jpg`], [`${BE}/AGRA/DSC08219.jpg`],
+      [`${BE}/AGRA/DSC08292.jpg`], [`${BE}/AGRA/DSC08365.jpg`],
+      [`${BE}/AGRA/DSC08451.jpg`], [`${BE}/AGRA/DSC08498.jpg`],
+      [`${BE}/AGRA/DSC08431.jpg`], [`${BE}/AGRA/DSC08435.jpg`],
+    ],
+    reel: `${AGRA_V}/AGRA 2026 SQUARE II.mov`,
+    clips: [],
+  },
+  azusa: {
+    fit: "crop",
+    thumb: [AZ_HD, 155],
+    hero: [AZ_HD, 170],
+    gallery: [
+      [AZ_HD, 155], [AZ_HD, 8], [AZ_HD, 35], [AZ_HD, 80],
+      [AZ_HD, 110], [AZ_HD, 125], [AZ_HD, 170],
+    ],
+    reel: AZ_HD,
+    clips: [],
+  },
+};
+
+// -------------------------------------------------------------- site chrome
+/**
+ * Media that belongs to the site rather than to a project.
+ *
+ * These used to be the abstract tonal fields from make_placeholders.py, which
+ * shipped into a live section on the home page — the Studios block was the last
+ * place on the site still showing generated placeholder art as if it were work.
+ * Deriving them here instead puts them under the same rule as everything else:
+ * assets/ is regenerated from 'media source/', never hand-dropped.
+ *
+ * Sizes are the CSS aspect ratio at a 1600px long edge, NOT a free choice.
+ * .studio__visual--motion is 16/10 and --photo is 4/3 (css/site.css, the
+ * .studio__visual--* rules), both object-fit: cover — so cutting to anything
+ * else just hands the browser a second crop to do.
+ *
+ * Neither source is used by any project, so the Studios block does not repeat
+ * an image the work grid is already showing further up the same page.
+ */
+const SITE = {
+  // ByEveriArt: a music-video frame — foreground subject, group falling off
+  // behind it. The studio's own copy is "we shoot for the cut", and this is a
+  // frame that only exists because the setup was lit for one.
+  "studio-film.jpg": {
+    src: [`${BY}/Music Videos/K3ndrick Visualizer_No Holiday_4K No Sub.mov`, 45],
+    w: 1600,
+    h: 1000, // 16 / 10
+  },
+  // BeFrames: an architectural interior, which is one of the four disciplines
+  // that block names. Chosen over the brighter suites in the same set for the
+  // ground it sits on — the bed base carries the navy and the curtains the
+  // warm neutrals, so it reads as part of the palette rather than a lit hole
+  // punched in a dark section.
+  "studio-photo.jpg": {
+    src: [`${BE}/Real Estate/Grand Suite/DSC06920-HDR.jpg`],
+    w: 1600,
+    h: 1200, // 4 / 3
+  },
+};
+
+const ff = (args) =>
+  execFileSync("ffmpeg", ["-y", "-v", "error", ...args], { stdio: "pipe" });
+
+function src(rel) {
+  const p = join(SRC, rel.split("/").join(sep));
+  if (!existsSync(p)) {
+    console.error(`missing source: ${p}`);
+    process.exit(1);
+  }
+  return p;
+}
+
+/** A source tuple becomes ffmpeg input args (with -ss for a video frame). */
+const inputs = ([path, at]) =>
+  at === undefined
+    ? ["-i", src(path)]
+    : ["-ss", String(at), "-i", src(path), "-frames:v", "1"];
+
+/** Cut a source to exactly w x h, cropping or letterboxing per the fit rule. */
+function framed(spec, dest, fit, ground, w, h) {
+  const vf =
+    fit === "contain"
+      ? `scale=${w}:${h}:force_original_aspect_ratio=decrease,` +
+        `pad=${w}:${h}:(ow-iw)/2:(oh-ih)/2:${ground}`
+      : `scale=${w}:${h}:force_original_aspect_ratio=increase,crop=${w}:${h}`;
+  ff([...inputs(spec), "-vf", vf, "-q:v", "3", dest]);
+}
+
+const gallery = (spec, dest) =>
+  ff([...inputs(spec), "-vf", `scale='min(${GALLERY_MAX},iw)':-2`, "-q:v", "3", dest]);
+
+const video = (rel, dest) =>
+  ff([
+    "-i", src(rel),
+    "-vf",
+    `scale=w=${VIDEO_MAX}:h=${VIDEO_MAX}:force_original_aspect_ratio=decrease:force_divisible_by=2`,
+    "-c:v", "libx264", "-crf", "23", "-preset", "medium",
+    "-pix_fmt", "yuv420p", "-profile:v", "high", "-level", "4.1",
+    "-c:a", "aac", "-b:a", "128k", "-ac", "2",
+    "-movflags", "+faststart", dest,
+  ]);
+
+const mb = (p) => statSync(p).size / 1024 / 1024;
+const pad = (n) => String(n).padStart(2, "0");
+
+function build(slug, spec, tile) {
+  const dir = join(OUT, slug);
+  mkdirSync(dir, { recursive: true });
+  const ground = spec.ground ?? "0x000000";
+  let total = 0;
+
+  // Thumbnail aspect follows the tile this project renders as.
+  const r = RATIOS[tile];
+  const th = Math.round((THUMB_W * r.h) / r.w);
+  const t = join(dir, "thumb.jpg");
+  framed(spec.thumb, t, spec.fit, ground, THUMB_W, th);
+  total += mb(t);
+  console.log(
+    `  thumb.jpg       ${mb(t).toFixed(2).padStart(6)} MB  ` +
+      `${THUMB_W}x${th}  ${r.w}:${r.h} (tile--${tile}, ${spec.fit})`
+  );
+
+  const h = join(dir, "hero.jpg");
+  framed(spec.hero ?? spec.thumb, h, spec.fit, ground, HERO_W, HERO_H);
+  total += mb(h);
+  console.log(`  hero.jpg        ${mb(h).toFixed(2).padStart(6)} MB  ${HERO_W}x${HERO_H}`);
+
+  let gsum = 0;
+  spec.gallery.forEach((g, i) => {
+    const p = join(dir, `gallery-${pad(i + 1)}.jpg`);
+    gallery(g, p);
+    gsum += mb(p);
+  });
+  if (spec.gallery.length) {
+    total += gsum;
+    console.log(
+      `  gallery-01..${pad(spec.gallery.length)}  ${gsum.toFixed(2).padStart(6)} MB` +
+        `  (${spec.gallery.length} images)`
+    );
+  }
+
+  if (spec.reel) {
+    const p = join(dir, "reel.mp4");
+    video(spec.reel, p);
+    total += mb(p);
+    console.log(
+      `  reel.mp4        ${mb(p).toFixed(2).padStart(6)} MB  <- ${basename(spec.reel)}`
+    );
+  }
+
+  spec.clips.forEach((c, i) => {
+    const p = join(dir, `clip-${pad(i + 1)}.mp4`);
+    video(c, p);
+    total += mb(p);
+    console.log(
+      `  clip-${pad(i + 1)}.mp4     ${mb(p).toFixed(2).padStart(6)} MB  <- ${basename(c)}`
+    );
+  });
+
+  return total;
+}
+
+/** Site chrome. Lives in assets/ root, not under a slug. */
+function buildSite() {
+  mkdirSync(OUT, { recursive: true });
+  let total = 0;
+  for (const [name, s] of Object.entries(SITE)) {
+    const p = join(OUT, name);
+    framed(s.src, p, "crop", "0x000000", s.w, s.h);
+    total += mb(p);
+    console.log(
+      `  ${name.padEnd(16)}${mb(p).toFixed(2).padStart(6)} MB  ` +
+        `${s.w}x${s.h}  <- ${basename(s.src[0])}`
+    );
+  }
+  return total;
+}
+
+// "site" is a reserved name alongside the project slugs, so a bare run still
+// regenerates everything assets/ contains and nothing needs remembering.
+const SITE_KEY = "site";
+const wanted = process.argv.slice(2).length
+  ? process.argv.slice(2)
+  : [...Object.keys(PROJECTS), SITE_KEY];
+const unknown = wanted.filter((s) => s !== SITE_KEY && !PROJECTS[s]);
+if (unknown.length) {
+  console.error(`unknown slug(s): ${unknown.join(", ")}`);
+  process.exit(1);
+}
+
+const sizes = tileSizes(load().published);
+const missing = wanted.filter((s) => s !== SITE_KEY && !sizes[s]);
+if (missing.length) {
+  console.error(
+    `not published in projects.json, so no tile size is defined: ${missing.join(", ")}`
+  );
+  process.exit(1);
+}
+
+let grand = 0;
+for (const slug of wanted) {
+  console.log(`\n${slug}`);
+  grand +=
+    slug === SITE_KEY ? buildSite() : build(slug, PROJECTS[slug], sizes[slug]);
+}
+console.log(`\ntotal written to assets/: ${grand.toFixed(1)} MB`);

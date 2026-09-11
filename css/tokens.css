@@ -5,7 +5,13 @@
 
 :root {
   /* --- Color: locked master palette --- */
-  --navy:        #1C2541;  /* Midnight Navy  — dark anchor */
+  /* Authority Navy — the site's base ground. Every surface that is not the
+     hero plate, a raised section or an image sits on this. The site carries
+     no light surface anywhere; Parchment and Off-White are ink now, never
+     backgrounds, and the pair below reads as base vs. raised rather than
+     dark vs. light. */
+  --navy-base:   #0D132D;  /* Authority Navy — base ground */
+  --navy:        #1C2541;  /* Midnight Navy  — raised section */
   --charcoal:    #212121;  /* Deep Charcoal  — ink */
   --gunmetal:    #3A506B;  /* Gunmetal       — accent, hover, rules */
   --stone:       #8E8E8E;  /* Stone Gray     — meta, secondary */
@@ -28,9 +34,28 @@
   --navy-a90:    rgba(28, 37, 65, 0.90);
   --navy-a60:    rgba(28, 37, 65, 0.60);
   --offwhite-a70: rgba(248, 248, 248, 0.70);
-  --hairline:    rgba(142, 142, 142, 0.28);
+  /* Base-ground material: the nav's chrome past the hero. Dark now, because
+     a light translucent bar is the one surface that would still read as a
+     light region on an otherwise dark site — and apple-design §12 puts the
+     heavier material on structural chrome, not the lighter one. */
+  --navy-base-a72: rgba(13, 19, 45, 0.72);
+  /* One hairline, because there is only one ground. --hairline-dk is kept as
+     its alias so the on-dark rules that already name it keep working. */
+  --hairline:    rgba(244, 241, 222, 0.18);
   --hairline-dk: rgba(244, 241, 222, 0.18);
   --gold-a40:    rgba(183, 155, 98, 0.40);
+
+  /* Feedback ink. Both are read against Authority Navy, so they are the
+     lifted variants rather than the ink-on-paper reds and greens they
+     replaced (5.9:1 and 8.5:1 respectively). */
+  --danger:      #D9776B;
+  --danger-a12:  rgba(217, 119, 107, 0.12);
+  --ok:          #7FC08C;
+
+  /* A step above the ground without being a second surface colour —
+     inputs, secondary button hover, anything that has to read as inset. */
+  --lift-a06:    rgba(244, 241, 222, 0.06);
+  --lift-a12:    rgba(244, 241, 222, 0.12);
 
   /* Hero scrim stops — neutral, so the plate keeps its own colour */
   --ink-a00:     rgba(11, 11, 12, 0);
@@ -95,6 +120,18 @@
   --spring-response-ui:      0.36;
   --spring-damping-momentum: 0.8;
   --spring-response-momentum: 0.34;
+
+  /* Stagger interval between subjects in a reveal. The hero's load sequence
+     and every scroll reveal share it, so the site has one cascade rhythm
+     rather than one per section. Read by js/main.js.
+
+     Derived from the response it staggers rather than picked: a critically
+     damped spring at response 0.5 is ~90% of the way in by 300ms. Six
+     subjects at 60ms span 300ms, so the last one starts as the first
+     arrives — the cascade is continuous, with no gap between subjects and
+     no pile-up at the end. Halve it and a group reads as simultaneous;
+     double it and a six-tile row takes most of a second to finish. */
+  --stagger-step: 60ms;
 }
 
 /* Accessibility signals (apple-design §14) */
@@ -108,8 +145,10 @@
 
 @media (prefers-contrast: more) {
   :root {
-    --stone: #6A6A6A;
-    --hairline: rgba(33, 33, 33, 0.55);
+    /* Stone lightens rather than darkens now: it is read against Authority
+       Navy and Midnight Navy, never against a light ground. */
+    --stone: #B4B4B4;
+    --hairline: rgba(244, 241, 222, 0.55);
     --hairline-dk: rgba(244, 241, 222, 0.55);
   }
 }

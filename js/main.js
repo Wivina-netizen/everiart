@@ -4,7 +4,8 @@
    presentation-value animation, interruptible, reduced-motion aware.
    ============================================================ */
 
-import { Spring, prefersReducedMotion, REDUCED } from './spring.js';
+import { Spring, prefersReducedMotion, REDUCED } from './spring.js?v=2';
+import { caseStudyReel } from './video.js?v=2';
 
 const reduced = () => prefersReducedMotion();
 
@@ -18,7 +19,6 @@ function heroVideo() {
   if (!v) return;
 
   const media = v.closest('.hero__media');
-  const play = document.querySelector('.hero__play');
   const d = v.dataset;
 
   // Why the plate is or isn't running, readable from the DOM. Four separate
@@ -26,16 +26,6 @@ function heroVideo() {
   // of "it doesn't play" impossible to act on.
   const setState = (state) => { if (media) media.dataset.videoState = state; };
 
-  // Offered only where a click can actually help. If nothing decodes, a play
-  // button would just fail again, so the still is left to stand on its own.
-  const offer = (label) => {
-    if (!play) return;
-    const text = play.querySelector('.hero__play-label');
-    if (text && label) text.textContent = label;
-    play.hidden = false;
-  };
-
-  // Built before any early return below, so the Data Saver opt-in can use it.
   // canPlayType is advisory only — Safari reports WebM support it cannot
   // always decode — so the MP4 stays queued behind the WebM rather than being
   // discarded on the strength of that claim.
@@ -48,6 +38,7 @@ function heroVideo() {
 
   let i = 0;
   let attempt = 0;   // guards against a superseded attempt reporting state
+  let gestureArmed = false;
 
   function tryPlay(token) {
     const r = v.play();
@@ -56,17 +47,41 @@ function heroVideo() {
       // NotAllowedError is the only rejection that means "the browser refused
       // to autoplay". AbortError is our own load() superseding this attempt,
       // and NotSupportedError is a source problem the 'error' handler owns —
-      // reporting either as a refusal puts a play button on a video that
-      // cannot play at all.
+      // reporting either as a refusal puts recovery on a video that cannot
+      // play at all.
       if (token !== attempt || err.name !== 'NotAllowedError') return;
       setState('autoplay-blocked');
-      offer('Play background');
+      armGesture();
     });
+  }
+
+  /* There is no play control any more, so a refusal is recovered from by the
+     next thing the reader does rather than by asking them to press something.
+     A scroll is the gesture the hero is already asking for, and it carries the
+     activation a refusing browser was holding out for. Once only, and
+     passively — this must not sit in the scroll path for the whole session. */
+  function armGesture() {
+    if (gestureArmed) return;
+    gestureArmed = true;
+    // One handler, torn down as a set. Three separate { once: true }
+    // listeners only remove the one that fires, leaving the other two armed
+    // to call this again later — and if the plate has not reached
+    // readyState 2 by then (likely, on the slow connection that blocked
+    // autoplay in the first place) the second call re-enters attach() and
+    // restarts the video from frame zero under the reader.
+    const events = ['scroll', 'pointerdown', 'keydown'];
+    const go = () => {
+      events.forEach((t) => window.removeEventListener(t, go));
+      attempt += 1;
+      if (v.src && v.readyState >= 2 && !v.error) tryPlay(attempt);
+      else attach();
+    };
+    events.forEach((t) =>
+      window.addEventListener(t, go, { passive: true }));
   }
 
   function attach() {
     attempt += 1;
-    if (play) play.hidden = true;
     setState('loading');
     v.src = sources[i];
     v.preload = 'auto';
@@ -82,7 +97,6 @@ function heroVideo() {
       return;
     }
     setState('undecodable');
-    if (play) play.hidden = true;
   });
 
   // Only once frames are actually running is the plate faded up. Waiting on
@@ -92,38 +106,32 @@ function heroVideo() {
   v.addEventListener('playing', () => {
     v.dataset.ready = '1';
     setState('playing');
-    if (play) play.hidden = true;
   });
 
-  if (play) {
-    play.addEventListener('click', () => {
-      // Already buffered and merely refused — the gesture is all that was
-      // missing, so don't re-download it.
-      if (v.src && v.readyState >= 2 && !v.error) { attempt += 1; tryPlay(attempt); }
-      else attach();
-    });
-  }
-
-  // A motion-sensitive user gets the still, and no invitation to start motion
-  // they have explicitly asked not to see.
+  // A motion-sensitive user gets the still, and nothing invites them to start
+  // motion they have explicitly asked not to see.
   if (reduced()) { setState('reduced-motion'); return; }
 
-  // A decorative loop is never worth someone's data plan — but it is their
-  // call to make, so the button is offered with the reason written on it.
+  // A decorative loop is never worth someone's data plan. This used to offer
+  // an opt-in button; with the button gone the still simply stands, which is
+  // the answer reduced motion already gets.
   const conn = navigator.connection;
   if (conn && (conn.saveData || /(^|-)2g$/.test(conn.effectiveType || ''))) {
     setState('save-data');
-    offer('Data Saver is on — play background');
     return;
   }
 
-  attach();
-
-  // Don't burn cycles decoding video that isn't on screen.
+  /* Playback is owned entirely by where the plate is on screen — the same
+     armed/disarmed observer the rest of the site's motion runs on. The hero
+     holds the viewport at load, so it starts there; scroll past and it stops
+     decoding; scroll back and it resumes. There is no manual control. */
   const io = new IntersectionObserver(([e]) => {
-    if (!v.src || v.error) return;
-    if (e.isIntersecting) { attempt += 1; tryPlay(attempt); }
-    else v.pause();
+    if (e.isIntersecting) {
+      if (!v.src) attach();
+      else if (!v.error) { attempt += 1; tryPlay(attempt); }
+    } else if (v.src) {
+      v.pause();
+    }
   }, { threshold: 0.01 });
   io.observe(v);
 
@@ -151,6 +159,52 @@ function fitWordmark() {
 
   const REF = 100;   // measure at a known size, then scale by ratio
 
+  /* The two offsets that seat the mark on the corner.
+   *
+   * The mark is bottom- and left-aligned on spacing derived the way the rest
+   * of the site's spacing is: --gutter supplies the inset itself, on both
+   * edges (see .hero__markline). What CSS cannot know is how far the word's
+   * ink sits inside its layout box — and insetting a box edge nobody can see
+   * is what leaves large type looking high and indented:
+   *
+   *   --word-ink-left   the serif E's left side bearing. The lead copy above
+   *                     has almost none, so without this the two are out of
+   *                     line by exactly that bearing.
+   *   --word-ink-below  the gap between the box bottom and the letterforms.
+   *                     "Everiart" has no descenders, so its ink bottom is
+   *                     its baseline and what is left below it is leading.
+   *
+   * Both come off the font's own metrics at the size actually rendered, so
+   * they follow a font swap, a resize and the fit below without being told.
+   */
+  const measureInk = () => {
+    let g;
+    try { g = document.createElement('canvas').getContext('2d'); } catch { return; }
+    if (!g) return;
+
+    const cw = getComputedStyle(word);
+    const px = parseFloat(cw.fontSize);
+    if (!px) return;
+    g.font = cw.fontStyle + ' ' + cw.fontWeight + ' ' + px + 'px ' + cw.fontFamily;
+
+    const m = g.measureText((word.textContent || '').replace(/\s+/g, ''));
+    // TextMetrics' ink box is optional in the spec. Where it is missing the
+    // custom properties stay unset and the CSS falls back to 0 — the mark
+    // then sits on its layout box, which is where it sat before this existed.
+    if (!m || typeof m.actualBoundingBoxLeft !== 'number'
+           || typeof m.fontBoundingBoxAscent !== 'number') return;
+
+    const lh = parseFloat(cw.lineHeight) || px;
+    const halfLeading =
+      (lh - (m.fontBoundingBoxAscent + m.fontBoundingBoxDescent)) / 2;
+    const inkBelow =
+      lh - (halfLeading + m.fontBoundingBoxAscent + m.actualBoundingBoxDescent);
+
+    line.style.setProperty('--word-ink-below', inkBelow.toFixed(2) + 'px');
+    word.style.setProperty('--word-ink-left',
+      Math.max(0, -m.actualBoundingBoxLeft).toFixed(2) + 'px');
+  };
+
   const fit = () => {
     const cs = getComputedStyle(line);
     const avail = line.clientWidth
@@ -169,6 +223,7 @@ function fitWordmark() {
     if (!natural) return;
 
     word.style.fontSize = (REF * (avail * fill / natural)).toFixed(2) + 'px';
+    measureInk();   // the offsets are size-dependent, so they follow the fit
   };
 
   fit();
@@ -185,83 +240,123 @@ function fitWordmark() {
 }
 
 /* ------------------------------------------------------------
-   1c. Hero — ONE orchestrated load sequence (not per-section fades)
+   1c. Hero — ONE staggered load sequence (not per-section fades)
    ------------------------------------------------------------ */
+/* The one stagger interval on the site, read from CSS so the hero's load
+   sequence and the scroll reveals cannot drift apart. See --stagger-step in
+   tokens.css for where the value comes from. */
+function staggerStep() {
+  const raw = getComputedStyle(document.documentElement)
+    .getPropertyValue('--stagger-step').trim();
+  const n = parseFloat(raw);
+  if (!n) return 60;
+  return /ms$/.test(raw) ? n : n * 1000;
+}
+
+/* One subject per step, in reading order, each fading up behind the last.
+ *
+ * Everything here is opacity. The two wordmark segments do not travel: the
+ * mark is the largest type on the site and the case-study title already
+ * establishes that display type fades and is never translated. The smaller
+ * subjects carry the same 14px rise the scroll reveals use, so the hero's
+ * entrance and the rest of the page read as one mechanism.
+ */
 function heroSequence() {
-  const segs = document.querySelectorAll('.hero__seg > span');
-  const tm = document.querySelector('.hero__tm');
-  const lead = document.querySelector('.hero__lead');
   const nav = document.querySelector('.nav');
+  const sub = document.querySelector('.hero__sub');
+  const cta = document.querySelector('.hero__cta');
+  const segs = [...document.querySelectorAll('.hero__seg > span')];
+  const tm = document.querySelector('.hero__tm');
+  const cue = document.querySelector('.scroll-cue');
   const cueLine = document.querySelector('.scroll-cue__line');
 
+  // The word's two segments are separate subjects on purpose — it assembles
+  // left to right rather than arriving whole.
+  const steps = [
+    { el: nav, rise: 14 },
+    { el: sub, rise: 14 },
+    { el: cta, rise: 14 },
+    ...segs.map((el) => ({ el, rise: 0 })),
+    { el: tm, rise: 0 },
+    { el: cue, rise: 14 },
+  ].filter((s) => s.el);
+
   if (reduced()) {
-    [...segs, tm, lead, nav].forEach((el) => {
-      if (el) { el.style.transform = 'none'; el.style.opacity = '1'; }
-    });
+    steps.forEach(({ el }) => { el.style.opacity = '1'; el.style.transform = 'none'; });
     if (cueLine) cueLine.style.transform = 'scaleX(1)';
     return;
   }
 
-  // Wordmark segments rise from their own clipped mask, staggered.
-  segs.forEach((seg, i) => {
-    seg.style.transform = 'translate3d(0, 108%, 0)';
-    const s = new Spring(108, {
+  const step = staggerStep();
+
+  steps.forEach(({ el, rise }, idx) => {
+    el.style.opacity = '0';
+    if (rise) el.style.transform = `translate3d(0, ${rise}px, 0)`;
+    el.style.willChange = rise ? 'opacity, transform' : 'opacity';
+
+    const s = new Spring(0, {
       damping: 1.0,
-      response: 0.68,
-      onUpdate: (v) => { seg.style.transform = `translate3d(0, ${v}%, 0)`; },
-      onRest: () => { seg.style.willChange = 'auto'; },
+      response: 0.5,   // the documented reveal response: this IS a reveal
+      onUpdate: (v) => {
+        el.style.opacity = String(v);
+        if (rise) {
+          el.style.transform = `translate3d(0, ${((1 - v) * rise).toFixed(2)}px, 0)`;
+        }
+      },
+      onRest: () => {
+        if (rise) el.style.transform = 'none';
+        el.style.willChange = 'auto';
+      },
     });
-    setTimeout(() => s.setTarget(0), 160 + i * 110);
+    setTimeout(() => s.setTarget(1), idx * step);
   });
 
-  // The trademark mark settles after the word it belongs to.
-  if (tm) {
-    tm.style.opacity = '0';
+  // The cue's rule draws itself last, once the thing it belongs to is up.
+  if (cueLine) {
+    cueLine.style.transform = 'scaleX(0)';
+    cueLine.style.willChange = 'transform';
     const s = new Spring(0, {
       damping: 1.0,
       response: 0.5,
-      onUpdate: (v) => { tm.style.opacity = String(v); },
-    });
-    setTimeout(() => s.setTarget(1), 620);
-  }
-
-  // Chrome and copy follow the wordmark — they never compete with it.
-  [nav, lead].forEach((el, i) => {
-    if (!el) return;
-    el.style.opacity = '0';
-    el.style.transform = 'translate3d(0, 14px, 0)';
-    const s = new Spring(0, {
-      damping: 1.0,
-      response: 0.55,
-      onUpdate: (v) => {
-        el.style.opacity = String(v);
-        el.style.transform = `translate3d(0, ${(1 - v) * 14}px, 0)`;
-      },
-      onRest: () => { el.style.transform = 'none'; el.style.willChange = 'auto'; },
-    });
-    setTimeout(() => s.setTarget(1), 420 + i * 120);
-  });
-
-  if (cueLine) {
-    cueLine.style.transform = 'scaleX(0)';
-    const s = new Spring(0, {
-      damping: 1.0,
-      response: 0.7,
       onUpdate: (v) => { cueLine.style.transform = `scaleX(${v})`; },
+      onRest: () => { cueLine.style.willChange = 'auto'; },
     });
-    setTimeout(() => s.setTarget(1), 900);
+    setTimeout(() => s.setTarget(1), steps.length * step);
   }
 }
 
 /* ------------------------------------------------------------
-   2. Scroll reveals — spring-driven, single mechanism
+   2. Scroll reveals — spring-driven, one mechanism, one cascade
+
+   Everything that crosses the threshold on the same frame is one group, and
+   a group arrives in document order one --stagger-step apart rather than all
+   at once. That is the whole difference: a pair of tiles, a row of client
+   cells or a run of figures used to fade up together, which reads as a
+   single block changing state instead of a sequence of things arriving.
+
+   Grouping by observer batch rather than by container is deliberate. It
+   needs no per-section markup, it works for a two-tile pair and a nine-cell
+   grid alike, and it can never stagger two elements that are not on screen
+   together — the batch IS what the reader just saw appear.
+
+   The tail is capped: past CASCADE_MAX steps the delay stops growing, so a
+   tall viewport that admits a dozen elements at once cannot leave the last
+   of them waiting most of a second for its turn.
    ------------------------------------------------------------ */
+const CASCADE_MAX = 6;
+
 function reveals() {
   const items = document.querySelectorAll('.reveal');
   if (!items.length) return;
 
+  // Document order for whatever arrived together. compareDocumentPosition is
+  // the only ordering that survives the grid being reordered by the filter.
+  const inOrder = (els) => els.sort((a, b) =>
+    (a.compareDocumentPosition(b) & Node.DOCUMENT_POSITION_FOLLOWING) ? -1 : 1);
+
   if (reduced()) {
-    // Cross-fade only, no travel.
+    // Cross-fade only, no travel — and no cascade either: a stagger is
+    // motion, and the ask is for the final readable state (apple-design §14).
     const io = new IntersectionObserver((entries) => {
       entries.forEach((e) => {
         if (e.isIntersecting) { e.target.classList.add('is-in'); io.unobserve(e.target); }
@@ -271,30 +366,53 @@ function reveals() {
     return;
   }
 
+  const step = staggerStep();
+
+  const run = (el, delay) => {
+    const dist = Number(el.dataset.dist || 26);
+
+    el.style.transform = `translate3d(0, ${dist}px, 0)`;
+    el.style.willChange = 'opacity, transform';
+    const s = new Spring(0, {
+      damping: 1.0,
+      response: 0.5,
+      onUpdate: (v) => {
+        el.style.opacity = String(v);
+        el.style.transform = `translate3d(0, ${((1 - v) * dist).toFixed(2)}px, 0)`;
+      },
+      onRest: () => {
+        el.style.willChange = 'auto';
+        el.style.transform = 'none';
+        el.classList.add('is-in');
+      },
+    });
+    setTimeout(() => s.setTarget(1), delay);
+  };
+
+  /* Everything that crosses within one frame is one group.
+     IntersectionObserver does not promise to deliver simultaneous crossings
+     in a single callback, and on load it does not: a six-tile grid produced
+     six callbacks of one entry each, so a per-callback index handed every
+     tile a delay of zero and the pair rose together. Queueing and flushing
+     on the next frame is what makes "arrived together" and "cascades
+     together" the same thing. */
+  let queue = [];
+  let queued = false;
+
+  const flush = () => {
+    const batch = inOrder(queue);
+    queue = [];
+    queued = false;
+    batch.forEach((el, i) => run(el, Math.min(i, CASCADE_MAX) * step));
+  };
+
   const io = new IntersectionObserver((entries) => {
     entries.forEach((e) => {
       if (!e.isIntersecting) return;
-      const el = e.target;
-      const delay = Number(el.dataset.delay || 0);
-      const dist = Number(el.dataset.dist || 26);
-
-      el.style.transform = `translate3d(0, ${dist}px, 0)`;
-      el.style.willChange = 'opacity, transform';
-      const s = new Spring(0, {
-        damping: 1.0,
-        response: 0.5,
-        onUpdate: (v) => {
-          el.style.opacity = String(v);
-          el.style.transform = `translate3d(0, ${(1 - v) * dist}px, 0)`;
-        },
-        onRest: () => {
-          el.style.willChange = 'auto';
-          el.classList.add('is-in');
-        },
-      });
-      setTimeout(() => s.setTarget(1), delay);
-      io.unobserve(el);
+      io.unobserve(e.target);   // one reveal per element, ever
+      queue.push(e.target);
     });
+    if (queue.length && !queued) { queued = true; requestAnimationFrame(flush); }
   }, { rootMargin: '0px 0px -10% 0px', threshold: 0.08 });
 
   items.forEach((el) => io.observe(el));
@@ -319,17 +437,28 @@ function studioFilter() {
     if (!moving.x && !moving.w) rule.style.willChange = 'auto';
   };
 
-  // Two independent springs — X and width never share one spring.
+  /* Position and extent stay two springs — one spring over a 2D quantity
+     desyncs when the axes carry different velocities (apple-design §3) — but
+     they now write through one composed transform instead of one property
+     each. The extent spring carries the button's width in px and is applied
+     as scaleX against a 1px rule (see .filter__rule), so nothing here
+     touches layout. */
+  let x = 0, w = 0;
+  const paint = () => {
+    rule.style.transform =
+      `translate3d(${x.toFixed(2)}px, 0, 0) scaleX(${w.toFixed(2)})`;
+  };
+
   const xs = new Spring(0, {
     damping: 1.0,
     response: 0.36,
-    onUpdate: (v) => { rule.style.transform = `translate3d(${v}px, 0, 0)`; },
+    onUpdate: (v) => { x = v; paint(); },
     onRest: () => { moving.x = false; release(); },
   });
   const ws = new Spring(0, {
     damping: 1.0,
     response: 0.36,
-    onUpdate: (v) => { rule.style.width = `${v}px`; },
+    onUpdate: (v) => { w = v; paint(); },
     onRest: () => { moving.w = false; release(); },
   });
 
@@ -341,7 +470,7 @@ function studioFilter() {
       xs.set(x); ws.set(w);
       release();
     } else {
-      rule.style.willChange = 'transform, width';
+      rule.style.willChange = 'transform';
       moving.x = moving.w = true;
       // Re-target only — carries current value and velocity through.
       xs.setTarget(x);
@@ -483,60 +612,191 @@ function pickArrowInk(tile) {
   else img.addEventListener('load', measure, { once: true });
 }
 
+/* Geometry epoch. Every tile's cached rect is stamped with this; anything
+   that could have moved a tile bumps it, and the tile re-measures lazily on
+   its next pointer event.
+ *
+ * One listener for the page, not one per tile: the whole point of caching the
+ * rect is to keep scroll cheap, and N tiles each attaching their own scroll
+ * handler to invalidate themselves gives that back as the grid grows.
+ */
+let geomEpoch = 0;
+const bumpEpoch = () => { geomEpoch += 1; };
+window.addEventListener('scroll', bumpEpoch, { passive: true });
+window.addEventListener('resize', bumpEpoch);
+
 /* One affordance, two callers: the work tiles and the next-project handover.
-   Both want the same spring, the same reversal behaviour and the same
-   no-hover fallback, so neither gets its own copy of it. */
-function arrowAffordance(root, arrow) {
+   Both want the same spring, the same tracking and the same exit, so neither
+   gets its own copy of it.
+
+   The contract, and it is deliberately narrow:
+
+     invisible by default;
+     visible only while the cursor is inside THIS element;
+     following the cursor with spring lag while it is;
+     gone the instant the cursor leaves.
+
+   That last clause is why there is no exit spring and no cross-element
+   handover any more. Both are documented below where they were removed,
+   because both looked correct in isolation and were the reason the arrow
+   read as distracting.
+
+   `follow` is the one thing the two callers disagree on. On a tile the arrow
+   tracks the cursor. On the next-project handover it stays put, because
+   there it is composed to overlap the word — dragging it off the type by the
+   pointer would break the one thing that composition is for. */
+function arrowAffordance(root, arrow, { follow = false } = {}) {
   if (!root || !arrow) return;
 
-  // Hover is not available everywhere, and a hover-only affordance is
-  // invisible on touch. Where there is no fine pointer, the arrow is
-  // emphasised while its target holds the middle of the viewport.
+  /* No cursor, no arrow.
+     There used to be an IntersectionObserver fallback here that lit the
+     arrow while the tile held the middle of the viewport, standing in for
+     hover on touch. But the affordance is defined as "the cursor is over
+     this card", and on a touch screen that is never true — so the fallback
+     put an arrow on screen with nothing pointing at it, on every tile, as
+     you scrolled. A tile on touch is a link with a picture on it, and it
+     does not need an arrow to say so. */
   const hoverable = window.matchMedia('(hover: hover) and (pointer: fine)').matches;
 
   let show;
+
   if (reduced()) {
-    // Cross-fade only — no travel, no spring (apple-design §14).
-    arrow.style.transition = 'opacity 160ms ease';
-    show = (on) => { arrow.style.opacity = on ? '1' : '0'; };
+    // Cross-fade in, cut out. No travel, no spring, no tracking
+    // (apple-design §14) — but the exit is still immediate, because that is
+    // the affordance's contract rather than a motion decision.
+    show = (on) => {
+      arrow.style.transition = on
+        ? 'opacity 160ms var(--ease-out-quart, cubic-bezier(0.165, 0.84, 0.44, 1))'
+        : 'none';
+      arrow.style.opacity = on ? '1' : '0';
+    };
   } else {
-    const s = new Spring(0, {
+    // Three springs, never one: opacity, and X and Y decomposed, because a
+    // single spring over a 2D distance desyncs when the axes carry different
+    // velocities (apple-design §3).
+    let x = 0, y = 0, o = 0;
+    const paint = () => {
+      arrow.style.opacity = String(o);
+      // The px offset is applied before the -50% centring, so an offset of
+      // zero is the frame's centre — which is what the CSS resting position
+      // and the keyboard path both resolve to.
+      arrow.style.transform =
+        `translate3d(${x.toFixed(2)}px, ${y.toFixed(2)}px, 0) ` +
+        `translate(-50%, -50%) scale(${(0.9 + o * 0.1).toFixed(4)})`;
+    };
+
+    const os = new Spring(0, {
       damping: 1.0,
       response: 0.34,
-      onUpdate: (v) => {
-        arrow.style.opacity = String(v);
-        arrow.style.transform =
-          `translate(-50%, -50%) scale(${(0.9 + v * 0.1).toFixed(4)})`;
-      },
-      onRest: () => { arrow.style.willChange = 'auto'; },
+      onUpdate: (v) => { o = v; paint(); },
     });
-    show = (on) => {
-      arrow.style.willChange = 'transform, opacity';
-      s.setTarget(on ? 1 : 0);   // re-target carries velocity through
+    const xs = new Spring(0, { damping: 1.0, response: 0.34,
+      onUpdate: (v) => { x = v; paint(); } });
+    const ys = new Spring(0, { damping: 1.0, response: 0.34,
+      onUpdate: (v) => { y = v; paint(); } });
+
+    /* Clamped to the frame, so the arrow can lead the cursor toward an edge
+       without ever hanging off the image it is drawn against.
+
+       The geometry is cached rather than measured per move. Reading the rect
+       inside pointermove while three springs write transform from rAF is a
+       layout read/write pair on every pointer event — 120+ times a second on
+       a high-refresh pointer, on the most-touched interaction on the site.
+       It is re-read on entry and, lazily, after anything that could have
+       moved the tile. */
+    const frame = root.querySelector('.tile__frame') || root;
+    let box = null;
+    let boxEpoch = -1;
+
+    const offsetFor = (e) => {
+      if (!box || boxEpoch !== geomEpoch) {
+        boxEpoch = geomEpoch;
+        const r = frame.getBoundingClientRect();
+        const aw = arrow.offsetWidth || 0;
+        const ah = arrow.offsetHeight || aw;
+        box = {
+          cx: r.left + r.width / 2,
+          cy: r.top + r.height / 2,
+          maxX: Math.max(0, (r.width - aw) / 2),
+          maxY: Math.max(0, (r.height - ah) / 2),
+        };
+      }
+      return {
+        x: Math.max(-box.maxX, Math.min(box.maxX, e.clientX - box.cx)),
+        y: Math.max(-box.maxY, Math.min(box.maxY, e.clientY - box.cy)),
+      };
     };
+
+    show = (on, e) => {
+      if (on) {
+        // Seed the position hard, never animate it in: the arrow belongs at
+        // the point the cursor entered, not flying out from the centre.
+        if (follow && e) {
+          const p = offsetFor(e);
+          xs.set(p.x); ys.set(p.y);
+        } else if (follow) {
+          // Activated with no pointer — keyboard focus. Centre it rather
+          // than leaving it wherever a previous hover abandoned it.
+          xs.set(0); ys.set(0);
+        }
+        arrow.style.willChange = 'transform, opacity';
+        os.setTarget(1);
+        return;
+      }
+
+      /* Immediate, not sprung.
+         The exit used to be os.setTarget(0) at the same 0.34 response as the
+         entry, which left the arrow hanging over a card the cursor had
+         already left — and, crossing between two adjacent tiles, meant a
+         page-level registry had to hand the outgoing arrow's live opacity
+         and velocity to the incoming one to stop two arrows cross-fading
+         past each other. All of that machinery existed to manage a fade
+         that should not be there. With the exit cut, leaving a card ends
+         that card's arrow, entering the next one starts its own, and
+         "exactly one arrow on the page" falls out for free. */
+      os.set(0);
+      arrow.style.willChange = 'auto';
+    };
+
+    if (follow && hoverable) {
+      root.addEventListener('pointermove', (e) => {
+        if (o <= 0) return;         // not this card's turn
+        const p = offsetFor(e);
+        xs.setTarget(p.x);          // spring lag, deliberately not 1:1
+        ys.setTarget(p.y);
+      });
+    }
   }
 
   if (hoverable) {
-    root.addEventListener('pointerenter', () => show(true));
+    root.addEventListener('pointerenter', (e) => show(true, e));
     root.addEventListener('pointerleave', () => show(false));
-  } else {
-    new IntersectionObserver(([e]) => show(e.isIntersecting),
-      { rootMargin: '-35% 0px -35% 0px', threshold: 0 }).observe(root);
   }
 
-  // Keyboard reaches the same affordance on both.
+  /* Keyboard reaches the affordance too — centred, since there is no pointer
+     position to answer to. This is the one deliberate exception to
+     "only while the cursor is over the card": a keyboard user gets no cursor
+     and no hover, and dropping it would leave the focused tile with no
+     affordance at all. */
   root.addEventListener('focus', () => show(true));
   root.addEventListener('blur', () => show(false));
 }
 
+/* ------------------------------------------------------------
+   3c. Work tiles — the arrow, and nothing else.
+   ------------------------------------------------------------ */
 function workTiles() {
   document.querySelectorAll('.tile').forEach((tile) => {
+    // Measured once per tile at image load, not per hover — so the ink is
+    // already correct on the frame the arrow becomes visible, including on a
+    // tile-to-tile handover where there is no time to measure anything.
     pickArrowInk(tile);
-    arrowAffordance(tile, tile.querySelector('.tile__arrow'));
+    arrowAffordance(tile, tile.querySelector('.tile__arrow'), { follow: true });
   });
 
   // The handover at the foot of a case study sits on a flat ground, so its
-  // ink is known — no image to measure.
+  // ink is known — no image to measure. It does not follow the cursor: the
+  // arrow is composed to sit over the word, which is the point of it.
   const next = document.querySelector('.next');
   if (next) arrowAffordance(next, next.querySelector('.next__arrow'));
 }
@@ -577,6 +837,156 @@ function heroParallax() {
         if (markline) markline.style.transform = `translate3d(0, ${y * -0.055}px, 0)`;
       }
       ticking = false;
+    });
+  };
+  window.addEventListener('scroll', onScroll, { passive: true });
+  onScroll();
+}
+
+/* ------------------------------------------------------------
+   4a. Case study — the scroll sequence.
+
+   Three movements, and they are deliberately not all the same kind of motion:
+
+     1. The title arrives over the plate. Discrete, so it is a spring — the
+        documented 0.34, which is the fastest response in the contract. That
+        is not a 340ms fade: a critically damped spring at response 0.34 is
+        88% of the way there at 200ms and visually in, which is the bar the
+        brief set. Opacity only — no travel, no blur — and one spring over
+        one box holding both lines, so there is nothing to stagger.
+
+     2. The plate shrinks away as you scroll. Scroll-linked, so it is mapped
+        directly from the scroll position and NOT sprung. A spring here would
+        put lag between the scrollbar and the image, which is the one thing
+        continuous scroll-driven motion must never do (apple-design §1).
+
+     3. The gallery below fades up from the bottom edge. That is reveals(),
+        unchanged — the same armed/disarmed observer at response 0.5.
+
+   Accessibility, confirmed against ui-ux-pro-max (Accessibility / Motion
+   Sensitivity, severity High: "Parallax/Scroll-jacking causes nausea. Honor
+   prefers-reduced-motion and present the final readable state"):
+
+     - Under reduced motion the plate does not move or scale at all. The
+       fades stay: both are opacity, which is the property that path is meant
+       to keep, and the title's fade is load-bearing rather than decorative —
+       the nav is transparent over a plate, so a title that never fades
+       scrolls up through the nav links and lands on top of them. Dropping
+       the fade too was the bug, not the accommodation.
+     - The parallax is on the plate only. The title is faded but never
+       translated — the same source is explicit that parallax belongs on
+       background layers and never on text.
+     - The scale delta is 12%, inside the 5–15% band that source gives, and
+       the plate is fully faded before its shrunken edge could become
+       visible against the ground.
+     - will-change is armed on enter and dropped on exit, never standing.
+   ------------------------------------------------------------ */
+function caseStudy() {
+  const phero = document.querySelector('.phero');
+  if (!phero) return;
+
+  const intro = phero.querySelector('.phero__intro');
+  const plate = phero.querySelector('.phero__plate');
+  const inner = phero.querySelector('.phero__inner');
+
+  /* --- 1. Title in --- */
+  if (intro) {
+    if (reduced()) {
+      intro.style.opacity = '1';
+    } else {
+      intro.style.opacity = '0';
+      const s = new Spring(0, {
+        damping: 1.0,
+        response: 0.34,
+        onUpdate: (v) => { intro.style.opacity = String(v); },
+        onRest: () => { intro.style.willChange = 'auto'; },
+      });
+      const go = () => { intro.style.willChange = 'opacity'; s.setTarget(1); };
+
+      // Over the image, not before it: the transition is composed against the
+      // plate. But a title that never arrives because a hero 404'd is worse
+      // than one that arrives early, so every path ends at go().
+      const img = phero.querySelector('.phero__img');
+      if (!img || (img.complete && img.naturalWidth)) go();
+      else {
+        img.addEventListener('load', go, { once: true });
+        img.addEventListener('error', go, { once: true });
+        window.setTimeout(go, 1200);
+      }
+    }
+  }
+
+  /* --- 2. Plate shrinks away on scroll ---
+     Reduced motion keeps the FADES and drops only the travel and the scale.
+     It used to return here, which read as the safe choice and was not: the
+     nav is transparent over a plate by design, and with nothing fading, the
+     title scrolled straight up through the nav links and sat on top of them.
+     Measured on /work/azusa/ at scrollY 600 — nav 0-64px, title 49-130px,
+     .phero__inner opacity 1, no nav background and no blur between them.
+
+     That is the readable final state failing in exactly the path that owes
+     it, and the fix is the one the guidance already points at: gentler, not
+     zero — keep opacity, drop position. So the plate never moves or scales
+     for these readers, and the type fades on the same mapping everyone else
+     gets. */
+  if (!plate) return;
+  const still = reduced();
+
+  let armed = false;
+  const arm = (on) => {
+    if (on === armed) return;
+    armed = on;
+    // Nothing hints transform when nothing transforms.
+    plate.style.willChange = on ? (still ? 'opacity' : 'transform, opacity') : 'auto';
+    if (inner) inner.style.willChange = on ? 'opacity' : 'auto';
+  };
+  new IntersectionObserver(([e]) => arm(e.isIntersecting), { threshold: 0 })
+    .observe(phero);
+
+  // Measured on resize, not per frame. Reading offsetHeight inside the rAF
+  // and then writing transform is a layout read/write pair on every scroll
+  // frame, and the height only changes when the viewport does.
+  let h = phero.offsetHeight || 1;
+  let ticking = false;
+  let last = -1;
+  let rt;
+  window.addEventListener('resize', () => {
+    clearTimeout(rt);
+    rt = setTimeout(() => {
+      h = phero.offsetHeight || 1;
+      // The travel term is scaled by h, so a new height needs a repaint even
+      // when the scroll position resolves to the same p.
+      last = -1;
+      onScroll();
+    }, 120);
+  });
+
+  const onScroll = () => {
+    if (ticking) return;
+    ticking = true;
+    requestAnimationFrame(() => {
+      ticking = false;
+      const p = Math.min(1, Math.max(0, window.scrollY / h));
+
+      // A case study runs several viewports past its hero. Once the plate has
+      // finished leaving, every further scroll frame would otherwise rewrite
+      // two properties on an element that is off-screen and no longer moving.
+      if (p === last) return;
+      last = p;
+
+      // Travel is slower than the scroll, so the plate lags the page and
+      // reads as receding rather than sliding. Skipped entirely under reduced
+      // motion — this is the position change that path drops.
+      if (!still) {
+        plate.style.transform =
+          `translate3d(0, ${(p * h * 0.12).toFixed(1)}px, 0) ` +
+          `scale(${(1.06 - p * 0.12).toFixed(4)})`;
+      }
+      // Gone by 80% of the hero's height, which is before the shrunken edge
+      // could be read against the ground behind it.
+      plate.style.opacity = Math.max(0, 1 - p * 1.25).toFixed(3);
+      // The type fades, and only fades. It is never translated.
+      if (inner) inner.style.opacity = Math.max(0, 1 - p * 1.8).toFixed(3);
     });
   };
   window.addEventListener('scroll', onScroll, { passive: true });
@@ -670,7 +1080,9 @@ function init() {
   reveals();
   studioFilter();
   workTiles();
+  caseStudyReel();      // /work/<slug>/: reel plays while it holds the view
   heroParallax();
+  caseStudy();          // /work/<slug>/: title in, plate out on scroll
   contactForm();
   navTheme();
 }

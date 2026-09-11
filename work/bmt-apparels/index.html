@@ -3,8 +3,14 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
-<title>BMT Apparels — EveriArt</title>
-<meta name="description" content="BMT Apparels: identity for EveriDesign.">
+
+<!-- Sets .js before first paint, so css/base.css can hide .reveal blocks
+     only in documents that actually run script. Inline and synchronous on
+     purpose: main.js is a module and therefore deferred, and hiding from
+     there would flash the content it is about to hide. -->
+<script>document.documentElement.classList.add("js")</script>
+<title>BMT Apparel — EveriArt</title>
+<meta name="description" content="BMT Apparel: brand identity for EveriDesign.">
 <meta name="theme-color" content="#0B0B0C">
 
 <link rel="icon" href="/assets/favicon.svg" type="image/svg+xml">
@@ -14,9 +20,9 @@
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Instrument+Sans:wght@400;500;600&family=Instrument+Serif:ital@0;1&display=swap" rel="stylesheet">
 
-<link rel="stylesheet" href="/css/tokens.css">
-<link rel="stylesheet" href="/css/base.css">
-<link rel="stylesheet" href="/css/site.css">
+<link rel="stylesheet" href="/css/tokens.css?v=2">
+<link rel="stylesheet" href="/css/base.css?v=2">
+<link rel="stylesheet" href="/css/site.css?v=2">
 </head>
 <body>
 
@@ -38,41 +44,58 @@
 
 <main id="main" class="project">
 
-  <!-- Full-bleed plate with the title over it, per the reference. The scrim
-       is what keeps the overlay legible on any image. -->
   <header class="phero">
-    <img class="phero__img" src="/assets/work-identity-04.jpg" alt="" fetchpriority="high" decoding="async">
-    <div class="phero__scrim" aria-hidden="true"></div>
+    <!-- The plate is one element so the scrim scales and fades with the image
+         it protects. js/main.js drives it from the scroll position. -->
+    <div class="phero__plate" aria-hidden="true">
+      <img class="phero__img" src="/assets/bmt-apparels/hero.jpg" alt="" fetchpriority="high" decoding="async">
+      <div class="phero__scrim"></div>
+    </div>
     <div class="wrap phero__inner">
-      <p class="phero__label">EveriDesign &middot; Identity</p>
-      <h1 class="phero__title">BMT Apparels</h1>
+      <!-- Both lines in one box, faded by one spring: the brief asks for no
+           stagger between them, and the cheapest way to guarantee that is to
+           give them nothing to stagger with. -->
+      <div class="phero__intro">
+        <p class="phero__label">EveriDesign &middot; Identity</p>
+        <h1 class="phero__title">BMT Apparel</h1>
+      </div>
     </div>
   </header>
 
   <section class="section">
     <div class="wrap pmeta">
-      <p class="pmeta__lede">Placeholder copy. This is where the brief, the constraint and the decision that shaped the work get written — what the client needed, what we found when we looked, and why the work took the form it did.</p>
+      <!-- DRAFT COPY — written in EveriArt's voice from the factual
+           record only; NOT client-approved. Nothing here asserts an outcome,
+           metric or quote. See COPY-TODO.md, and flip copyStatus to
+           "approved" in projects.json once the wording is signed off. -->
+      <p class="pmeta__lede">Brand identity for an apparel label, resolved on a deep green ground. A black-and-gold direction was worked up alongside it and set aside; what shipped is the system built on the green, carried across mark, type and application.</p>
       <dl class="pmeta__facts">
-        <div class="pmeta__row"><dt>Client</dt><dd>BMT Apparels</dd></div>
+        <div class="pmeta__row"><dt>Client</dt><dd>BMT Apparel</dd></div>
         <div class="pmeta__row"><dt>Year</dt><dd>2024</dd></div>
-        <div class="pmeta__row"><dt>Deliverables</dt><dd>Identity system, Guidelines</dd></div>
+        <div class="pmeta__row"><dt>Category</dt><dd>Branding</dd></div>
+        <div class="pmeta__row"><dt>Deliverables</dt><dd>Brand identity</dd></div>
         <div class="pmeta__row"><dt>Role</dt><dd>Creative direction</dd></div>
       </dl>
     </div>
   </section>
-
-  <section class="pbody">
+  <!-- The section reveals as a unit, from below, on the same armed/disarmed
+       observer every other reveal on the site uses. The figures keep their
+       own reveals for everything past the first screen. -->
+  <section class="pbody reveal" data-dist="48">
     <div class="wrap">
       <figure class="pfig reveal">
-        <img src="/assets/studio-film.jpg" alt="BMT Apparels — placeholder still" loading="lazy" decoding="async">
+        <img src="/assets/bmt-apparels/gallery-01.jpg" alt="BMT Apparel — image 1" loading="lazy" decoding="async">
       </figure>
       <figure class="pfig reveal">
-        <img src="/assets/studio-photo.jpg" alt="BMT Apparels — placeholder still" loading="lazy" decoding="async">
+        <img src="/assets/bmt-apparels/gallery-02.jpg" alt="BMT Apparel — image 2" loading="lazy" decoding="async">
+      </figure>
+      <figure class="pfig reveal">
+        <img src="/assets/bmt-apparels/gallery-03.jpg" alt="BMT Apparel — image 3" loading="lazy" decoding="async">
       </figure>
     </div>
   </section>
 
-  <a class="next" href="/work/hope-for-her/">
+  <a class="next" href="/work/agra/">
     <span class="next__inner">
       <span class="next__word">Next project</span>
       <span class="next__arrow" aria-hidden="true">
@@ -83,7 +106,7 @@
             </svg>
       </span>
     </span>
-    <span class="next__meta">Hope For Her &middot; ByEveriArt</span>
+    <span class="next__meta">AGRA &middot; BeFrames</span>
   </a>
 
   <div class="wrap">
@@ -94,6 +117,6 @@
   </div>
 </main>
 
-<script type="module" src="/js/main.js"></script>
+<script type="module" src="/js/main.js?v=2"></script>
 </body>
 </html>

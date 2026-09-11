@@ -3,8 +3,14 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
-<title>Hope For Her — EveriArt</title>
-<meta name="description" content="Hope For Her: film for ByEveriArt.">
+
+<!-- Sets .js before first paint, so css/base.css can hide .reveal blocks
+     only in documents that actually run script. Inline and synchronous on
+     purpose: main.js is a module and therefore deferred, and hiding from
+     there would flash the content it is about to hide. -->
+<script>document.documentElement.classList.add("js")</script>
+<title>Hope for Her — EveriArt</title>
+<meta name="description" content="Hope for Her: documentary for ByEveriArt.">
 <meta name="theme-color" content="#0B0B0C">
 
 <link rel="icon" href="/assets/favicon.svg" type="image/svg+xml">
@@ -14,9 +20,9 @@
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Instrument+Sans:wght@400;500;600&family=Instrument+Serif:ital@0;1&display=swap" rel="stylesheet">
 
-<link rel="stylesheet" href="/css/tokens.css">
-<link rel="stylesheet" href="/css/base.css">
-<link rel="stylesheet" href="/css/site.css">
+<link rel="stylesheet" href="/css/tokens.css?v=2">
+<link rel="stylesheet" href="/css/base.css?v=2">
+<link rel="stylesheet" href="/css/site.css?v=2">
 </head>
 <body>
 
@@ -38,36 +44,59 @@
 
 <main id="main" class="project">
 
-  <!-- Full-bleed plate with the title over it, per the reference. The scrim
-       is what keeps the overlay legible on any image. -->
   <header class="phero">
-    <img class="phero__img" src="/assets/work-film-01.jpg" alt="" fetchpriority="high" decoding="async">
-    <div class="phero__scrim" aria-hidden="true"></div>
+    <!-- The plate is one element so the scrim scales and fades with the image
+         it protects. js/main.js drives it from the scroll position. -->
+    <div class="phero__plate" aria-hidden="true">
+      <img class="phero__img" src="/assets/hope-for-her/hero.jpg" alt="" fetchpriority="high" decoding="async">
+      <div class="phero__scrim"></div>
+    </div>
     <div class="wrap phero__inner">
-      <p class="phero__label">ByEveriArt &middot; Film</p>
-      <h1 class="phero__title">Hope For Her</h1>
+      <!-- Both lines in one box, faded by one spring: the brief asks for no
+           stagger between them, and the cheapest way to guarantee that is to
+           give them nothing to stagger with. -->
+      <div class="phero__intro">
+        <p class="phero__label">ByEveriArt &middot; Film</p>
+        <h1 class="phero__title">Hope for Her</h1>
+      </div>
     </div>
   </header>
 
   <section class="section">
     <div class="wrap pmeta">
-      <p class="pmeta__lede">Placeholder copy. This is where the brief, the constraint and the decision that shaped the work get written — what the client needed, what we found when we looked, and why the work took the form it did.</p>
+      <!-- DRAFT COPY — written in EveriArt's voice from the factual
+           record only; NOT client-approved. Nothing here asserts an outcome,
+           metric or quote. See COPY-TODO.md, and flip copyStatus to
+           "approved" in projects.json once the wording is signed off. -->
+      <p class="pmeta__lede">Documentary coverage for the Hope For Her Foundation, across a World Mental Health Day film, the Pad A Girl campaign, and a spoken-word piece. The spoken word carries the argument on its own — no narrator, no voiceover explaining what the frame is already saying.</p>
       <dl class="pmeta__facts">
-        <div class="pmeta__row"><dt>Client</dt><dd>Hope For Her</dd></div>
+        <div class="pmeta__row"><dt>Client</dt><dd>Hope for Her</dd></div>
         <div class="pmeta__row"><dt>Year</dt><dd>2026</dd></div>
-        <div class="pmeta__row"><dt>Deliverables</dt><dd>Direction, Cinematography, Edit</dd></div>
+        <div class="pmeta__row"><dt>Category</dt><dd>Campaign</dd></div>
+        <div class="pmeta__row"><dt>Deliverables</dt><dd>Documentary</dd></div>
         <div class="pmeta__row"><dt>Role</dt><dd>Director of photography</dd></div>
       </dl>
     </div>
   </section>
-
-  <section class="pbody">
+  <!-- The section reveals as a unit, from below, on the same armed/disarmed
+       observer every other reveal on the site uses. The figures keep their
+       own reveals for everything past the first screen. -->
+  <section class="pbody reveal" data-dist="48">
     <div class="wrap">
       <figure class="pfig reveal">
-        <img src="/assets/studio-film.jpg" alt="Hope For Her — placeholder still" loading="lazy" decoding="async">
+        <img src="/assets/hope-for-her/gallery-01.jpg" alt="Hope for Her — image 1" loading="lazy" decoding="async">
       </figure>
       <figure class="pfig reveal">
-        <img src="/assets/studio-photo.jpg" alt="Hope For Her — placeholder still" loading="lazy" decoding="async">
+        <img src="/assets/hope-for-her/gallery-02.jpg" alt="Hope for Her — image 2" loading="lazy" decoding="async">
+      </figure>
+      <div class="preel" data-reel="https://pub-22c601fc38564ec79d41e018bfad6bcf.r2.dev/hope-for-her/reel.mp4"
+           aria-label="Hope for Her — reel">
+        <div class="preel__frame" style="--reel-ar: 1 / 1">
+          <img class="preel__still" src="/assets/hope-for-her/thumb.jpg" alt="" loading="lazy" decoding="async">
+        </div>
+      </div>
+      <figure class="pfig reveal">
+        <img src="/assets/hope-for-her/gallery-03.jpg" alt="Hope for Her — image 3" loading="lazy" decoding="async">
       </figure>
     </div>
   </section>
@@ -83,7 +112,7 @@
             </svg>
       </span>
     </span>
-    <span class="next__meta">Regalia Pop-up Events &middot; ByEveriArt</span>
+    <span class="next__meta">Regalia Pop Up Events &middot; ByEveriArt</span>
   </a>
 
   <div class="wrap">
@@ -94,6 +123,6 @@
   </div>
 </main>
 
-<script type="module" src="/js/main.js"></script>
+<script type="module" src="/js/main.js?v=2"></script>
 </body>
 </html>
