@@ -1,7 +1,14 @@
 [build]
-  publish = "."
+  publish = "dist"
+  command = "npm run build"
 
-# Static site: no build step, no framework.
+[functions]
+  directory = "netlify/functions"
+  node_bundler = "esbuild"
+
+[dev]
+  publish = "dist"
+  framework = "#static"
 
 [[headers]]
   for = "/*"
@@ -10,6 +17,11 @@
     X-Content-Type-Options = "nosniff"
     Referrer-Policy = "strict-origin-when-cross-origin"
     Permissions-Policy = "geolocation=(), microphone=(), camera=()"
+
+[[headers]]
+  for = "/api/*"
+  [headers.values]
+    Cache-Control = "no-store"
 
 [[headers]]
   for = "/assets/*"

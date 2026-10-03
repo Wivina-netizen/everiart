@@ -1,0 +1,44 @@
+[
+  {
+    "slug": "hope-for-her",
+    "name": "Hope for Her",
+    "discipline": "Documentary",
+    "thumb": "assets/hope-for-her/thumb.jpg",
+    "studio": "byeveriart"
+  },
+  {
+    "slug": "regalia-pop-up-events",
+    "name": "Regalia Pop Up Events",
+    "discipline": "Event film",
+    "thumb": "assets/regalia-pop-up-events/thumb.jpg",
+    "studio": "byeveriart"
+  },
+  {
+    "slug": "maitro-tech",
+    "name": "Maitro Tech",
+    "discipline": "Identity system",
+    "thumb": "assets/maitro-tech/thumb.jpg",
+    "studio": "everidesign"
+  },
+  {
+    "slug": "bmt-apparels",
+    "name": "BMT Apparel",
+    "discipline": "Brand identity",
+    "thumb": "assets/bmt-apparels/thumb.jpg",
+    "studio": "everidesign"
+  },
+  {
+    "slug": "agra",
+    "name": "AGRA",
+    "discipline": "Event photography",
+    "thumb": "assets/agra/thumb.jpg",
+    "studio": "beframes"
+  },
+  {
+    "slug": "azusa",
+    "name": "Azusa Hotel & Apartments",
+    "discipline": "Property film",
+    "thumb": "assets/azusa/thumb.jpg",
+    "studio": "beframes"
+  }
+]
