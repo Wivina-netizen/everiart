@@ -33,10 +33,8 @@
    under it. The attribute is still called "light" because it is the lifted
    state, not a light colour — the site has none. */
 .nav[data-theme="light"] {
-  background: var(--navy-base-a72);
+  background: var(--navy-base);
   color: var(--parchment);
-  backdrop-filter: blur(20px) saturate(180%);
-  -webkit-backdrop-filter: blur(20px) saturate(180%);
   border-bottom-color: var(--hairline);
 }
 
@@ -1141,9 +1139,7 @@
   color: var(--offwhite);
   /* Over footage of unknown brightness, so it carries its own ground rather
      than trusting the frame underneath it (apple-design §12). */
-  background: rgba(11, 11, 12, 0.45);
-  backdrop-filter: blur(10px);
-  -webkit-backdrop-filter: blur(10px);
+  background: var(--ink-deep);
   opacity: 0;
   transition:
     opacity var(--t-base) var(--ease-out-quart),
@@ -1248,11 +1244,9 @@
 .vov__scrim {
   position: absolute;
   inset: 0;
-  background: var(--ink-a80);
-  -webkit-backdrop-filter: blur(18px);
-  backdrop-filter: blur(18px);
+  background: var(--ink-deep);
 }
-/* Blur is decoration, and a signal that some users switch off. */
+/* The fullscreen viewer uses a solid background. */
 @media (prefers-reduced-transparency: reduce) {
   .vov__scrim {
     -webkit-backdrop-filter: none;

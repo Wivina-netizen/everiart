@@ -12,24 +12,20 @@
 
 
 /* Shared shapes: editorial rules stay crisp; media and entrance controls soften. */
-:root{--radius-media:18px;--radius-control:12px;--glass-light:rgba(255,255,255,.55);--glass-dark:rgba(13,19,45,.68)}
+:root{--radius-media:18px;--radius-control:12px}
 .ui-icon{display:inline-block;width:18px;height:18px;flex:none;vertical-align:middle;pointer-events:none}
-.entry-link{border-radius:var(--radius-control);background:var(--glass-dark);box-shadow:inset 0 1px 0 #ffffff14}
+.entry-link{border-radius:var(--radius-control);background:var(--ink)}
 .entry-link>.ui-icon{width:20px;height:20px}
 .studio-door-image,.project-image{border-radius:var(--radius-media)}
-.image-arrow{background:var(--glass-dark);box-shadow:inset 0 1px 0 #ffffff20;transition:transform .24s ease-out;transform:translate(var(--arrow-x,0px),var(--arrow-y,0px))}
+.image-arrow{background:var(--ink);transition:transform .24s ease-out;transform:translate(var(--arrow-x,0px),var(--arrow-y,0px))}
 .image-arrow .ui-icon{width:18px;height:18px}
-.message-card{border-radius:var(--radius-control);overflow:hidden;background:var(--glass-light);box-shadow:0 6px 20px #0d132d05}
+.message-card{border-radius:var(--radius-control);overflow:hidden;background:#faf8f0}
 .solid-link{border-radius:var(--radius-control);align-items:center}
 #peaches-form,.followups button,.message.user{border-radius:0}
 #send-message{display:grid;place-items:center}
 #send-message .ui-icon{width:22px;height:22px}
 .back-link,.page-foot>a,.studio-siblings>a,.sidebar-actions>a,.sidebar-actions button{display:inline-flex;align-items:center;gap:8px}
 .masthead nav a .ui-icon,.composer-foot .ui-icon,.sidebar-actions .ui-icon{width:14px;height:14px}
-@supports ((backdrop-filter:blur(12px)) or (-webkit-backdrop-filter:blur(12px))){
- .entry-link,.image-arrow{backdrop-filter:blur(12px);-webkit-backdrop-filter:blur(12px)}
- .message-card{backdrop-filter:blur(8px);-webkit-backdrop-filter:blur(8px)}
-}
 @media(max-width:640px){:root{--radius-media:14px;--radius-control:10px}}
 @media(prefers-reduced-motion:reduce){.image-arrow{transform:none!important}}
 
@@ -70,8 +66,7 @@
 .entrance-word{display:flex;align-items:flex-start;justify-content:center;gap:clamp(5px,1vw,14px);font-size:clamp(76px,26vw,270px);line-height:1;margin:-.08em 0 0;white-space:nowrap}
 .entrance-word sup{position:static;flex:none;font:500 clamp(22px,2.4vw,34px)/1 var(--sans);letter-spacing:0;margin-top:.9em;color:#e1c68e}
 .entry-actions{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));width:min(420px,100%);gap:14px;margin-top:30px}
-.entry-link{min-width:0;min-height:48px;padding:11px 20px;gap:12px;border:1px solid #ffffff85;background:linear-gradient(135deg,#ffffff2e,#ffffff0b),#29334b80;box-shadow:inset 0 1px 0 #ffffff75,inset 0 -1px 0 #ffffff14,0 12px 28px #0003;backdrop-filter:blur(24px) saturate(165%);-webkit-backdrop-filter:blur(24px) saturate(165%)}
-.entry-link:hover{background:linear-gradient(135deg,#ffffff50,#ffffff18),#37415b99;color:var(--paper);border-color:#ffffffc0}
+.entry-link{min-width:0;min-height:48px;padding:11px 20px;gap:12px}
 .entry-link .ui-icon{width:18px;height:18px}
 .entrance-foot{font-size:9px;letter-spacing:.08em}
 @media(max-width:640px){
@@ -94,8 +89,6 @@
  .entry-note{margin-top:12px}
  .entrance-foot{min-height:44px}
 }
-@supports not ((backdrop-filter:blur(24px)) or (-webkit-backdrop-filter:blur(24px))){.entry-link{background:linear-gradient(135deg,#40495c,#252f43)}}
-@media(prefers-reduced-transparency:reduce){.entry-link{background:#303b52;backdrop-filter:none;-webkit-backdrop-filter:none}}
 
 /* Every studio has its own portfolio and a vertical film browsing view. */
 .portfolio-intro{padding-top:38px;padding-bottom:36px}

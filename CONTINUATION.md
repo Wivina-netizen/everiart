@@ -89,3 +89,10 @@ the earlier square-button treatment; the Peaches composer itself remains square.
 The tagline now scales from 23px to 54px with a tighter optical gap above the wordmark.
 Build and whitespace checks pass. Checked desktop, portrait and landscape layouts,
 including the 320px Peaches composer; no horizontal overflow was observed.
+
+### Current finish: solid surfaces
+
+The latest owner feedback removes glassmorphism entirely. Buttons retain the compact
+rounded shape but now use opaque navy or parchment surfaces, simple borders and flat
+hover colors. The mobile menu, project-card arrows, chat cards and legacy video surfaces
+also drop backdrop blur and glossy highlights. This supersedes all glass styling above.
