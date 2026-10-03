@@ -1338,3 +1338,18 @@
 @media (max-width: 40rem) {
   .vov__bar { flex-wrap: wrap; }
   .vov__case { margin-inline-start: 0; }
+
+/* Editorial foundation: navigable on touch, generous but readable. */
+@media (max-width: 40rem) {
+  .nav { grid-template-columns: 1fr; gap: .65rem; padding-block: .8rem; }
+  .nav__links { display: flex; justify-self: start; width: 100%; justify-content: space-between; gap: .75rem; font-size: .875rem; }
+  .nav__link { padding-block: .35rem; }
+  .hero__inner { padding-block-start: 8rem; }
+  .page { padding-block-start: 9rem; }
+}
+.philosophy { border-block: 1px solid var(--hairline); }
+.philosophy__grid { display: grid; gap: 2rem; }
+.philosophy__title { max-width: 23ch; margin-bottom: 2rem; font-size: clamp(2.25rem, 4.5vw, 4.75rem); text-wrap: balance; }
+.philosophy .lede { color: var(--parchment); }
+.philosophy p:not(.meta) { max-width: 52ch; }
+@media (min-width: 56rem) { .philosophy__grid { grid-template-columns: 1fr 3fr; } }

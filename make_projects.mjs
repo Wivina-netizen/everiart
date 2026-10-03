@@ -370,7 +370,7 @@ function buildProject(studios, published, idx) {
   <!-- The section reveals as a unit, from below, on the same armed/disarmed
        observer every other reveal on the site uses. The figures keep their
        own reveals for everything past the first screen. -->
-  <section class="pbody reveal" data-dist="48">
+  <section class="pbody">
     <div class="wrap">
 ${body}
     </div>
