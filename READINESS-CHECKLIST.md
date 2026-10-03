@@ -2,7 +2,7 @@
 
 ## Current requested changes
 
-- [x] Remove the landing-page pause-motion control. Background plays a short opening then holds a still frame; reduced-motion and data-saving preferences retain the poster.
+- [x] Remove the landing-page pause-motion control. Per the owner's latest request, the background loops at 65% speed with 1.2-second fades; reduced-motion and data-saving preferences retain the poster.
 - [x] Remove homepage CTA arrows, center labels and keep both buttons side by side.
 - [x] Center the hero tagline, enlarged responsive wordmark and CTA group independently of the trademark. Preserve navigation and footer alignment.
 - [x] Use an outlined mobile Menu control.

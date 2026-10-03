@@ -138,3 +138,12 @@ historical matches were documentation-URL false positives. GitHub secret scannin
 and push protection are enabled, no open alerts; one admin collaborator, unprotected
 main. CI and Dependabot configuration added. Full evidence and open owner/account
 decisions are in READINESS-CHECKLIST.md; SEARCH-CONSOLE-SETUP.md has verification steps.
+
+### Hero loop and WhatsApp update
+
+Owner requested continuous hero video again, superseding the 4.5-second hold above.
+Video now loops muted at 0.65 playback rate with a 1.2-second fade at each end.
+Hidden tabs pause and resume on return; reduced motion and data saving retain the
+static fallback. WhatsApp now points to 2348121210795 (local 08121210795).
+Build, 15 tests and the 20-page route check pass. Browser verified the reduced-motion
+poster; this host's reduced-motion preference prevents normal playback inspection.

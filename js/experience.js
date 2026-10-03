@@ -1,16 +1,47 @@
 const film = document.querySelector('#entrance-film');
 if (film) {
   const reduced = matchMedia('(prefers-reduced-motion: reduce)');
-  // A brief opening, then a still frame: no endless motion without a pause control.
-  let stopTimer;
-  const stop = () => { film.pause(); clearTimeout(stopTimer); };
-  if (!reduced.matches && !navigator.connection?.saveData) {
-    film.src = film.dataset.src;
-    film.play().then(() => { stopTimer = setTimeout(stop, 4500); }).catch(() => {});
-  }
-  film.addEventListener('timeupdate', () => { if (film.currentTime >= 4.5) stop(); });
-  reduced.addEventListener('change', () => { if (reduced.matches) stop(); });
-  document.addEventListener('visibilitychange', () => { if (document.hidden) stop(); });
+  // Fade to the existing dark background on both sides of each native video loop.
+  const speed = 0.65;
+  let frame;
+  const canPlay = () => !reduced.matches && !navigator.connection?.saveData && !document.hidden;
+  const fade = () => {
+    if (Number.isFinite(film.duration) && film.duration > 0) {
+      const fadeLength = Math.min(1.2 * speed, film.duration / 4);
+      const progress = Math.max(0, Math.min(1, film.currentTime / fadeLength, (film.duration - film.currentTime) / fadeLength));
+      const eased = progress * progress * (3 - 2 * progress);
+      film.style.opacity = String(0.65 * eased);
+    }
+    if (!film.paused) frame = requestAnimationFrame(fade);
+  };
+  const syncPlayback = () => {
+    if (!canPlay()) {
+      film.pause();
+      cancelAnimationFrame(frame);
+      film.style.removeProperty('opacity');
+      return;
+    }
+    if (!film.getAttribute('src')) {
+      film.style.opacity = '0';
+      film.src = film.dataset.src;
+    }
+    film.defaultPlaybackRate = speed;
+    film.playbackRate = speed;
+    film.play().catch(() => { film.style.removeProperty('opacity'); });
+  };
+  film.addEventListener('playing', () => {
+    cancelAnimationFrame(frame);
+    fade();
+  });
+  film.addEventListener('pause', () => cancelAnimationFrame(frame));
+  film.addEventListener('error', () => {
+    cancelAnimationFrame(frame);
+    film.style.removeProperty('opacity');
+  });
+  reduced.addEventListener('change', syncPlayback);
+  navigator.connection?.addEventListener('change', syncPlayback);
+  document.addEventListener('visibilitychange', syncPlayback);
+  syncPlayback();
 }
 
 // One-time marketing reveals; chat and controls remain immediately responsive.
