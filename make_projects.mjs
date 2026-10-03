@@ -1,3 +1,4 @@
+import { siteNav } from './navigation.mjs';
 /**
  * Generate the home work grid, /work/ and every /work/<slug>/ case study.
  *
@@ -83,33 +84,14 @@ const head = (title, desc, theme = "#0D132D") => `<!DOCTYPE html>
 <link rel="stylesheet" href="/css/tokens.css?v=2">
 <link rel="stylesheet" href="/css/base.css?v=2">
 <link rel="stylesheet" href="/css/site.css?v=2">
+<link rel="stylesheet" href="/css/navigation.css">
 </head>
 <body>
 
-<a class="sr-only" href="#main">Skip to content</a>
+
 `;
 
-const nav = (current = null) => {
-  const mark = (href, label, key) =>
-    `    <a class="nav__link" href="${href}"${
-      key === current ? ' aria-current="page"' : ""
-    }>${label}</a>`;
-  return `
-<nav class="nav" aria-label="Primary">
-  <a class="nav__mark" href="/" aria-label="Everiart — home">
-    <span class="nav__ring" aria-hidden="true"></span>
-    <span class="nav__word">Everiart<span class="nav__dot">.</span></span>
-  </a>
-
-  <div class="nav__links">
-${mark("/work/", "Work", "work")}
-${mark("/experience/", "Studios", "studios")}
-${mark("/peaches/", "Ask Peaches", "peaches")}
-${mark("/contact/", "Contact", "contact")}
-  </div>
-</nav>
-`;
-};
+const nav = () => siteNav('experience');
 
 const FOOT = `
   <div class="wrap">
@@ -122,6 +104,7 @@ const FOOT = `
 
 const TAIL = `
 <script type="module" src="/js/main.js?v=2"></script>
+<script type="module" src="/js/navigation.js"></script>
 </body>
 </html>
 `;

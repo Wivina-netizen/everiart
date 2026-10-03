@@ -47,6 +47,7 @@ function message(role, content, projects = [], suggestions = []) {
 }
 function setBusy(value) {
   busy = value; send.disabled = value;
+  document.querySelector('#new-chat').disabled = value;
   document.querySelectorAll('[data-prompt], .followups button').forEach(b => b.disabled = value);
   form.setAttribute('aria-busy', String(value));
 }
@@ -81,7 +82,7 @@ input.addEventListener('input', () => { input.style.height = 'auto'; input.style
 document.querySelectorAll('[data-prompt]').forEach(b => b.addEventListener('click', () => submit(b.dataset.prompt)));
 document.querySelector('#new-chat').addEventListener('click', () => {
   if (busy) return;
-  history = []; log.replaceChildren(); status.textContent = ''; welcome.hidden = false; handoff.hidden = true; input.value = ''; input.focus(); scroll.scrollTop = 0;
+  history = []; log.replaceChildren(); status.textContent = ''; welcome.hidden = false; handoff.hidden = true; input.value = ''; input.style.height = ''; input.focus(); scroll.scrollTop = 0;
 });
 handoff.addEventListener('click', () => {
   try { sessionStorage.setItem('everiart-brief', 'Conversation with Peaches (please review before sending):\n\n' + history.map(m => `${m.role === 'user' ? 'Me' : 'Peaches'}: ${m.content}`).join('\n\n')); } catch { /* Contact form stays available if browser storage is disabled. */ }

@@ -32,3 +32,94 @@
 }
 @media(max-width:640px){:root{--radius-media:14px;--radius-control:10px}}
 @media(prefers-reduced-motion:reduce){.image-arrow{transform:none!important}}
+
+/* Keep the square composer reachable when a phone is rotated or its keyboard opens. */
+.peaches-page{min-height:0}
+.composer-area{flex-shrink:0}
+.chat-scroll{overscroll-behavior-y:contain}
+#peaches-form:focus-within{outline:2px solid var(--ink);outline-offset:3px}
+#send-message{width:44px;height:44px}
+.followups button,.sidebar-actions button,.sidebar-actions>a,.peaches-sidebar>.back-link{min-height:44px}
+.sidebar-actions button{text-align:left}
+@media(max-width:640px){
+ .peaches-sidebar{flex-shrink:0;align-items:center;padding-top:4px;padding-bottom:4px}
+ .sidebar-actions{gap:12px}
+}
+@media(max-height:500px){
+ .peaches-page .masthead{height:60px}
+ .peaches-sidebar{padding-top:12px;padding-bottom:12px;gap:12px}
+ .peaches-sidebar>div:not(.sidebar-actions){display:none}
+ .sidebar-actions{gap:8px}
+ .chat-scroll{padding-top:18px}
+ .chat-welcome{margin-top:0}
+ .composer-area{padding-top:6px;padding-bottom:max(8px,env(safe-area-inset-bottom))}
+ #peaches-form{padding:8px}
+ #peaches-input{max-height:72px}
+ .composer-foot{margin-top:6px}
+ .privacy-note{margin-top:4px}
+}
+@media(prefers-reduced-motion:reduce),(hover:none){
+ .studio-door:hover img,.project-card:hover img{transform:none}
+}
+
+/* Entrance lockup: the promise leads, the wordmark sits directly beneath it. */
+.entrance-main{padding:48px 22px 60px}
+.entrance-main>.eyebrow{margin-bottom:38px}
+.entrance-lockup{max-width:100%;text-align:center}
+.entrance-line{font-size:clamp(23px,4vw,54px);line-height:1.2;white-space:nowrap}
+.entrance-word{display:flex;align-items:flex-start;justify-content:center;gap:clamp(5px,1vw,14px);font-size:clamp(76px,26vw,270px);line-height:1;margin:-.08em 0 0;white-space:nowrap}
+.entrance-word sup{position:static;flex:none;font:500 clamp(22px,2.4vw,34px)/1 var(--sans);letter-spacing:0;margin-top:.9em;color:#e1c68e}
+.entry-actions{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));width:min(420px,100%);gap:14px;margin-top:30px}
+.entry-link{min-width:0;min-height:48px;padding:11px 20px;gap:12px;border:1px solid #ffffff85;background:linear-gradient(135deg,#ffffff2e,#ffffff0b),#29334b80;box-shadow:inset 0 1px 0 #ffffff75,inset 0 -1px 0 #ffffff14,0 12px 28px #0003;backdrop-filter:blur(24px) saturate(165%);-webkit-backdrop-filter:blur(24px) saturate(165%)}
+.entry-link:hover{background:linear-gradient(135deg,#ffffff50,#ffffff18),#37415b99;color:var(--paper);border-color:#ffffffc0}
+.entry-link .ui-icon{width:18px;height:18px}
+.entrance-foot{font-size:9px;letter-spacing:.08em}
+@media(max-width:640px){
+ .entrance-main{padding:38px 22px 44px}
+ .entrance-main>.eyebrow{font-size:9px;margin-bottom:30px}
+ .entry-actions{width:min(280px,100%);gap:10px;margin-top:24px}
+ .entry-link{font-size:12px;min-height:44px;padding:10px 14px}
+ .entry-note{font-size:10px;line-height:1.6}
+ .entrance-foot{font-size:7px;gap:8px;flex-wrap:wrap;padding:14px 0}
+}
+@media(max-height:500px) and (min-width:641px){
+ .entrance .site-header{height:60px;min-height:60px}
+ .entrance-main{padding-top:12px;padding-bottom:12px}
+ .entrance-main>.eyebrow{display:none}
+ .entrance-line{font-size:26px}
+ .entrance-word{font-size:90px;margin-top:-.08em}
+ .entrance-word sup{font-size:22px}
+ .entry-actions{margin-top:16px}
+ .entry-link{min-height:48px;padding-top:12px;padding-bottom:12px}
+ .entry-note{margin-top:12px}
+ .entrance-foot{min-height:44px}
+}
+@supports not ((backdrop-filter:blur(24px)) or (-webkit-backdrop-filter:blur(24px))){.entry-link{background:linear-gradient(135deg,#40495c,#252f43)}}
+@media(prefers-reduced-transparency:reduce){.entry-link{background:#303b52;backdrop-filter:none;-webkit-backdrop-filter:none}}
+
+/* Every studio has its own portfolio and a vertical film browsing view. */
+.portfolio-intro{padding-top:38px;padding-bottom:36px}
+.portfolio-intro>.eyebrow{margin:44px 0 20px}
+.portfolio-intro h1{font-size:clamp(62px,7vw,100px)}
+.portfolio-views{display:flex;gap:28px;margin:30px 0 34px;border-bottom:1px solid var(--line);font-size:13px}
+.portfolio-views a{display:flex;gap:20px;align-items:center;min-height:50px;padding:10px 0;border-bottom:2px solid transparent}
+.portfolio-views a[aria-current]{border-bottom-color:currentColor}
+.portfolio-views span{font-size:10px;color:var(--muted)}
+.portfolio-content{padding-bottom:90px}
+.reels-browser{max-width:440px;margin:0 auto}
+.reels-feed{height:min(780px,78svh);min-height:340px;overflow-y:auto;overscroll-behavior-y:contain;scroll-snap-type:y mandatory;border-radius:var(--radius-media);background:#0b0b0c;color:#f4f1e7;scrollbar-width:thin;position:relative}
+.reel-card{height:100%;scroll-snap-align:start;scroll-snap-stop:always;display:flex;flex-direction:column;position:relative;background:#0b0b0c}
+.reel-top{display:flex;justify-content:space-between;padding:20px;font-size:10px;letter-spacing:.08em;flex-shrink:0}
+.reel-card video{width:100%;height:0;flex:1;min-height:0;object-fit:contain;background:#0b0b0c}
+.reel-caption{display:flex;align-items:end;justify-content:space-between;gap:16px;padding:22px 20px;flex-shrink:0;background:linear-gradient(#111623,#0d132d)}
+.reel-caption p{font-size:10px;line-height:1.5;color:#d3d1ca;margin-bottom:8px}
+.reel-caption h2{font-size:clamp(26px,5vw,34px);line-height:1.1}
+.reel-caption>a{font-size:11px;min-height:44px;display:flex;gap:6px;align-items:center;flex-shrink:0;border-bottom:1px solid #ffffff50}
+.reel-error{font-size:12px;line-height:1.5;padding:12px 20px;background:#182039}
+.reels-controls{display:flex;align-items:center;justify-content:center;gap:24px;margin-top:18px;font-size:12px}
+.reels-controls button{width:44px;height:44px;display:grid;place-items:center;border:1px solid var(--line);border-radius:50%;background:transparent;font-size:20px}
+.reels-controls button:disabled{cursor:default;opacity:.35}
+.reels-hint{text-align:center;font-size:11px;color:var(--muted);line-height:1.5;margin:14px 0}
+.reels-empty{padding:45px 0 65px;border-top:1px solid var(--line)}
+.reels-empty h2{margin:24px 0}.reels-empty>p:not(.eyebrow){font-size:14px;line-height:1.8;margin-bottom:28px}
+@media(max-width:640px){.portfolio-intro{padding-top:24px}.portfolio-intro>.eyebrow{margin-top:35px}.portfolio-views{gap:24px;margin-bottom:20px}.reel-caption{padding:18px 16px}.reel-top{padding:16px}.reels-feed{height:72svh}.portfolio-content{padding-bottom:55px}}
