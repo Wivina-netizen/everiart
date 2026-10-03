@@ -18,30 +18,27 @@
 
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-<link href="https://fonts.googleapis.com/css2?family=Instrument+Sans:wght@400;500;600&family=Instrument+Serif:ital@0;1&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="/css/fonts.css">
 
 <link rel="stylesheet" href="/css/tokens.css?v=2">
 <link rel="stylesheet" href="/css/base.css?v=2">
 <link rel="stylesheet" href="/css/site.css?v=2">
+<link rel="stylesheet" href="/css/navigation.css">
 </head>
 <body>
 
-<a class="sr-only" href="#main">Skip to content</a>
 
-<nav class="nav" aria-label="Primary">
-  <a class="nav__mark" href="/" aria-label="Everiart — home">
-    <span class="nav__ring" aria-hidden="true"></span>
-    <span class="nav__word">Everiart<span class="nav__dot">.</span></span>
-  </a>
-
-  <div class="nav__links">
-    <a class="nav__link" href="/work/">Work</a>
-    <a class="nav__link" href="/#studios">Studios</a>
-    <a class="nav__link" href="/#process">Process</a>
-    <a class="nav__link" href="/contact/">Contact</a>
-  </div>
-</nav>
-
+<a class="site-skip" href="#main">Skip to content</a>
+<header class="site-header masthead">
+  <a class="site-brand" href="/" aria-label="Everiart home"><span class="site-wordmark">Everiart<span class="site-gold">.</span><sup>™</sup></span></a>
+  <nav class="site-links" aria-label="Main navigation"><a href="/experience/" aria-current="page">Studios<svg class="ui-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" focusable="false"><path d="M7 17 17 7M7 7h10v10"/></svg></a><a href="/peaches/">Ask Peaches<svg class="ui-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" focusable="false"><path d="M7 17 17 7M7 7h10v10"/></svg></a><a href="/contact/">Contact us<svg class="ui-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" focusable="false"><path d="M7 17 17 7M7 7h10v10"/></svg></a></nav>
+  <button class="menu-toggle" type="button" aria-label="Open menu" aria-haspopup="dialog" aria-expanded="false" aria-controls="site-menu"><span>Menu</span><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" aria-hidden="true"><path d="M3 8h18M3 16h18"/></svg></button>
+</header>
+<dialog class="site-menu" id="site-menu" aria-labelledby="menu-title">
+  <div class="menu-heading"><span id="menu-title">THE HOUSE OF EVERIART</span><button type="button" class="menu-close" aria-label="Close menu"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" aria-hidden="true"><path d="m6 6 12 12M6 18 18 6"/></svg></button></div>
+  <nav class="menu-links" aria-label="Mobile navigation"><a href="/experience/" aria-current="page">Studios<svg class="ui-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" focusable="false"><path d="M7 17 17 7M7 7h10v10"/></svg></a><a href="/peaches/">Ask Peaches<svg class="ui-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" focusable="false"><path d="M7 17 17 7M7 7h10v10"/></svg></a><a href="/contact/">Contact us<svg class="ui-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" focusable="false"><path d="M7 17 17 7M7 7h10v10"/></svg></a></nav>
+  <p class="menu-note">Film. Design. Photography.<br><i>Every problem. A visual solution.</i></p>
+</dialog>
 <main id="main" class="project">
 
   <header class="phero">
@@ -69,6 +66,7 @@
            metric or quote. See COPY-TODO.md, and flip copyStatus to
            "approved" in projects.json once the wording is signed off. -->
       <p class="pmeta__lede">An identity system for a technology company, worked up from concept boards rather than a logo pass. The mark is the smallest part of it — what had to hold is everything the mark sits inside once the company starts shipping.</p>
+      <a class="btn" href="/peaches/?q=I%20am%20interested%20in%20the%20Maitro%20Tech%20project.%20Help%20me%20think%20about%20a%20similar%20approach%20for%20my%20own%20brief.">Discuss this with Peaches ↗</a>
       <dl class="pmeta__facts">
         <div class="pmeta__row"><dt>Client</dt><dd>Maitro Tech</dd></div>
         <div class="pmeta__row"><dt>Year</dt><dd>2025</dd></div>
@@ -81,7 +79,7 @@
   <!-- The section reveals as a unit, from below, on the same armed/disarmed
        observer every other reveal on the site uses. The figures keep their
        own reveals for everything past the first screen. -->
-  <section class="pbody reveal" data-dist="48">
+  <section class="pbody">
     <div class="wrap">
       <figure class="pfig reveal">
         <img src="/assets/maitro-tech/gallery-01.jpg" alt="Maitro Tech — image 1" loading="lazy" decoding="async">
@@ -115,5 +113,6 @@
 </main>
 
 <script type="module" src="/js/main.js?v=2"></script>
+<script type="module" src="/js/navigation.js"></script>
 </body>
 </html>

@@ -1,0 +1,11 @@
+{
+  "name": "everiart",
+  "private": true,
+  "type": "module",
+  "scripts": {
+    "build": "node make_projects.mjs && node make_experience.mjs && node build.mjs",
+    "test": "node --test tests/*.test.mjs"
+  },
+  "dependencies": { "@netlify/functions": "^5.0.0" },
+  "engines": { "node": ">=22" }
+}

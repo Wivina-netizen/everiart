@@ -1,7 +1,14 @@
 [build]
-  publish = "."
+  publish = "dist"
+  command = "npm run build"
 
-# Static site: no build step, no framework.
+[functions]
+  directory = "netlify/functions"
+  node_bundler = "esbuild"
+
+[dev]
+  publish = "dist"
+  framework = "#static"
 
 [[headers]]
   for = "/*"
@@ -12,9 +19,14 @@
     Permissions-Policy = "geolocation=(), microphone=(), camera=()"
 
 [[headers]]
+  for = "/api/*"
+  [headers.values]
+    Cache-Control = "no-store"
+
+[[headers]]
   for = "/assets/*"
   [headers.values]
-    Cache-Control = "public, max-age=31536000, immutable"
+    Cache-Control = "public, max-age=0, must-revalidate"
 
 # css/ and js/ ship under fixed filenames — there is no build step to
 # fingerprint them — so a max-age here is a promise we cannot keep: change

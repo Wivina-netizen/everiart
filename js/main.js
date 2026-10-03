@@ -262,7 +262,7 @@ function staggerStep() {
  * entrance and the rest of the page read as one mechanism.
  */
 function heroSequence() {
-  const nav = document.querySelector('.nav');
+  if (!document.querySelector('.hero')) return;
   const sub = document.querySelector('.hero__sub');
   const cta = document.querySelector('.hero__cta');
   const segs = [...document.querySelectorAll('.hero__seg > span')];
@@ -273,7 +273,6 @@ function heroSequence() {
   // The word's two segments are separate subjects on purpose — it assembles
   // left to right rather than arriving whole.
   const steps = [
-    { el: nav, rise: 14 },
     { el: sub, rise: 14 },
     { el: cta, rise: 14 },
     ...segs.map((el) => ({ el, rise: 0 })),
@@ -343,7 +342,6 @@ function heroSequence() {
    tall viewport that admits a dozen elements at once cannot leave the last
    of them waiting most of a second for its turn.
    ------------------------------------------------------------ */
-const CASCADE_MAX = 6;
 
 function reveals() {
   const items = document.querySelectorAll('.reveal');
@@ -355,21 +353,14 @@ function reveals() {
     (a.compareDocumentPosition(b) & Node.DOCUMENT_POSITION_FOLLOWING) ? -1 : 1);
 
   if (reduced()) {
-    // Cross-fade only, no travel — and no cascade either: a stagger is
-    // motion, and the ask is for the final readable state (apple-design §14).
-    const io = new IntersectionObserver((entries) => {
-      entries.forEach((e) => {
-        if (e.isIntersecting) { e.target.classList.add('is-in'); io.unobserve(e.target); }
-      });
-    }, { rootMargin: '0px 0px -12% 0px' });
-    items.forEach((el) => io.observe(el));
+    items.forEach((el) => el.classList.add('is-in'));
     return;
   }
 
   const step = staggerStep();
 
   const run = (el, delay) => {
-    const dist = Number(el.dataset.dist || 26);
+    const dist = Number(el.dataset.dist || 10);
 
     el.style.transform = `translate3d(0, ${dist}px, 0)`;
     el.style.willChange = 'opacity, transform';
@@ -403,7 +394,7 @@ function reveals() {
     const batch = inOrder(queue);
     queue = [];
     queued = false;
-    batch.forEach((el, i) => run(el, Math.min(i, CASCADE_MAX) * step));
+    batch.forEach((el, i) => run(el, Math.min(i * step, 150)));
   };
 
   const io = new IntersectionObserver((entries) => {
@@ -416,6 +407,7 @@ function reveals() {
   }, { rootMargin: '0px 0px -10% 0px', threshold: 0.08 });
 
   items.forEach((el) => io.observe(el));
+  document.documentElement.classList.add('motion-ready');
 }
 
 /* ------------------------------------------------------------
@@ -1082,7 +1074,7 @@ function init() {
   workTiles();
   caseStudyReel();      // /work/<slug>/: reel plays while it holds the view
   heroParallax();
-  caseStudy();          // /work/<slug>/: title in, plate out on scroll
+  // Case-study titles and images remain stable while scrolling.
   contactForm();
   navTheme();
 }
