@@ -21,8 +21,6 @@
 <meta property="og:type" content="website">
 <meta property="og:url" content="https://everiart.com/contact/">
 
-<link rel="preconnect" href="https://fonts.googleapis.com">
-<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link rel="stylesheet" href="/css/fonts.css">
 
 <link rel="stylesheet" href="/css/tokens.css?v=2">
@@ -85,20 +83,23 @@
         <div class="field">
           <label class="field__label" for="cf-name">Name</label>
           <input class="field__input" id="cf-name" name="name" type="text"
-                 autocomplete="name" required>
+                 autocomplete="name" maxlength="100" required>
         </div>
 
         <div class="field">
           <label class="field__label" for="cf-email">Email</label>
           <input class="field__input" id="cf-email" name="email" type="email"
-                 autocomplete="email" required>
+                 autocomplete="email" maxlength="254" required>
         </div>
 
         <div class="field">
           <label class="field__label" for="cf-message">Message</label>
           <textarea class="field__input field__input--area" id="cf-message"
-                    name="message" rows="7" required></textarea>
+                    name="message" rows="7" maxlength="5000" aria-describedby="contact-data-note" required></textarea>
         </div>
+
+        <p class="form__notice" id="contact-data-note">Your name, email and message are sent to Everiart through Netlify Forms so we can respond to your enquiry. Please don’t include passwords, payment details or confidential files.</p>
+        <label class="form__consent"><input type="checkbox" name="enquiry-consent" value="yes" required> <span>I agree that Everiart may use these details to respond to this enquiry.</span></label>
 
         <div class="form__foot">
           <button class="btn btn--primary" type="submit">Send message</button>
@@ -109,7 +110,7 @@
       <aside class="direct reveal">
         <h2 class="direct__title">Or reach us directly</h2>
         <p class="direct__note">
-          Same inbox, same people. Whichever is faster for you.
+          Choose the way you prefer to start a conversation.
         </p>
 
         <div class="direct__actions">
@@ -132,7 +133,7 @@
 
         <dl class="direct__meta">
           <dt class="direct__label">Studio</dt>
-          <dd class="direct__value">Abuja, Nigeria</dd>
+          <dd class="direct__value">Everiart<br>170 Ademola Adetokunbo<br>Wuse 2, Abuja, Nigeria</dd>
           <dt class="direct__label">Studios</dt>
           <dd class="direct__value">ByEveriArt · EveriDesign · BeFrames</dd>
         </dl>

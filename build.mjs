@@ -6,3 +6,4 @@ for (const path of ['index.html', 'experience', 'peaches', 'work', 'contact', 'a
   cpSync(path, `dist/${path}`, { recursive: true });
 }
 console.log('Static website built in dist/. Server code is excluded.');
+await import('./prepare-site.mjs');

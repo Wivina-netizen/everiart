@@ -1022,7 +1022,7 @@ function contactForm() {
       if (!res.ok) throw new Error('HTTP ' + res.status);
 
       form.reset();
-      say('Thank you — your message is in. We reply within two working days.', 'ok');
+        say('Thank you — your message has been submitted. The team will respond using the email you provided.', 'ok');
     } catch (err) {
       // Never swallow it: the visitor needs a route that still works.
       say('That did not send. Please try the email or WhatsApp button instead.', 'err');

@@ -7,6 +7,7 @@ test('visitors cannot inject privileged roles or oversized history', () => {
   assert.equal(validateMessages([{role:'user',content:'  '}]), null);
   assert.equal(validateMessages([{role:'assistant',content:'hi'}]), null);
   assert.equal(validateMessages([{role:'user',content:'Help my brand'}]).length, 1);
+  assert.equal(validateMessages([{role:'user',content:'My brief'}, {role:'assistant',content:'x'.repeat(3000)}, {role:'user',content:'Continue'}]).length, 3);
 });
 test('commercial requests have no autonomous quote or discount authority', () => {
   assert.match(commercialResponse('Can you give me a discount?').reply, /can’t approve/);

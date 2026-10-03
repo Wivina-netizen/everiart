@@ -14,6 +14,10 @@
 /* Shared shapes: editorial rules stay crisp; media and entrance controls soften. */
 :root{--radius-media:18px;--radius-control:12px}
 :root{--ease-out:cubic-bezier(.23,1,.32,1)}
+:root{--focus-ink:#725526}
+.night,.entrance{--focus-ink:#e1c68e}
+button:focus-visible,a:focus-visible,textarea:focus-visible{outline-color:var(--focus-ink)}
+.entrance-media:after{background:linear-gradient(180deg,rgba(5,9,21,.55),rgba(5,9,21,.5) 55%,rgba(5,9,21,.7))}
 .ui-icon{display:inline-block;width:18px;height:18px;flex:none;vertical-align:middle;pointer-events:none}
 .entry-link{border-radius:var(--radius-control);background:var(--ink)}
 .entry-link>.ui-icon{width:20px;height:20px}
@@ -35,6 +39,7 @@
 .composer-area{flex-shrink:0}
 .chat-scroll{overscroll-behavior-y:contain}
 #peaches-form:focus-within{outline:2px solid var(--ink);outline-offset:3px}
+#peaches-form{border-color:#6d6f79}
 #send-message{width:44px;height:44px}
 .followups button,.sidebar-actions button,.sidebar-actions>a,.peaches-sidebar>.back-link{min-height:44px}
 .sidebar-actions button{text-align:left}
@@ -109,6 +114,7 @@
 }
 @media(prefers-reduced-motion:reduce){.reveal-item{opacity:1;transform:none}}
 .composer-foot a{display:inline-flex;align-items:center;min-height:44px}
+.composer-foot,.privacy-note{font-size:11px}
 #peaches-input{max-height:none;overflow-y:hidden}
 .reels-browser{max-width:440px;margin:0 auto}
 .reels-feed{height:min(780px,78svh);min-height:340px;overflow-y:auto;overscroll-behavior-y:contain;scroll-snap-type:y mandatory;border-radius:var(--radius-media);background:#0b0b0c;color:#f4f1e7;scrollbar-width:thin;position:relative}

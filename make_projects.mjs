@@ -77,8 +77,6 @@ const head = (title, desc, theme = "#0D132D") => `<!DOCTYPE html>
 <link rel="icon" href="/assets/favicon.svg" type="image/svg+xml">
 <link rel="apple-touch-icon" href="/assets/favicon.svg">
 
-<link rel="preconnect" href="https://fonts.googleapis.com">
-<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link rel="stylesheet" href="/css/fonts.css">
 
 <link rel="stylesheet" href="/css/tokens.css?v=2">
@@ -255,7 +253,7 @@ function buildProject(studios, published, idx) {
   const figures = (p.gallery?.length ? p.gallery : [p.thumb])
     .map(
       (src, i) => `      <figure class="pfig reveal">
-        <img src="/${src}" alt="${esc(p.name)} — image ${i + 1}" loading="lazy" decoding="async">
+        <img src="/${src}" alt="${esc(p.name)} — ${esc(p.discipline)}, selected image ${i + 1}" loading="lazy" decoding="async">
       </figure>`
     );
 
@@ -340,14 +338,14 @@ function buildProject(studios, published, idx) {
 
   <section class="section">
     <div class="wrap pmeta">${draftMark}
-      <p class="pmeta__lede">${esc(p.lede ?? "")}</p>
+      <p class="pmeta__lede">${esc(p.copyStatus === "approved" ? p.lede ?? "" : `${p.name} — ${p.discipline}. Explore the selected work below.`)}</p>
       <a class="btn" href="/peaches/?q=${encodeURIComponent(`I am interested in the ${p.name} project. Help me think about a similar approach for my own brief.`)}">Discuss this with Peaches ↗</a>
       <dl class="pmeta__facts">
         <div class="pmeta__row"><dt>Client</dt><dd>${esc(p.name)}</dd></div>
-        <div class="pmeta__row"><dt>Year</dt><dd>${p.year}</dd></div>
+        <div class="pmeta__row"><dt>Year</dt><dd>${esc(p.year)}</dd></div>
         <div class="pmeta__row"><dt>Category</dt><dd>${esc(p.category)}</dd></div>
         <div class="pmeta__row"><dt>Deliverables</dt><dd>${esc(p.discipline)}</dd></div>
-        <div class="pmeta__row"><dt>Role</dt><dd>${meta.role}</dd></div>
+${p.copyStatus === "approved" && p.role ? `<div class="pmeta__row"><dt>Role</dt><dd>${esc(p.role)}</dd></div>` : ""}
       </dl>
     </div>
   </section>

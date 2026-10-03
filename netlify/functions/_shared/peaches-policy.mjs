@@ -5,7 +5,7 @@ export function validateMessages(input) {
   let size = 0;
   const messages = [];
   for (const item of input) {
-    if (!item || !['user', 'assistant'].includes(item.role) || typeof item.content !== 'string' || !item.content.trim() || item.content.length > 2500) return null;
+    if (!item || !['user', 'assistant'].includes(item.role) || typeof item.content !== 'string' || !item.content.trim() || item.content.length > (item.role === 'user' ? 2000 : 7000)) return null;
     size += item.content.length;
     messages.push({ role: item.role, content: item.content.trim() });
   }

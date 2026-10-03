@@ -116,3 +116,25 @@ local failure recovery, new-conversation reset and encoded email-draft context.
 Physical phone keyboard and Safari still need checks. Security and model readiness
 are not certified by these UI checks. See READINESS-CHECKLIST.md for pending owner
 screenshots, approved project/brand knowledge, reels reference and guardrail work.
+
+### Screenshot readiness pass
+
+Owner confirmed media clearance, legal name Everiart and public address 170 Ademola
+Adetokunbo, Wuse 2, Abuja, Nigeria. Search Console is not set up. Owner requested
+policy drafts for review; POLICY-DRAFTS.md stays outside the published site.
+
+Added byte-bounded API parsing (including null/malformed-body handling), function
+response headers, and separate user/assistant history limits. Build now runs
+prepare-site.mjs to add canonical/social metadata, sitemap.xml, robots.txt and a
+hash-based script CSP. Preview contexts are noindex. Fonts are self-hosted and unused
+Google preconnects removed. Contact gains the confirmed address, minimal-data notice,
+unchecked required enquiry permission and field limits. No form email was sent in QA.
+Unapproved descriptive ledes are replaced by neutral project metadata; draft text is
+retained in projects.json, and inferred studio-wide project roles are no longer shown.
+
+Fifteen tests, the 20-page route check and npm production audit pass (zero known
+vulnerabilities). No known-pattern credential matches in current tracked files; two
+historical matches were documentation-URL false positives. GitHub secret scanning
+and push protection are enabled, no open alerts; one admin collaborator, unprotected
+main. CI and Dependabot configuration added. Full evidence and open owner/account
+decisions are in READINESS-CHECKLIST.md; SEARCH-CONSOLE-SETUP.md has verification steps.

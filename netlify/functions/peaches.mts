@@ -1,20 +1,24 @@
 import type { Config } from '@netlify/functions';
 import { instructions } from './_shared/peaches-knowledge.mjs';
 import { validateMessages, commercialResponse, cleanAnswer } from './_shared/peaches-policy.mjs';
+import { readBoundedJson } from './_shared/request-body.mjs';
 
 function json(body: unknown, status = 200) {
-  return Response.json(body, { status, headers: { 'Cache-Control': 'no-store' } });
+  return Response.json(body, { status, headers: {
+    'Cache-Control': 'no-store', 'X-Content-Type-Options': 'nosniff',
+    'Content-Security-Policy': "default-src 'none'; frame-ancestors 'none'",
+    'Referrer-Policy': 'no-referrer', ...(status === 405 ? { Allow: 'POST' } : {})
+  } });
 }
 
 export default async (request: Request) => {
   if (request.method !== 'POST') return json({ error: 'Method not allowed.' }, 405);
   const origin = request.headers.get('origin');
   if (origin && origin !== new URL(request.url).origin) return json({ error: 'Please use the chat on this website.' }, 403);
-  if (!request.headers.get('content-type')?.includes('application/json')) return json({ error: 'Expected JSON.' }, 415);
-  const raw = await request.text();
-  if (raw.length > 24000) return json({ error: 'Please shorten your conversation or start a new one.' }, 413);
-  let body;
-  try { body = JSON.parse(raw); } catch { return json({ error: 'The message could not be read.' }, 400); }
+  if (request.headers.get('content-type')?.split(';')[0].trim().toLowerCase() !== 'application/json') return json({ error: 'Expected JSON.' }, 415);
+  const parsed = await readBoundedJson(request);
+  if (parsed.status) return json({ error: parsed.status === 413 ? 'Please shorten your conversation or start a new one.' : 'The message could not be read.' }, parsed.status);
+  const body = parsed.body;
   const messages = validateMessages(body.messages);
   if (!messages) return json({ error: 'Please send a shorter message or start a new conversation.' }, 400);
   const policy = commercialResponse(messages.at(-1).content);

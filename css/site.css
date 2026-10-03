@@ -787,6 +787,9 @@
   white-space: nowrap;
   border: 0;
 }
+.form__notice{font-size:14px;line-height:1.65;color:var(--parchment)}
+.form__consent{display:flex;align-items:flex-start;gap:12px;font-size:14px;line-height:1.6;cursor:pointer;padding:8px 0}
+.form__consent input{width:20px;height:20px;flex-shrink:0;margin:2px 0;accent-color:var(--parchment)}
 
 .field { display: grid; gap: 0.5rem; }
 .field__label {
@@ -814,6 +817,7 @@
   line-height: 1.5;
 }
 .field__input::placeholder { color: var(--stone); }
+.field__input{border-color:#8f939f}
 .field__input:hover { border-color: var(--stone); }
 /* The ring lightens rather than darkens: on Authority Navy, Gunmetal is
    barely a step off the ground and read as no focus at all. */
