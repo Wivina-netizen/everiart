@@ -1,18 +1,41 @@
 const film = document.querySelector('#entrance-film');
-const motion = document.querySelector('#motion-toggle');
-if (film && motion) {
+if (film) {
   const reduced = matchMedia('(prefers-reduced-motion: reduce)');
+  // A brief opening, then a still frame: no endless motion without a pause control.
+  let stopTimer;
+  const stop = () => { film.pause(); clearTimeout(stopTimer); };
   if (!reduced.matches && !navigator.connection?.saveData) {
     film.src = film.dataset.src;
-    film.play().then(() => { motion.hidden = false; }).catch(() => {});
+    film.play().then(() => { stopTimer = setTimeout(stop, 4500); }).catch(() => {});
   }
-  motion.addEventListener('click', () => {
-    if (film.paused) film.play().then(() => motion.textContent = 'Pause motion').catch(() => {});
-    else { film.pause(); motion.textContent = 'Play motion'; }
-  });
-  reduced.addEventListener('change', () => { if (reduced.matches) { film.pause(); motion.textContent = 'Play motion'; } });
+  film.addEventListener('timeupdate', () => { if (film.currentTime >= 4.5) stop(); });
+  reduced.addEventListener('change', () => { if (reduced.matches) stop(); });
+  document.addEventListener('visibilitychange', () => { if (document.hidden) stop(); });
 }
 
+// One-time marketing reveals; chat and controls remain immediately responsive.
+const reduceMotion = matchMedia('(prefers-reduced-motion: reduce)');
+if (!reduceMotion.matches && 'IntersectionObserver' in window) {
+  const observer = new IntersectionObserver(entries => {
+    for (const entry of entries) {
+      if (!entry.isIntersecting) continue;
+      entry.target.classList.add('is-visible');
+      observer.unobserve(entry.target);
+    }
+  }, { threshold: 0.08 });
+  document.querySelectorAll('.studio-grid, .project-grid, .process-strip').forEach(group => {
+    [...group.children].forEach((item, index) => {
+      item.classList.add('reveal-item');
+      item.style.setProperty('--reveal-delay', `${Math.min(index, 3) * 60}ms`);
+      observer.observe(item);
+    });
+  });
+  reduceMotion.addEventListener('change', event => {
+    if (!event.matches) return;
+    observer.disconnect();
+    document.querySelectorAll('.reveal-item').forEach(item => item.classList.add('is-visible'));
+  });
+}
 
 // Local, bounded arrow response. Touch and reduced-motion users keep a stable control.
 const arrowMotion = matchMedia('(hover: hover) and (pointer: fine) and (prefers-reduced-motion: no-preference)');

@@ -96,3 +96,23 @@ The latest owner feedback removes glassmorphism entirely. Buttons retain the com
 rounded shape but now use opaque navy or parchment surfaces, simple borders and flat
 hover colors. The mobile menu, project-card arrows, chat cards and legacy video surfaces
 also drop backdrop blur and glossy highlights. This supersedes all glass styling above.
+
+### Launch and next refinement
+
+The owner approved production launch. PR #5 was merged to main at
+6880ff81a3d621b6d7dd0d35c0a60ce1df3d82ad and Netlify published it at everiart.com.
+The current checkout is main; earlier preview-only notes above are historical.
+
+The next requested pass centers and enlarges the hero wordmark, removes entrance
+button arrows, outlines Menu, removes Portfolio/Reels tab counts, and adds one-time
+600ms marketing reveals with 60ms stagger. The removed motion button is paired with
+a 4.5-second background opening that holds still afterward. Reduced motion skips it.
+Peaches input grows within the available visual viewport. Team links open an editable
+contextual draft to hello@everiart.com; no email is sent automatically.
+
+Build, nine tests and internal links across 20 pages pass. Browser checks cover 320px
+and 375px phones, tablet, desktop and landscape, Menu/Escape, long enquiry growth,
+local failure recovery, new-conversation reset and encoded email-draft context.
+Physical phone keyboard and Safari still need checks. Security and model readiness
+are not certified by these UI checks. See READINESS-CHECKLIST.md for pending owner
+screenshots, approved project/brand knowledge, reels reference and guardrail work.

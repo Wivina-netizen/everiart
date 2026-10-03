@@ -1,3 +1,4 @@
+import { teamEmailDraft } from './peaches-handoff.js';
 const form = document.querySelector('#peaches-form');
 const input = document.querySelector('#peaches-input');
 const log = document.querySelector('#messages');
@@ -6,10 +7,33 @@ const status = document.querySelector('#chat-status');
 const send = document.querySelector('#send-message');
 const welcome = document.querySelector('#chat-welcome');
 const handoff = document.querySelector('#take-brief');
+const teamLinks = [...document.querySelectorAll('[data-team-email]')];
 let history = [];
 let busy = false;
+let pendingMessage = '';
 let controller;
 const catalogue = await fetch('/js/peaches-projects.json').then(r => r.json()).catch(() => []);
+
+function refreshDraft() {
+  const href = teamEmailDraft(history, input.value || pendingMessage);
+  teamLinks.forEach(link => { link.href = href; });
+}
+function resizeInput() {
+  if (window.visualViewport?.scale === 1) {
+    document.body.style.setProperty('--chat-viewport', `${window.visualViewport.height}px`);
+  }
+  input.style.height = 'auto';
+  const viewportHeight = window.visualViewport?.height || window.innerHeight;
+  const area = document.querySelector('.composer-area');
+  const conversation = document.querySelector('.conversation');
+  const chrome = area.getBoundingClientRect().height - input.getBoundingClientRect().height;
+  // Leave room for conversation and for the keyboard on short screens.
+  const limit = Math.max(44, Math.min(viewportHeight * .4, conversation.clientHeight - chrome - 80));
+  const height = Math.min(input.scrollHeight, limit);
+  input.style.height = `${height}px`;
+  input.style.overflowY = input.scrollHeight > height ? 'auto' : 'hidden';
+  refreshDraft();
+}
 
 function element(tag, text, className) {
   const node = document.createElement(tag);
@@ -55,7 +79,8 @@ async function submit(text) {
   text = text.trim();
   if (!text || busy || text.length > 2000) return;
   if (history.length >= 18) { status.textContent = 'You’ve explored a lot together. Bring this conversation to the team, or start a new one.'; return; }
-  welcome.hidden = true; input.value = ''; input.style.height = '';
+  pendingMessage = text;
+  welcome.hidden = true; input.value = ''; resizeInput();
   const user = message('user', text);
   setBusy(true); status.textContent = 'Peaches is thinking about your brief…';
   controller = new AbortController();
@@ -74,19 +99,20 @@ async function submit(text) {
     status.textContent = error.name === 'AbortError' ? 'That response took too long. Please try sending your message again.' : error.message;
     input.value = text;
     if (!history.length) welcome.hidden = false;
-  } finally { clearTimeout(timeout); setBusy(false); }
+  } finally { clearTimeout(timeout); pendingMessage = ''; setBusy(false); resizeInput(); }
 }
 form.addEventListener('submit', event => { event.preventDefault(); submit(input.value); });
 input.addEventListener('keydown', event => { if (event.key === 'Enter' && !event.shiftKey && !event.isComposing) { event.preventDefault(); form.requestSubmit(); } });
-input.addEventListener('input', () => { input.style.height = 'auto'; input.style.height = `${Math.min(input.scrollHeight, 150)}px`; });
+input.addEventListener('input', resizeInput);
+window.addEventListener('resize', resizeInput);
+window.visualViewport?.addEventListener('resize', resizeInput);
 document.querySelectorAll('[data-prompt]').forEach(b => b.addEventListener('click', () => submit(b.dataset.prompt)));
 document.querySelector('#new-chat').addEventListener('click', () => {
   if (busy) return;
-  history = []; log.replaceChildren(); status.textContent = ''; welcome.hidden = false; handoff.hidden = true; input.value = ''; input.style.height = ''; input.focus(); scroll.scrollTop = 0;
+  history = []; log.replaceChildren(); status.textContent = ''; welcome.hidden = false; input.value = ''; resizeInput(); input.focus(); scroll.scrollTop = 0;
 });
-handoff.addEventListener('click', () => {
-  try { sessionStorage.setItem('everiart-brief', 'Conversation with Peaches (please review before sending):\n\n' + history.map(m => `${m.role === 'user' ? 'Me' : 'Peaches'}: ${m.content}`).join('\n\n')); } catch { /* Contact form stays available if browser storage is disabled. */ }
-});
+teamLinks.forEach(link => link.addEventListener('click', refreshDraft));
 // A studio link proposes a starting question; it never sends without the visitor.
 const question = new URLSearchParams(location.search).get('q');
 if (question) { input.value = question.slice(0, 2000); window.history.replaceState({}, '', '/peaches/'); }
+resizeInput();
