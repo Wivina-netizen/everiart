@@ -55,3 +55,6 @@
 
 .film-description { max-width: 42ch; margin: 1rem 0; line-height: 1.65; }
 .inline-credit { text-decoration: underline; text-underline-offset: .18em; }
+.programme-gallery { display: grid; gap: 2rem; }
+.programme-gallery figure { margin: 0; }
+.programme-gallery img { display: block; width: 100%; height: auto; border-radius: var(--radius-media); }

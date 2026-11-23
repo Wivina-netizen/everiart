@@ -1,4 +1,5 @@
 import { sokotoEntry, sokotoPage } from './sokoto.mjs';
+import { programmeEntry, programmePage } from './you-and-us.mjs';
 import { nativeFilm, projectFilms, youtubeFilm } from './film-players.mjs';
 
 const studioPath = '/experience/byeveriart/';
@@ -57,6 +58,7 @@ function films(published) {
     <p class="eyebrow">BYEVERIART</p><h1>Film <i>production.</i></h1><p class="house-lede">Full-length movies and documentary work from our studio and the people we make films with.</p>
     <nav class="portfolio-views" aria-label="Portfolio view"><a href="${studioPath}work/">Portfolio</a><a href="${filmsPath}" aria-current="page">Films</a><a href="${studioPath}reels/">Reels</a></nav></header>
   <section class="house-section page-width"><div class="section-side"><p class="eyebrow">FEATURE FILM · CRIME THRILLER</p><h2>Deadly <i>Pursuit.</i></h2><p class="film-description">A Profect Original Film in collaboration with ByEveriArt.</p><a class="text-link" href="${featurePath}">Explore the production and crew</a></div><div>${featureExcerpt()}</div></section>
+  ${programmeEntry(filmsPath)}
   ${sokotoEntry(filmsPath)}
   <section id="documentaries" class="house-section page-width"><div class="section-side"><p class="eyebrow">DOCUMENTARIES</p><h2>ByEveriArt <i>with</i><br>Perfecto Movies.</h2>
     </div>
@@ -92,6 +94,7 @@ export function generateHousePages({ studios, published, head, nav, foot, tail, 
     ['about/', 'About us — Everiart Creative House', 'Meet our Abuja creative house, its three studios, leadership and film collaborators.', about(studios), 'about'],
     [filmsPath.slice(1), 'Film production — ByEveriArt', 'Explore full-length film production, documentary credits and public viewing links from ByEveriArt in Abuja.', films(published), 'experience'],
     [filmsPath.slice(1) + 'sokoto/', 'Sokoto — Moving postcards by ByEveriArt', 'Nine silent documentary postcards from a camp for internally displaced people in Sokoto, Nigeria.', sokotoPage(filmsPath), 'experience'],
+    [filmsPath.slice(1) + 'u-and-us/', 'U&US — Julius Holland, The Aysha Clothier and ByEveriArt', 'Watch a short documentary portfolio edit and explore photographs from U&US, a programme by Julius Holland and The Aysha Clothier, documented by ByEveriArt.', programmePage(filmsPath), 'experience'],
     [featurePath.slice(1), 'Deadly Pursuit — ByEveriArt', 'Inside the making of Deadly Pursuit, a feature-length crime thriller. Watch the work-in-progress excerpt and explore the production photography and crew credits.', feature(), 'experience']
   ];
   for (const [path, title, description, body, active] of pages) {
