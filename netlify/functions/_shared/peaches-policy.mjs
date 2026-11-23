@@ -1,3 +1,4 @@
+import { destinations } from '../../../js/peaches-guide.js';
 import { projects } from './peaches-knowledge.mjs';
 export function validateMessages(input) {
   if (!Array.isArray(input) || !input.length || input.length > 20) return null;
@@ -31,6 +32,7 @@ export function cleanAnswer(value) {
   const allowed = new Set(projects.map(p => p.slug));
   return {
     reply: value.reply.trim(),
+    linkIds: Array.isArray(value.linkIds) ? [...new Set(value.linkIds)].filter(id => typeof id === 'string' && Object.hasOwn(destinations, id)).slice(0, 6) : [],
     projectSlugs: Array.isArray(value.projectSlugs) ? [...new Set(value.projectSlugs)].filter(s => allowed.has(s)).slice(0, 2) : [],
     suggestions: Array.isArray(value.suggestions) ? value.suggestions.filter(s => typeof s === 'string' && s.length > 0 && s.length <= 100).slice(0, 3) : [],
   };

@@ -155,3 +155,7 @@ button:focus-visible,a:focus-visible,textarea:focus-visible{outline-color:var(--
 .film-category img { width: clamp(88px, 12vw, 140px); height: auto; border-radius: var(--radius-media); }
 .film-category strong { display: block; font: 400 clamp(1.25rem, 2vw, 1.8rem)/1.2 var(--serif); }
 .film-category small { display: block; font-size: .875rem; color: var(--muted); margin-top: .3rem; }
+
+.peaches-resources { list-style: none; padding: 0; margin: 1rem 0 0; white-space: normal; }
+.peaches-resources li + li { margin-top: .45rem; }
+.peaches-resources a { text-decoration: underline; text-underline-offset: .2em; }

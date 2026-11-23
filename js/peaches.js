@@ -1,3 +1,4 @@
+import { destinations, offlineGuide } from './peaches-guide.js';
 import { teamEmailDraft } from './peaches-handoff.js';
 const form = document.querySelector('#peaches-form');
 const input = document.querySelector('#peaches-input');
@@ -41,9 +42,18 @@ function element(tag, text, className) {
   if (className) node.className = className;
   return node;
 }
-function message(role, content, projects = [], suggestions = []) {
+function message(role, content, projects = [], suggestions = [], linkIds = [], mode = '') {
   const article = element('article', '', `message ${role}`);
-  article.append(element('p', role === 'user' ? 'You' : 'Peaches', 'message-label'), element('p', content));
+  article.append(element('p', role === 'user' ? 'You' : mode === 'guide' ? 'Peaches · Studio guide' : 'Peaches', 'message-label'), element('p', content));
+  const links = element('ul', '', 'peaches-resources');
+  for (const id of linkIds) {
+    if (!Object.hasOwn(destinations, id)) continue;
+    const [label, href] = destinations[id];
+    const item = element('li');
+    const link = element('a', label);
+    link.href = href; item.append(link); links.append(item);
+  }
+  if (links.childElementCount) article.append(links);
   if (projects.length) {
     const cards = element('div', '', 'message-cards');
     for (const slug of projects) {
@@ -87,12 +97,19 @@ async function submit(text) {
   const timeout = setTimeout(() => controller.abort(), 30000);
   try {
     const pending = [...history, { role: 'user', content: text }];
-    const response = await fetch('/api/peaches', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ messages: pending }), signal: controller.signal });
-    const data = await response.json().catch(() => ({}));
-    if (!response.ok) throw new Error(response.status === 429 ? 'A few too many messages at once. Please wait a minute and try again.' : data.error || 'Peaches is unavailable right now. Please try again or contact the team.');
+    let data;
+    try {
+      const response = await fetch('/api/peaches', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ messages: pending }), signal: controller.signal });
+      data = await response.json().catch(() => ({}));
+      if (response.status >= 500) data = offlineGuide(pending);
+      else if (!response.ok) throw new Error(response.status === 429 ? 'A few too many messages at once. Please wait a minute and try again.' : data.error || 'Peaches is unavailable right now. Please try again or contact the team.');
+    } catch (error) {
+      if (!(error instanceof TypeError) && error.name !== 'AbortError') throw error;
+      data = offlineGuide(pending);
+    }
     history = [...pending, { role: 'assistant', content: data.reply }];
     status.textContent = '';
-    message('assistant', data.reply, data.projectSlugs, data.suggestions);
+    message('assistant', data.reply, data.projectSlugs, data.suggestions, data.linkIds, data.mode);
     handoff.hidden = false;
   } catch (error) {
     user.remove();

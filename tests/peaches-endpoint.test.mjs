@@ -26,3 +26,35 @@ test('commercial policy works without exposing or contacting an AI service', asy
   assert.equal(response.status, 200);
   assert.equal((await response.json()).mode, 'policy');
 });
+
+test('published credits, approved viewing links and historical budgets work without a provider', async () => {
+  const ask = async content => (await handler(request(JSON.stringify({messages:[{role:'user',content}]})))).json();
+  for (const [question, fact, link] of [
+    ['Can you make a movie?', /full-length movies/, 'excerpt'],
+    ['What can I watch?', /work-in-progress/, 'films'],
+    ['Who produced Deadly Pursuit?', /ByEveriArt and Ambrose Oseni/, 'deadly'],
+    ['Tell me about Julius Holland', /eight-person/, 'programme'],
+    ['What did you do with Malpai?', /nine silent/i, 'postcards'],
+    ['Show me Argungu and Gumel', /related short[\s\S]+official highlight/, 'highlight'],
+    ['Have you filmed abroad?', /filmed in Nigeria/, 'contact'],
+    ['How much did Deadly Pursuit cost?', /Financial figures.*private/, 'deadly'],
+    ['Do you have a screener?', /screening availability/, 'contact']
+  ]) {
+    const answer = await ask(question);
+    assert.equal(answer.mode, 'guide');
+    assert.match(answer.reply, fact);
+    assert.ok(answer.linkIds.includes(link));
+    assert.doesNotMatch(answer.reply, /₦|\/Volumes\/|drive\.google/);
+  }
+});
+
+test('an unavailable AI provider offers the public studio guide for creative briefs', async () => {
+  const previous = globalThis.Netlify;
+  globalThis.Netlify = { env: { get: () => undefined } };
+  try {
+    const answer = await (await handler(request(JSON.stringify({messages:[{role:'user',content:'Help me shape a new campaign'}]})))).json();
+    assert.equal(answer.mode, 'guide');
+    assert.match(answer.reply, /temporarily unavailable/);
+    assert.ok(answer.linkIds.includes('contact'));
+  } finally { globalThis.Netlify = previous; }
+});

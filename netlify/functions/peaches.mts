@@ -1,4 +1,5 @@
 import type { Config } from '@netlify/functions';
+import { portfolioAnswer, offlineGuide, requestsRestrictedDetails } from '../../js/peaches-guide.js';
 import { instructions } from './_shared/peaches-knowledge.mjs';
 import { validateMessages, commercialResponse, cleanAnswer } from './_shared/peaches-policy.mjs';
 import { readBoundedJson } from './_shared/request-body.mjs';
@@ -21,14 +22,17 @@ export default async (request: Request) => {
   const body = parsed.body;
   const messages = validateMessages(body.messages);
   if (!messages) return json({ error: 'Please send a shorter message or start a new conversation.' }, 400);
-  const policy = commercialResponse(messages.at(-1).content);
-  if (policy) return json({ ...policy, mode: 'policy' });
+  const question = messages.at(-1).content;
+  const policy = commercialResponse(question);
+  if (policy && !requestsRestrictedDetails(question)) return json({ ...policy, mode: 'policy' });
+  const guide = portfolioAnswer(messages);
+  if (guide) return json(guide);
 
   // Values are consumed here only, never returned or logged.
   // Netlify's managed gateway injects these on eligible sites.
   const key = Netlify.env.get('OPENAI_API_KEY');
   const configuredBase = Netlify.env.get('OPENAI_BASE_URL');
-  if (!key || !configuredBase) return json({ error: 'Peaches isn’t connected to the AI service yet. You can explore the work or bring your idea directly to our team.', code: 'AI_NOT_CONFIGURED' }, 503);
+  if (!key || !configuredBase) return json(offlineGuide(messages));
   const base = configuredBase.replace(/\/+$/, '');
   const endpoint = `${base.endsWith('/v1') ? base : `${base}/v1`}/chat/completions`;
   try {
@@ -44,17 +48,17 @@ export default async (request: Request) => {
         response_format: { type: 'json_schema', json_schema: {
           name: 'peaches_answer', strict: true,
           schema: { type: 'object', additionalProperties: false,
-            properties: { reply: { type: 'string' }, projectSlugs: { type: 'array', items: { type: 'string' } }, suggestions: { type: 'array', items: { type: 'string' } } },
-            required: ['reply', 'projectSlugs', 'suggestions'] }
+            properties: { reply: { type: 'string' }, linkIds: { type: 'array', items: { type: 'string' } }, projectSlugs: { type: 'array', items: { type: 'string' } }, suggestions: { type: 'array', items: { type: 'string' } } },
+            required: ['reply', 'linkIds', 'projectSlugs', 'suggestions'] }
         } }
       })
     });
-    if (!response.ok) return json({ error: 'Peaches can’t reach the AI service right now. Please try again shortly, or speak with our team.', code: 'AI_UNAVAILABLE' }, 503);
+    if (!response.ok) return json(offlineGuide(messages));
     const result = await response.json();
     const answer = cleanAnswer(JSON.parse(result.choices?.[0]?.message?.content ?? '{}'));
     return json({ ...answer, mode: 'ai' });
   } catch {
-    return json({ error: 'Peaches couldn’t finish that response. Your message is still here—please try again.', code: 'AI_RESPONSE_FAILED' }, 503);
+    return json(offlineGuide(messages));
   }
 };
 
