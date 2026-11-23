@@ -1,10 +1,10 @@
 // Owner-confirmed direction from the October 3 design conversation.
 // This is a starting knowledge pack, not a claim to have recovered the full Brand Bible.
 export const knowledge = {
-  identity: 'Everiart is a creative house based in Abuja, Nigeria. David Wivina is its Managing Director.',
+  identity: 'Everiart is a creative house based in Abuja, Nigeria.',
   principle: 'Every problem has a visual solution. Understand the problem before selecting a medium. Offer thoughtful visual solutions across the studios.',
   studios: [
-    { name: 'ByEveriArt', creativeDirector: 'Ibrahim Abdulwahab', scope: 'Full-service media production house offering full-length film production, cinematography, videography and photography. Its work includes documentaries, brand films, campaigns, weddings and events.' },
+    { name: 'ByEveriArt', scope: 'Full-service media production house offering full-length film production, cinematography, videography and photography. Its work includes documentaries, brand films, campaigns, weddings and events.' },
     { name: 'EveriDesign', scope: 'Brand identity, art direction, visual systems and their applications.' },
     { name: 'BeFrames', scope: 'Photography, including events, portraits, brand imagery and spaces.' }
   ],

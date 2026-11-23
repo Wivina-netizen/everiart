@@ -1,7 +1,7 @@
 export const arrowIcon = '<svg class="ui-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" focusable="false"><path d="M7 17 17 7M7 7h10v10"/></svg>';
 
 export function siteNav(active = '', home = false) {
-  const links = [['/experience/', 'Studios', 'experience'], ['/about/', 'About us', 'about'], ['/peaches/', 'Ask Peaches', 'peaches'], ['/contact/', 'Contact us', 'contact']];
+  const links = [['/experience/', 'Studios', 'experience'], ['/peaches/', 'Ask Peaches', 'peaches'], ['/contact/', 'Contact us', 'contact']];
   const items = links.map(([href, label, key]) => `<a href="${href}"${key === active ? ' aria-current="page"' : ''}>${label}${arrowIcon}</a>`).join('');
   return `<a class="site-skip" href="#main">Skip to content</a>
 <header class="site-header masthead${home ? ' site-header--home' : ''}">
