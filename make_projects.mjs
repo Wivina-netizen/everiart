@@ -1,3 +1,4 @@
+import { projectFilms } from './film-players.mjs';
 import { siteNav } from './navigation.mjs';
 /**
  * Generate the home work grid, /work/ and every /work/<slug>/ case study.
@@ -83,6 +84,7 @@ const head = (title, desc, theme = "#0D132D") => `<!DOCTYPE html>
 <link rel="stylesheet" href="/css/base.css?v=2">
 <link rel="stylesheet" href="/css/site.css?v=2">
 <link rel="stylesheet" href="/css/navigation.css">
+<link rel="stylesheet" href="/css/film-players.css">
 </head>
 <body>
 
@@ -273,34 +275,8 @@ function buildProject(studios, published, idx) {
            metric or quote. See COPY-TODO.md, and flip copyStatus to
            "approved" in projects.json once the wording is signed off. -->`;
 
-  // The reel, where there is one. Maitro and BMT are identity work with no
-  // footage, and they simply do not get it rather than getting an empty
-  // section — the same rule the tiles already follow.
-  //
-  // It sits INSIDE the body, after the first two stills, so the page reads
-  // stills, motion, then the rest of the stills. It used to be a section of
-  // its own above the gallery.
-  //
-  // The frame is sized from reelAspect, not from a house ratio: the reels are
-  // 1/1, 4/3 and 16/9, so a fixed slot would either crop the square one or
-  // pillarbox it. Sizing it up front also reserves the box before the video
-  // loads, so revealing it cannot shift the gallery underneath.
-  //
-  // Not a .reveal of its own. It sits inside .pbody, which is one, and
-  // nested reveals multiply their opacity — the reel would fade in behind
-  // its parent's fade rather than with it, arriving darker and later than
-  // its place in the cascade says. The section reveals; the reel rides it.
-  //
-  // No expand control in the markup. js/video.js adds it, because without JS
-  // there is no video to expand and a dead button is worse than none.
-  const reelBlock = p.reel
-    ? `      <div class="preel" data-reel="${esc(p.reel)}"
-           aria-label="${esc(p.name)} — reel">
-        <div class="preel__frame" style="--reel-ar: ${esc(p.reelAspect ?? "16 / 9")}">
-          <img class="preel__still" src="/${p.thumb}" alt="" loading="lazy" decoding="async">
-        </div>
-      </div>`
-    : "";
+  // Keep each published reel and cut playable in its own project, including without JavaScript.
+  const reelBlock = projectFilms(p);
 
   // Two stills, the reel, then everything else. A project with fewer than two
   // stills gets the reel after what it has rather than an empty slot.

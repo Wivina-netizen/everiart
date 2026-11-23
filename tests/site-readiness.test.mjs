@@ -24,7 +24,12 @@ test('all built pages have canonical metadata, sitemap entries and image alterna
     const title=html.match(/<title>(.*?)<\/title>/)[1];
     assert.ok(!titles.has(title),`Duplicate title: ${title}`);titles.add(title);
     for(const image of html.matchAll(/<img\b[^>]*>/g))assert.match(image[0],/\balt="[^"]*"/,path);
-    assert.doesNotMatch(html,/<iframe|fonts\.googleapis\.com|fonts\.gstatic\.com/);
+    const frames = [...html.matchAll(/<iframe\b[^>]*src="([^"]+)"/g)].map(match => match[1]);
+    assert.deepEqual(frames, path === 'dist/experience/byeveriart/films/index.html' ? [
+      'https://www.youtube-nocookie.com/embed/P66ZIpQIxms?playsinline=1',
+      'https://www.youtube-nocookie.com/embed/g9exVt_daOI?playsinline=1'
+    ] : [], path);
+    assert.doesNotMatch(html,/fonts\.googleapis\.com|fonts\.gstatic\.com/);
   }
 });
 test('public output excludes server code, policy drafts and credentials; CSP allows only known inline scripts',()=>{

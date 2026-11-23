@@ -6,7 +6,7 @@ const { projects } = JSON.parse(readFileSync('projects.json', 'utf8'));
 const published = projects.filter(p => p.published);
 const esc = s => String(s).replaceAll('&', '&amp;').replaceAll('<', '&lt;').replaceAll('>', '&gt;').replaceAll('"', '&quot;');
 const studios = [
-  { id: 'byeveriart', name: 'ByEveriArt', type: 'Film & storytelling', title: 'Make them feel.<br><i>Give them a reason.</i>', line: 'Feature films, documentaries and stories for brands.', image: 'assets/regalia-pop-up-events/hero.jpg', description: 'We make full-length movies, documentaries and films for brands. Sometimes our work starts with a shooting script. Sometimes it starts with a person willing to tell us their story.', services: ['Feature film production', 'Documentary', 'Brand films', 'Campaigns', 'Weddings & events'], question: 'I want to tell a story through film. Help me find the right approach.' },
+  { id: 'byeveriart', name: 'ByEveriArt', type: 'Film & storytelling', title: 'Make them feel.<br><i>Give them a reason.</i>', line: 'Feature films, documentaries and stories for brands.', image: 'assets/regalia-pop-up-events/hero.jpg', description: 'ByEveriArt is a full-service media production house in Abuja. We make full-length movies, documentaries and films for brands, and offer cinematography, videography and photography for individual commissions.', services: ['Film production', 'Cinematography', 'Videography', 'Photography'], question: 'I want to tell a story through film. Help me find the right approach.' },
   { id: 'everidesign', name: 'EveriDesign', type: 'Identity & design', title: 'Be understood.<br><i>Be unmistakable.</i>', line: 'An identity with something to say.', image: 'assets/maitro-tech/hero.jpg', description: 'Before a mark, a colour or a typeface, there is a question: what should people understand about you? We turn that answer into a visual identity that can live consistently wherever your brand meets the world.', services: ['Brand identity', 'Art direction', 'Visual systems', 'Brand applications'], question: 'My brand needs a clearer visual identity. Where should we start?' },
   { id: 'beframes', name: 'BeFrames', type: 'Photography & image', title: 'Notice more.<br><i>Make it matter.</i>', line: 'A point of view, held in a frame.', image: 'assets/agra/hero.jpg', description: 'A photograph can introduce a person, reveal a space or preserve the atmosphere of a day. We pay attention to what matters in the frame, and what the image needs to communicate beyond it.', services: ['Event photography', 'Portraits', 'Brand imagery', 'Spaces & details'], question: 'I need photographs that communicate more than how something looks.' }
 ];
@@ -27,7 +27,7 @@ writeFileSync('js/peaches-projects.json', JSON.stringify(published.map(({slug,na
 console.log('Generated entrance, studio journeys and Ask Peaches.');
 
 
-generateHousePages({ studios, head, nav, foot, tail, save });
+generateHousePages({ studios, published, head, nav, foot, tail, save });
 generateStudioPortfolios({ studios, published, head, nav, foot, tail, cards });
 
 const contactSource = readFileSync('contact/index.html', 'utf8');
