@@ -23,7 +23,8 @@
 .house-rows .text-link { margin-top: 18px; min-height: 32px; }
 .house-links { display: flex; gap: 0 22px; flex-wrap: wrap; }
 .house-person { display: flex; align-items: center; gap: clamp(16px, 3vw, 40px); }
-.house-initials { display: grid; place-items: center; flex: none; width: clamp(68px, 9vw, 135px); aspect-ratio: 4/5; border: 1px solid var(--line); border-radius: var(--radius-media); background: #1c2541; color: var(--paper); font: italic clamp(26px, 3vw, 50px)/1 var(--serif); }
+.house-portrait { display: block; flex: none; width: clamp(92px, 13vw, 175px); height: auto; aspect-ratio: 4 / 5; border-radius: var(--radius-media); }
+@media (max-width: 400px) { .house-person { align-items: flex-start; } }
 .film-heading { padding-block: clamp(28px, 4vw, 62px) 28px; }
 .film-heading > .eyebrow { margin-top: clamp(35px, 5vw, 75px); }
 .film-heading .portfolio-views { margin-bottom: 0; }
