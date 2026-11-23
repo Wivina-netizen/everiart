@@ -6,3 +6,9 @@
 .film-player iframe { min-height: 200px; }
 .film-player figcaption { margin-top: .65rem; color: inherit; font-size: .875rem; line-height: 1.6; }
 .film-player figcaption a { text-decoration: underline; text-underline-offset: .2em; }
+.postcard-controls { display: flex; align-items: center; gap: 1rem; margin: 1rem 0 .5rem; }
+.postcard-controls button { min-height: 44px; padding: .5rem 1.25rem; font: inherit; }
+.postcard-controls button:disabled { opacity: .45; cursor: default; }
+.postcard-controls output { font-variant-numeric: tabular-nums; }
+.postcard-hint { font-size: .875rem; line-height: 1.6; }
+.postcard-page { padding-bottom: clamp(2rem, 5vw, 5rem); }
