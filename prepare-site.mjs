@@ -27,7 +27,7 @@ for (const path of pages) {
   html = html.replace(/<link\b[^>]*rel="canonical"[^>]*>/gi, '')
     .replace(/<meta\b[^>]*(?:property="og:[^"]+"|name="twitter:[^"]+")[^>]*>/gi, '')
     .replace(/<link\b[^>]*rel="preconnect"[^>]*>/gi, '');
-  const firstImage = html.match(/<img[^>]+src="\/?(assets\/[^"?#]+)"/i)?.[1] || 'assets/hero-poster.jpg';
+  const firstImage = html.match(/<(?:img\b[^>]+src|video\b[^>]+poster)="\/?(assets\/[^"?#]+)"/i)?.[1] || 'assets/hero-poster.jpg';
   html = html.replace('</head>', `<link rel="canonical" href="${esc(url)}">
 <meta property="og:type" content="website"><meta property="og:site_name" content="Everiart">
 <meta property="og:title" content="${title}"><meta property="og:description" content="${description}">
@@ -47,6 +47,6 @@ writeFileSync(join(root, 'robots.txt'), `User-agent: *\nAllow: /\nDisallow: /api
 // Styles use inline layout variables; script execution remains restricted to
 // bundled code and exact hashes of the legacy first-paint scripts.
 const mediaOrigin = 'https://pub-22c601fc38564ec79d41e018bfad6bcf.r2.dev';
-const csp = `default-src 'self'; script-src 'self' ${[...hashes].join(' ')}; style-src 'self' 'unsafe-inline'; img-src 'self' data:; font-src 'self'; media-src 'self' ${mediaOrigin}; connect-src 'self' ${mediaOrigin}; object-src 'none'; base-uri 'none'; frame-src 'none'; frame-ancestors 'self'; form-action 'self'; upgrade-insecure-requests`;
+const csp = `default-src 'self'; script-src 'self' ${[...hashes].join(' ')}; style-src 'self' 'unsafe-inline'; img-src 'self' data:; font-src 'self'; media-src 'self' ${mediaOrigin}; connect-src 'self' ${mediaOrigin}; object-src 'none'; base-uri 'none'; frame-src https://www.youtube-nocookie.com/embed/; frame-ancestors 'self'; form-action 'self'; upgrade-insecure-requests`;
 writeFileSync(join(root, '_headers'), `/*\n  Content-Security-Policy: ${csp}\n  Strict-Transport-Security: max-age=31536000\n${process.env.CONTEXT && process.env.CONTEXT !== 'production' ? '  X-Robots-Tag: noindex, nofollow\n' : ''}`);
 console.log(`Prepared canonical metadata, sitemap, robots and security headers for ${pages.length} pages.`);

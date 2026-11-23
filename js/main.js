@@ -5,7 +5,6 @@
    ============================================================ */
 
 import { Spring, prefersReducedMotion, REDUCED } from './spring.js?v=2';
-import { caseStudyReel } from './video.js?v=2';
 
 const reduced = () => prefersReducedMotion();
 
@@ -1072,7 +1071,6 @@ function init() {
   reveals();
   studioFilter();
   workTiles();
-  caseStudyReel();      // /work/<slug>/: reel plays while it holds the view
   heroParallax();
   // Case-study titles and images remain stable while scrolling.
   contactForm();

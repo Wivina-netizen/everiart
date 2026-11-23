@@ -4,7 +4,7 @@ export const knowledge = {
   identity: 'Everiart is a creative house based in Abuja, Nigeria, led by David Wivina Oboh.',
   principle: 'Every problem has a visual solution. Understand the problem before selecting a medium. Offer thoughtful visual solutions across the studios.',
   studios: [
-    { name: 'ByEveriArt', scope: 'Full-length feature film production, documentary storytelling, brand films, campaigns, weddings and events.' },
+    { name: 'ByEveriArt', scope: 'Full-service media production house offering full-length film production, cinematography, videography and photography. Its work includes documentaries, brand films, campaigns, weddings and events.' },
     { name: 'EveriDesign', scope: 'Brand identity, art direction, visual systems and their applications.' },
     { name: 'BeFrames', scope: 'Photography, including events, portraits, brand imagery and spaces.' }
   ],

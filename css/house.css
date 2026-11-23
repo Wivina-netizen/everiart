@@ -52,3 +52,6 @@
 .feature-plate img { object-position: center 80%; }
 .film-gallery { grid-template-columns: repeat(2, minmax(0, 1fr)); }
 @media(max-width: 520px) { .film-gallery { grid-template-columns: 1fr; } }
+
+.film-description { max-width: 42ch; margin: 1rem 0; line-height: 1.65; }
+.inline-credit { text-decoration: underline; text-underline-offset: .18em; }

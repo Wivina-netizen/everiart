@@ -1,0 +1,8 @@
+.film-player { margin: 1.25rem 0 1.75rem; }
+.film-player video, .film-player iframe {
+  display: block; width: 100%; height: auto; aspect-ratio: var(--film-aspect, 16 / 9);
+  max-height: 78svh; border: 0; border-radius: var(--radius-media, 14px); background: #0b0b0c;
+}
+.film-player iframe { min-height: 200px; }
+.film-player figcaption { margin-top: .65rem; color: inherit; font-size: .875rem; line-height: 1.6; }
+.film-player figcaption a { text-decoration: underline; text-underline-offset: .2em; }
