@@ -32,6 +32,7 @@ __pycache__/
 assets/**/*.mp4
 # Owner-cleared, self-hosted portfolio excerpt.
 !assets/deadly-pursuit/excerpt.mp4
+!assets/sokoto/postcards.mp4
 
 # A stale duplicate of .claude/skills — an older copy of the pattern library
 # that still describes retired patterns (hover-to-play tiles, ambient drift,
