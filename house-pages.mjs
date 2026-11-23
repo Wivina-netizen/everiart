@@ -1,4 +1,4 @@
-import { sokotoEntry, sokotoPage } from './sokoto.mjs';
+import { sokotoEntry, sokotoPage, sokotoTitle } from './sokoto.mjs';
 import { programmeEntry, programmePage } from './you-and-us.mjs';
 import { nativeFilm, projectFilms, youtubeFilm } from './film-players.mjs';
 
@@ -20,8 +20,8 @@ export function filmSelectedWorks(projects, esc) {
     ] },
     { title: 'Documentaries', items: [
       { title: 'U&US', href: filmsPath + 'u-and-us/', note: 'Julius Holland and The Aysha Clothier' },
-      { title: 'Sokoto', href: filmsPath + 'sokoto/', note: 'Nine moving postcards' },
-      { title: 'Argungu Fishing Festival Documentary', href: filmsPath + '#argungu', note: 'With Perfecto Movies' },
+      { title: sokotoTitle, href: filmsPath + 'sokoto/', note: 'Nine moving postcards' },
+      { title: 'Argungu Fishing Festival', href: filmsPath + '#argungu', note: 'Documentary · With Perfecto Movies' },
       { title: 'Gumel Documentary', href: filmsPath + '#gumel', note: 'With Perfecto Movies' },
       ...catalogue('Documentary')
     ] },
@@ -85,7 +85,7 @@ function films(published) {
   ${sokotoEntry(filmsPath)}
   <section id="documentaries" class="house-section page-width"><div class="section-side"><p class="eyebrow">DOCUMENTARIES</p><h2>ByEveriArt <i>with</i><br>Perfecto Movies.</h2>
     </div>
-    <div class="house-rows"><article id="argungu"><h3>Argungu Fishing Festival Documentary</h3><p>For the film about the Argungu Fishing Festival, ByEveriArt handled production logistics and procurement, filmed the festival and carried out most of post-production in collaboration with Perfecto Movies.</p><p>From Perfecto Movies’ festival series, <i>Homa (The Net)</i> offers a short look at the fishing tradition.</p>
+    <div class="house-rows"><article id="argungu"><p class="eyebrow">Documentary</p><h3>Argungu Fishing Festival</h3><p>For the film about the Argungu Fishing Festival, ByEveriArt handled production logistics and procurement, filmed the festival and carried out most of post-production in collaboration with Perfecto Movies.</p><p>From Perfecto Movies’ festival series, <i>Homa (The Net)</i> offers a short look at the fishing tradition.</p>
     ${youtubeFilm('P66ZIpQIxms', 'Homa (The Net) · Related festival short by Perfecto Movies')}
     <a class="text-link" href="/contact/">Enquire about a documentary screening</a></article>
     <article id="gumel"><h3>Gumel Documentary</h3><p>ByEveriArt worked with Perfecto Movies to document the celebrations marking the Emir of Gumel’s 45th anniversary on the throne. ByEveriArt organised production logistics, procured what the shoot needed, handled cinematography and completed most of post-production for the documentary. The Gumel Emirate commissioned the project.</p>
@@ -116,7 +116,7 @@ export function generateHousePages({ studios, published, head, nav, foot, tail, 
   const pages = [
     ['about/', 'About us — Everiart Creative House', 'Meet our Abuja creative house, its three studios, leadership and film collaborators.', about(studios), 'about'],
     [filmsPath.slice(1), 'Film production — ByEveriArt', 'Explore full-length film production, documentary credits and public viewing links from ByEveriArt in Abuja.', films(published), 'experience'],
-    [filmsPath.slice(1) + 'sokoto/', 'Sokoto — Moving postcards by ByEveriArt', 'Nine silent documentary postcards from a camp for internally displaced people in Sokoto, Nigeria.', sokotoPage(filmsPath), 'experience'],
+    [filmsPath.slice(1) + 'sokoto/', sokotoTitle + ' — ByEveriArt', 'Nine silent documentary postcards from a camp for internally displaced people in Sokoto, Nigeria.', sokotoPage(filmsPath), 'experience'],
     [filmsPath.slice(1) + 'u-and-us/', 'U&US — Julius Holland, The Aysha Clothier and ByEveriArt', 'Watch a short documentary portfolio edit and explore photographs from U&US, a programme by Julius Holland and The Aysha Clothier, documented by ByEveriArt.', programmePage(filmsPath), 'experience'],
     [featurePath.slice(1), 'Deadly Pursuit — ByEveriArt', 'Inside the making of Deadly Pursuit, a feature-length crime thriller. Watch the work-in-progress excerpt and explore the production photography and crew credits.', feature(), 'experience']
   ];
