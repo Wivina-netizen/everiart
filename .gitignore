@@ -30,6 +30,8 @@ __pycache__/
 # Derived video lives on external hosting (Cloudflare R2), never in the repo.
 # Regenerate locally with: node make_media.mjs
 assets/**/*.mp4
+# Owner-cleared, self-hosted portfolio excerpt.
+!assets/deadly-pursuit/excerpt.mp4
 
 # A stale duplicate of .claude/skills — an older copy of the pattern library
 # that still describes retired patterns (hover-to-play tiles, ambient drift,

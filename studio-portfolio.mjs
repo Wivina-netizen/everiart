@@ -1,4 +1,5 @@
 import { mkdirSync, writeFileSync } from 'node:fs';
+import { filmTab } from './house-pages.mjs';
 import { arrowIcon } from './navigation.mjs';
 const directionIcon = path => `<svg class="ui-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" focusable="false"><path d="${path}"/></svg>`;
 const esc = value => String(value).replaceAll('&','&amp;').replaceAll('<','&lt;').replaceAll('>','&gt;').replaceAll('"','&quot;');
@@ -16,7 +17,7 @@ export function generateStudioPortfolios({ studios, published, head, nav, foot, 
     const projects = published.filter(p => p.studio === studio.id);
     const reels = studioReels(projects);
     for (const view of ['work', 'reels']) {
-      const tabs = `<nav class="portfolio-views" aria-label="Portfolio view"><a href="/experience/${studio.id}/work/"${view === 'work' ? ' aria-current="page"' : ''}>Portfolio</a><a href="/experience/${studio.id}/reels/"${view === 'reels' ? ' aria-current="page"' : ''}>Reels</a></nav>`;
+      const tabs = `<nav class="portfolio-views" aria-label="Portfolio view"><a href="/experience/${studio.id}/work/"${view === 'work' ? ' aria-current="page"' : ''}>Portfolio</a>${filmTab(studio.id)}<a href="/experience/${studio.id}/reels/"${view === 'reels' ? ' aria-current="page"' : ''}>Reels</a></nav>`;
       const reelContent = reels.length ? `<div class="reels-browser">
         <div class="reels-feed" tabindex="0" role="region" aria-label="${esc(studio.name)} reels. Scroll for the next film.">
           ${reels.map((reel, i) => `<article class="reel-card" aria-label="${esc(reel.name)} — ${esc(reel.label)}" data-reel-index="${i}">

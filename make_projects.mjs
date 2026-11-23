@@ -212,8 +212,8 @@ function buildWorkIndex(studios, published) {
     <header class="page__head">
       <h1 class="page__title">Work.</h1>
       <p class="page__lede">
-        Every published project across the three studios. Filter by
-        discipline, or see everything at once.
+        Selected projects across the three studios. Filter by discipline, or explore
+        <a href="/experience/byeveriart/films/"><u>feature films and documentaries</u></a> at ByEveriArt.
       </p>
     </header>
 
