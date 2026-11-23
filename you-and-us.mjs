@@ -24,7 +24,7 @@ export function programmePage(filmsPath) {
     <p class="house-lede">${credit}</p></header>
     <section class="house-section page-width"><div class="section-side"><p class="eyebrow">THE PROGRAMME</p>
     <h2>Inside the <i>workshop.</i></h2>
-    <p class="film-description">The programme brought designers together to work with fabric, pattern and fit. ByEveriArt recorded their conversations in the workshop.</p><p class="film-description">ByEveriArt documented the programme with an eight-person media crew on site. The team handled all photography, documentary cinematography, logistics and procurement.</p>
+    <p class="film-description">A speaker opens with the boubou. Three participants then describe developing a design, bringing an idea to life and finding room to experiment.</p><p class="film-description">ByEveriArt documented the programme with an eight-person media crew on site. The team handled all photography, documentary cinematography, logistics and procurement.</p>
     </div><div>${shortFilm()}</div></section>
     <section class="house-section page-width"><div class="section-side"><p class="eyebrow">PHOTOGRAPHY BY BYEVERIART</p><h2>Three days <i>in photographs.</i></h2></div>
     <div class="programme-gallery">
