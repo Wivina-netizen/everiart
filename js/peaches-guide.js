@@ -66,7 +66,7 @@ export const guide = {
     ['deadly','programme','contact']),
   stills: entry(/photos?|photographs?|stills|behind the scenes/i,
     'The U & US case study shows ByEveriArt’s workshop photographs from Days 1, 5 and 7. The Deadly Pursuit case study includes production stills of the office set, camera and lighting setups, and a performer between setups. For portrait, event and brand photography, explore BeFrames.', ['programme','deadly','photography']),
-  movie: entry(/\b(?:movie|feature film|full[- ]length|nollywood|make a film|produce a film|film production)\b/i,
+  movie: entry(/\b(?:movies?|feature films?|full[- ]length|nollywood|make a film|produce a film|film production)\b/i,
     'Yes. ByEveriArt produces full-length movies. On Deadly Pursuit, a Profect Original Film, the studio served as an executive producer alongside Ambrose Oseni. The production had a full set, vehicles and dedicated camera and sound crews. The case study includes the crew credits, on-set photographs and a 34-second work-in-progress excerpt.', ['deadly','excerpt','films']),
   watch: entry(/\bwatch\b|viewing|reels?|portfolio|samples?|released films?|examples of (?:films?|work)|documentaries|documentary work/i,
     'Start with the 34-second Deadly Pursuit work-in-progress excerpt or the captioned U & US workshop short. The film portfolio also includes the nine Sokoto postcards, a related Argungu festival short, the official Gumel highlight, the Hope for Her reel and Regalia event cuts.', ['films','excerpt','programme','postcards','homa','highlight']),

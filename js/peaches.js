@@ -13,7 +13,8 @@ let history = [];
 let busy = false;
 let pendingMessage = '';
 let controller;
-const catalogue = await fetch('/js/peaches-projects.json').then(r => r.json()).catch(() => []);
+let catalogue = [];
+const catalogueReady = fetch('/js/peaches-projects.json').then(r => r.json()).then(items => { catalogue = items; }).catch(() => {});
 
 function refreshDraft() {
   const href = teamEmailDraft(history, input.value || pendingMessage);
@@ -107,6 +108,7 @@ async function submit(text) {
       if (!(error instanceof TypeError) && error.name !== 'AbortError') throw error;
       data = offlineGuide(pending);
     }
+    if (data.projectSlugs?.length) await catalogueReady;
     history = [...pending, { role: 'assistant', content: data.reply }];
     status.textContent = '';
     message('assistant', data.reply, data.projectSlugs, data.suggestions, data.linkIds, data.mode);
