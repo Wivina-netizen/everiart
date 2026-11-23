@@ -1,7 +1,7 @@
 const esc = value => String(value).replaceAll('&', '&amp;').replaceAll('"', '&quot;').replaceAll('<', '&lt;').replaceAll('>', '&gt;');
 
-export function nativeFilm({ src, poster, label, caption, aspect = '16 / 9' }) {
-  return `<figure class="film-player"><video controls playsinline preload="none" controlslist="nodownload" style="--film-aspect: ${esc(aspect)}" poster="${esc(poster)}" aria-label="${esc(label)}"><source src="${esc(src)}" type="video/mp4"></video><figcaption>${esc(caption)}</figcaption></figure>`;
+export function nativeFilm({ src, poster, label, caption, aspect = '16 / 9', captions }) {
+  return `<figure class="film-player"><video controls playsinline preload="none" controlslist="nodownload" style="--film-aspect: ${esc(aspect)}" poster="${esc(poster)}" aria-label="${esc(label)}"><source src="${esc(src)}" type="video/mp4">${captions ? `<track kind="captions" src="${esc(captions)}" srclang="en" label="English">` : ''}</video><figcaption>${esc(caption)}</figcaption></figure>`;
 }
 
 export function projectFilms(project) {
