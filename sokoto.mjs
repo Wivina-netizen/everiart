@@ -1,4 +1,5 @@
 export const sokotoTitle = 'A Visit to an IDP Camp in Sokoto';
+const description = 'A ByEveriArt project with Malpai Foundation, documenting a camp for internally displaced people in Sokoto, Nigeria.';
 const filmRoot = '/assets/sokoto/';
 
 function postcards() {
@@ -20,13 +21,13 @@ function postcards() {
 export function sokotoEntry(filmsPath) {
   return `<section class="house-section page-width" id="sokoto"><div class="section-side">
     <p class="eyebrow">DOCUMENTARY POSTCARDS</p><h2>${sokotoTitle}</h2>
-    <p class="film-description">A camp for internally displaced people in Sokoto, Nigeria.</p>
+    <p class="film-description">${description}</p>
     <a class="text-link" href="${filmsPath}sokoto/">Open the postcard story</a></div><div>${postcards()}</div></section>`;
 }
 
 export function sokotoPage(filmsPath) {
   return `<header class="film-heading page-width"><a class="back-link" href="${filmsPath}">Back to film production</a>
     <p class="eyebrow">BYEVERIART · DOCUMENTARY POSTCARDS</p><h1>${sokotoTitle}</h1>
-    <p class="house-lede">A camp for internally displaced people in Sokoto, Nigeria.</p></header>
+    <p class="house-lede">${description}</p></header>
     <div class="page-width postcard-page">${postcards()}</div>`;
 }

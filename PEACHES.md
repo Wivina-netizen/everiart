@@ -31,7 +31,7 @@ Never commit confidential prices or negotiation floors to this public repository
 
 The Netlify Function consumes the platform's managed `OPENAI_API_KEY` and `OPENAI_BASE_URL` at runtime. It does not expose or log credentials. The current configured baseline is `gpt-4.1-mini`, listed in Netlify's supported models when implemented. Model quality should be reviewed with real briefs before production.
 
-The website reports a clear unavailable state if the gateway is not configured. It never substitutes canned answers and labels them AI. Deterministic commercial guidance can work without an AI connection.
+Public portfolio answers and link destinations live in `js/peaches-guide.js`. The function uses that guide for factual lookups and supplies the same facts to the AI for creative briefs. The browser renders links only from the approved destinations. When the gateway or endpoint is unavailable, the chat labels its fallback as the studio guide. Commercial guidance also works without an AI connection.
 
 Requests are bounded, same-origin browser requests are checked, and the function declares a per-IP/domain rate limit. No conversation database has been added. Conversation history stays in memory. Team links open a contextual mailto draft in the visitor's email client; nothing is sent automatically. Long context is explicitly excerpted and AI suggestions are labelled for discussion. The UI tells visitors messages go to an AI provider. Provider retention and a complete privacy notice remain on the readiness checklist.
 
