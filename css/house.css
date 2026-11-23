@@ -1,0 +1,54 @@
+.house-opening, .house-section {
+  display: grid;
+  grid-template-columns: minmax(0, .85fr) minmax(0, 1.15fr);
+  column-gap: clamp(40px, 7vw, 125px);
+}
+.house-opening { align-items: center; padding-block: clamp(44px, 6vw, 96px); }
+.house-opening h1, .film-heading h1 { margin: 14px 0 22px; }
+.house-opening figure, .feature-frame, .film-gallery figure { margin: 0; }
+.house-opening img, .feature-frame img, .film-gallery img { height: auto; border-radius: var(--radius-media); }
+.house-opening img { aspect-ratio: 5 / 4; }
+.night figcaption { margin-top: 12px; color: var(--muted); font-size: .85rem; }
+.house-lede, .house-rows article > p:not(.eyebrow), .house-person div > p:not(.eyebrow), .house-end p {
+  max-width: 55ch; font-size: clamp(1rem, 1.25vw, 1.18rem); line-height: 1.65;
+}
+.house-lede { max-width: 50ch; }
+.house-section { padding-block: clamp(48px, 6vw, 96px); position: relative; }
+.house-section::before { content: ''; position: absolute; inset: 0 var(--gutter) auto; border-top: 1px solid var(--line); }
+.section-side h2 { margin-top: 15px; }
+.house-rows > article + article { border-top: 1px solid var(--line); margin-top: 30px; padding-top: 30px; }
+.house-rows h3 { font: 400 clamp(1.8rem, 3vw, 3rem)/1.06 var(--serif); letter-spacing: -.025em; }
+.house-rows article p:not(.eyebrow), .house-person div p:not(.eyebrow) { color: var(--muted); margin-top: 12px; }
+.house-rows article .eyebrow { margin-bottom: 8px; }
+.house-rows .text-link { margin-top: 18px; min-height: 32px; }
+.house-links { display: flex; gap: 0 22px; flex-wrap: wrap; }
+.house-person { display: flex; align-items: center; gap: clamp(16px, 3vw, 40px); }
+.house-initials { display: grid; place-items: center; flex: none; width: clamp(68px, 9vw, 135px); aspect-ratio: 4/5; border: 1px solid var(--line); border-radius: var(--radius-media); background: #1c2541; color: var(--paper); font: italic clamp(26px, 3vw, 50px)/1 var(--serif); }
+.film-heading { padding-block: clamp(28px, 4vw, 62px) 28px; }
+.film-heading > .eyebrow { margin-top: clamp(35px, 5vw, 75px); }
+.film-heading .portfolio-views { margin-bottom: 0; }
+.feature-plate { position: relative; display: grid; align-items: end; overflow: hidden; min-height: clamp(350px, 44vw, 650px); isolation: isolate; border-radius: var(--radius-media); margin-bottom: clamp(40px, 5vw, 75px); }
+.feature-plate img, .feature-plate::after { position: absolute; inset: 0; width: 100%; height: 100%; z-index: -1; }
+.feature-plate::after { content: ''; background: linear-gradient(0deg, rgba(7,10,17,.92), rgba(7,10,17,.3) 48%, transparent 82%); }
+.feature-plate > div { padding: clamp(24px, 4vw, 65px); }
+.feature-plate h2 { margin: 5px 0 16px; }
+.plate-link { display: inline-block; border-bottom: 1px solid; padding-bottom: 6px; font-size: 1rem; }
+.feature-frame { margin-bottom: clamp(36px, 5vw, 75px); }
+.feature-frame img { width: 100%; max-height: 78svh; object-fit: contain; background: #0b0b0c; }
+.film-credits { margin: 0; }
+.film-credits div { display: grid; align-items: baseline; grid-template-columns: 1fr 1fr; gap: 12px; border-bottom: 1px solid var(--line); padding: 13px 0; }
+.film-credits dt { color: var(--muted); font-size: .95rem; }
+.film-credits dd { margin: 0; font: 400 clamp(20px, 2vw, 30px)/1.2 var(--serif); }
+.film-gallery { display: grid; gap: 30px; align-items: start; }
+.house-end { text-align: center; padding-block: clamp(45px, 7vw, 110px); }
+.house-end p { margin: 18px auto 24px; }
+@media(max-width: 760px) {
+  .house-opening, .house-section { grid-template-columns: 1fr; row-gap: 30px; }
+  .house-opening img { aspect-ratio: 3/2; }
+  .house-rows h3 { overflow-wrap: break-word; }
+}
+.feature-frame video { display: block; width: 100%; aspect-ratio: 16/9; max-height: 78svh; background: #0b0b0c; border-radius: var(--radius-media); }
+.house-opening img { aspect-ratio: auto; }
+.feature-plate img { object-position: center 80%; }
+.film-gallery { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+@media(max-width: 520px) { .film-gallery { grid-template-columns: 1fr; } }
