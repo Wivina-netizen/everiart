@@ -11,6 +11,29 @@ const casePhoto = media + 'hero.jpg';
 export const filmTab = studio => studio === 'byeveriart'
   ? `<a href="${filmsPath}">Films</a>` : '';
 
+export function filmSelectedWorks(projects, esc) {
+  const catalogue = discipline => projects.filter(p => p.discipline === discipline)
+    .map(p => ({ title: p.name, href: '/work/' + p.slug + '/', note: p.discipline }));
+  const groups = [
+    { title: 'Movie Production', items: [
+      { title: 'Deadly Pursuit', href: featurePath, note: 'Feature film · Crime thriller', image: media + 'hero.jpg' }
+    ] },
+    { title: 'Documentaries', items: [
+      { title: 'U&US', href: filmsPath + 'u-and-us/', note: 'Julius Holland and The Aysha Clothier' },
+      { title: 'Sokoto', href: filmsPath + 'sokoto/', note: 'Nine moving postcards' },
+      { title: 'Argungu Fishing Festival Documentary', href: filmsPath + '#argungu', note: 'With Perfecto Movies' },
+      { title: 'Gumel Documentary', href: filmsPath + '#gumel', note: 'With Perfecto Movies' },
+      ...catalogue('Documentary')
+    ] },
+    { title: 'Event Films', items: catalogue('Event film') }
+  ];
+  return groups.map((group, index) => `<details class="film-category"${index === 0 ? ' open' : ''}>
+    <summary>${group.title}</summary>
+    <ul>${group.items.map(item => `<li><a href="${esc(item.href)}">${item.image ? `<img src="${esc(item.image)}" alt="" width="120" height="80" loading="lazy">` : ''}
+      <span><strong>${esc(item.title)}</strong><small>${esc(item.note)}</small></span></a></li>`).join('')}</ul>
+  </details>`).join('');
+}
+
 const credits = [
   ['Executive producers', 'ByEveriArt and Ambrose Oseni'],
   ['Director and producer', 'Ambrose Profect'],
@@ -62,10 +85,10 @@ function films(published) {
   ${sokotoEntry(filmsPath)}
   <section id="documentaries" class="house-section page-width"><div class="section-side"><p class="eyebrow">DOCUMENTARIES</p><h2>ByEveriArt <i>with</i><br>Perfecto Movies.</h2>
     </div>
-    <div class="house-rows"><article><h3>Argungu Fishing Festival Documentary</h3><p>For the film about the Argungu Fishing Festival, ByEveriArt handled production logistics and procurement, filmed the festival and carried out most of post-production in collaboration with Perfecto Movies.</p><p>From Perfecto Movies’ festival series, <i>Homa (The Net)</i> offers a short look at the fishing tradition.</p>
+    <div class="house-rows"><article id="argungu"><h3>Argungu Fishing Festival Documentary</h3><p>For the film about the Argungu Fishing Festival, ByEveriArt handled production logistics and procurement, filmed the festival and carried out most of post-production in collaboration with Perfecto Movies.</p><p>From Perfecto Movies’ festival series, <i>Homa (The Net)</i> offers a short look at the fishing tradition.</p>
     ${youtubeFilm('P66ZIpQIxms', 'Homa (The Net) · Related festival short by Perfecto Movies')}
     <a class="text-link" href="/contact/">Enquire about a documentary screening</a></article>
-    <article><h3>Gumel Documentary</h3><p>ByEveriArt worked with Perfecto Movies to document the celebrations marking the Emir of Gumel’s 45th anniversary on the throne. ByEveriArt organised production logistics, procured what the shoot needed, handled cinematography and completed most of post-production for the documentary. The Gumel Emirate commissioned the project.</p>
+    <article id="gumel"><h3>Gumel Documentary</h3><p>ByEveriArt worked with Perfecto Movies to document the celebrations marking the Emir of Gumel’s 45th anniversary on the throne. ByEveriArt organised production logistics, procured what the shoot needed, handled cinematography and completed most of post-production for the documentary. The Gumel Emirate commissioned the project.</p>
     ${youtubeFilm('g9exVt_daOI', 'Gumel · Official highlight by Perfecto Movies')}</article></div></section>
   <section class="house-section page-width"><div class="section-side"><p class="eyebrow">BYEVERIART</p><h2>Studio films.</h2></div><div class="house-rows">${selected}</div></section>
   <section class="house-section page-width"><div class="section-side"><p class="eyebrow">FURTHER WORK</p><h2>From the archive.</h2></div>
